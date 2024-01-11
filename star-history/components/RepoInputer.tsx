@@ -12,17 +12,27 @@ interface State {
     visible: boolean;
   }[];
   latestBlog?: Blog;
- }
- 
- export default function RepoInputer() {
+}
+
+interface RepoInputerProps {
+  isChartVisible: boolean;
+  setChartVisibility: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+export default function RepoInputer({
+  isChartVisible,
+  setChartVisibility,
+}: RepoInputerProps) {
   const store = useAppStore();
   const [state, setState] = useState<State>({
     repo: "",
     repos: [],
   });
- 
+
   const inputElRef = useRef<HTMLInputElement | null>(null);
- 
+
+  // console.log(store)
+
   useEffect(() => {
     const fetchData = async () => {
       const res = await fetch("/blog/data.json");
@@ -41,10 +51,10 @@ interface State {
         })),
       }));
     };
- 
+
     fetchData();
   }, []);
- 
+
   useEffect(() => {
     const handleWatch = () => {
       for (const r of state.repos) {
@@ -55,13 +65,15 @@ interface State {
           }));
         }
       }
- 
-      let hash = '';
+
+      let hash = "";
       if (store.state.repos.length > 0) {
         hash = `#${store.state.repos.join("&")}&${store.state.chartMode}`;
       }
+      // Sync location hash only right here
       window.location.hash = hash;
     };
+
     handleWatch();
   }, [store.state.repos, store.state.chartMode]);
 
