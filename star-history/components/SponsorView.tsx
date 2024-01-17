@@ -17,7 +17,7 @@ interface BytebaseBannerProps {
               {sponsor.name}
             </a>
           </Link>
-          - {sponsor.slogan}
+          - {sponsor.logoSlogan}
         </p>
         <Link href={sponsor.link}>
           <a className="hover:opacity-80" target="_blank">
