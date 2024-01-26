@@ -17,7 +17,7 @@ interface Blog {
  author: string;
  publishedDate: string;
  readingTime?: string; // Make readingTime optional
- featured: boolean;
+ featured?: boolean; // Make featured optional
  featureImage?: string;
 }
 
@@ -111,15 +111,17 @@ const Blog: React.FC = () => {
               <div className="w-full flex flex-col justify-start items-center">
                 <div className="w-full mt-8 flex flex-col justify-start items-start">
                   {featuredBlogs.map((blog) => (
-                    <div key={blog.slug} className="w-full h-auto flex flex-col border rounded-md mb-8">
-  <Link href={`/blog/${blog.slug}`} as={`/blog/${blog.slug}`}>
-    <img
-      className="h-60 w-full flex-shrink-0 object-cover rounded-t-md"
-      src={blog.featureImage}
-    />
-  </Link>
-
-
+                    <div
+                      key={blog.slug}
+                      className="w-full h-auto flex flex-col border rounded-md mb-8"
+                    >
+                   <Link href={`/blog/${encodeURIComponent(blog.slug)}`}>
+                      
+                        <img
+                          className="h-60 w-full flex-shrink-0 object-cover rounded-t-md"
+                          src={blog.featureImage}
+                        />
+                      </Link>
 
                       <div className="w-full p-6 py-4 flex flex-col justify-start">
                         <div className="mt-2 w-full flex flex-col justify-start items-start">
