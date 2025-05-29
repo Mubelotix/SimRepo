@@ -1,13 +1,13 @@
 {
 	"private": true,
 	"scripts": {
-		"build": "NODE_NO_WARNINGS=1 parcel build",
+		"build": "NODE_NO_WARNINGS=1 parcel build && cp static/* distribution/",
 		"lint": "run-p lint:*",
 		"lint-fix": "run-p 'lint:* -- --fix'",
 		"lint:css": "stylelint source/**/*.css",
 		"lint:js": "xo",
 		"test": "run-p lint:* build",
-		"watch": "NODE_NO_WARNINGS=1 parcel watch --no-hmr"
+		"watch": "cp static/* distribution/ && NODE_NO_WARNINGS=1 parcel watch --no-hmr"
 	},
 	"browserslist": [
 		"last 1 Chrome version",
@@ -29,6 +29,7 @@
 		"rules": {}
 	},
 	"dependencies": {
+		"npyjs": "^0.7.0",
 		"webext-base-css": "^2.0.1",
 		"webext-options-sync": "^4.2.3"
 	},

@@ -1,6 +1,15 @@
-import optionsStorage from './options-storage.js';
+import { optionsStorage } from './options-storage.js';
+import npyjs from "npyjs";
 
 console.log('💈 Content script loaded for', chrome.runtime.getManifest().name);
+
+// Find the repo id from the element "<meta name="octolytics-dimension-repository_id" content="192725951" />"
+let repoId = null;
+document.querySelectorAll('meta[name="octolytics-dimension-repository_id"]').forEach((el) => {
+	repoId = el.getAttribute('content');
+});
+
+console.log('💈 Repo ID:', repoId);
 
 async function init() {
 	const options = await optionsStorage.getAll();
