@@ -1,0 +1,73 @@
+env:
+  DIRECTORY: distribution
+  PROJECT_NAME: extension
+
+# FILE GENERATED WITH: npx ghat fregante/ghatemplates/webext
+# SOURCE: https://github.com/fregante/ghatemplates
+
+name: Release
+on:
+  workflow_dispatch: null
+jobs:
+  Version:
+    outputs:
+      created: ${{ env.DAILY_VERSION_CREATED }}
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Test and build
+        run: npm test
+      - name: Create tag if necessary
+        uses: fregante/daily-version-action@v2
+      - name: Update manifest.json with version ${{ env.DAILY_VERSION}}
+        if: env.DAILY_VERSION_CREATED
+        run: npx dot-json@1 "$DIRECTORY/manifest.json" version "$DAILY_VERSION"
+      - name: Ready for "submit" jobs
+        if: env.DAILY_VERSION_CREATED
+        uses: actions/upload-artifact@v4
+        with:
+          path: ${{ env.DIRECTORY }}
+      - name: Create release
+        if: env.DAILY_VERSION_CREATED
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: ${{ env.DIRECTORY }}
+        run: |
+          FILENAME="$PROJECT_NAME-$DAILY_VERSION-for-local-testing-only.zip"
+          zip -r "$FILENAME" ./*
+          gh release create "$DAILY_VERSION" --generate-notes "$FILENAME"
+  Chrome:
+    if: needs.Version.outputs.created
+    needs: Version
+    name: Submit (Chrome)
+    environment: Chrome
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+      - run: npx chrome-webstore-upload-cli@3 upload --auto-publish
+        working-directory: artifact
+        env:
+          EXTENSION_ID: ${{ secrets.EXTENSION_ID }}
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+          REFRESH_TOKEN: ${{ secrets.REFRESH_TOKEN }}
+  Firefox:
+    if: needs.Version.outputs.created
+    needs: Version
+    name: Submit (Firefox)
+    environment: Firefox
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+      - run: npx web-ext@7 sign --use-submission-api --channel listed
+        working-directory: artifact
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.WEB_EXT_API_KEY }}
+          WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}

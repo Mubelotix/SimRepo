@@ -1,0 +1,40 @@
+{
+	"$schema": "https://json.schemastore.org/chrome-manifest",
+	"name": "Awesome Extension",
+	"version": "0.0.0",
+	"description": "An awesome new browser extension",
+	"homepage_url": "https://github.com/fregante/browser-extension-template",
+	"manifest_version": 3,
+	"minimum_chrome_version": "121",
+	"browser_specific_settings": {
+		"gecko": {
+			"id": "awesome-extension@notlmn.github.io",
+			"strict_min_version": "109.0"
+		}
+	},
+	"icons": {
+		"128": "icon.png"
+	},
+	"permissions": [
+		"storage"
+	],
+	"host_permissions": [
+		"https://github.com/*"
+	],
+	"content_scripts": [
+		{
+			"matches": [ "https://github.com/fregante/browser-extension-template/*" ],
+			"js": [ "content.js" ],
+			"css": [ "content.css" ],
+			"run_at": "document_end"
+		}
+	],
+	"options_ui": {
+		"page": "options.html"
+	},
+	"background": {
+		"service_worker": "background.js",
+		"type": "module",
+		"scripts": [ "background.js" ]
+	}
+}
