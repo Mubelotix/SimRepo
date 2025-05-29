@@ -1,3 +1,4 @@
 node_modules
 distribution
 .parcel-cache
+static/embeddings.npy
