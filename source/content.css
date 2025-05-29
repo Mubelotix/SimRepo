@@ -1,0 +1,8 @@
+#text-notice {
+	position: fixed;
+	top: 10px;
+	left: 10px;
+	padding: 10px;
+	background: #fff;
+	z-index: 999999;
+}
