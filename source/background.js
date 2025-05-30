@@ -31,8 +31,7 @@ async function initRepoIds() {
 	const lines = text.trim().split('\n');
 	let data = [];
 	for (let i = 1; i < lines.length; i++) {
-		const [repo_id, index, /* name */] = lines[i].split(',');
-		data.push([Number(repo_id), Number(index)]);
+		data.push([Number(lines[i]), i-1]);
 	}
 
 	repoIds = BiMap.of(...data);
@@ -218,9 +217,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 				similarInfosWithSimilarity.push({
 					...info,
 					repo_id: repoId,
-					similarity: similarityMap.get(repoId) ?? null,
+					similarity: similarityMap.get(Number(repoId)) || 0,
 				});
 			}
+			similarInfosWithSimilarity.sort((a, b) => b.similarity - a.similarity);
 
 			console.log('repo informations: ', similarInfosWithSimilarity);
 

@@ -26,29 +26,29 @@ function getSimilarRepos(repoId) {
 
 function formatNumber(num) {
 	if (num >= 1e9) {
-		return (num / 1e9).toFixed(1) + 'G';
+		return parseFloat((num / 1e9).toFixed(1)) + 'G';
 	} else if (num >= 1e6) {
-		return (num / 1e6).toFixed(1) + 'M';
+		return parseFloat((num / 1e6).toFixed(1)) + 'M';
 	} else if (num >= 1e3) {
-		return (num / 1e3).toFixed(1) + 'k';
+		return parseFloat((num / 1e3).toFixed(1)) + 'k';
 	}
 	return num.toString();
 }
 
-function getHtml(owner, repo, fullname, description, language, stars, forks, archived) {
+function getHtml(owner, repo, fullname, description, language, stars, forks, archived, similarity) {
 	return `
-	<div class="Box d-flex p-3 width-full public source">
-		<div class="pinned-item-list-item-content">
-			<div class="d-flex width-full position-relative">
-				<div class="flex-1">
-					${octicons.repo.toSVG({ "class": "mr-1 color-fg-muted" })}
-					<span data-view-component="true" class="position-relative"><a href="/${fullname}" data-view-component="true" class="Link mr-1 text-bold wb-break-word"><span class="owner text-normal">${owner}/</span><span class="repo">${repo}</span></a></span>
-					
-					${archived ? `
-					<span class="Label Label--attention v-align-middle mt-1 no-wrap v-align-baseline Label--inline">Public archive</span>
-					` : ''}
-				</div>
+<div class="Box d-flex p-3 width-full public source">
+	<div class="pinned-item-list-item-content">
+		<div class="d-flex width-full position-relative">
+			<div class="flex-1">
+				${octicons.repo.toSVG({ "class": "mr-1 color-fg-muted" })}
+				<span data-view-component="true" class="position-relative"><a href="/${fullname}" data-view-component="true" class="Link mr-1 text-bold wb-break-word"><span class="owner text-normal">${owner}/</span><span class="repo">${repo}</span></a></span>
+				
+				${archived ? `
+				<span class="Label Label--attention v-align-middle mt-1 no-wrap v-align-baseline Label--inline">Public archive</span>
+				` : ''}
 			</div>
+		</div>
 
 
 		<p class="pinned-item-desc color-fg-muted text-small mt-2 mb-0">
@@ -75,6 +75,11 @@ function getHtml(owner, repo, fullname, description, language, stars, forks, arc
 				${formatNumber(forks)}
 			</a>
 			` : ''}
+
+			<a class="pinned-item-meta Link--muted">
+				${octicons['flame'].toSVG()}
+				${Math.floor(similarity * 100)}%
+			</a>
 		</p>
     </div>
   </div>`;
@@ -85,7 +90,7 @@ function getContainerHtml(similarReposCount, repos) {
 	for (const repo of repos) {
 		let owner = repo.full_name.split('/')[0];
 		let repoName = repo.full_name.split('/')[1];
-		innerHtml += getHtml(owner, repoName, repo.full_name, repo.description, repo.language, repo.stargazers_count, repo.forks_count);
+		innerHtml += getHtml(owner, repoName, repo.full_name, repo.description, repo.language, repo.stargazers_count, repo.forks_count, repo.archived, repo.similarity);
 	}
 
 	return `
