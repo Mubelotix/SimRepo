@@ -1,4 +1,4 @@
-import { optionsStorage } from './options-storage.js';
+import { optionsStorage, modelReady } from './options-storage.js';
 import npyjs from "npyjs";
 
 console.log('💈 Content script loaded for', chrome.runtime.getManifest().name);
@@ -10,6 +10,29 @@ document.querySelectorAll('meta[name="octolytics-dimension-repository_id"]').for
 });
 
 console.log('💈 Repo ID:', repoId);
+
+function getSimilarRepos(repoId) {
+	return new Promise((resolve, reject) => {
+		chrome.runtime.sendMessage({ type: 'getSimilarRepos', repoId }, (response) => {
+			if (chrome.runtime.lastError) {
+				return reject(chrome.runtime.lastError);
+			}
+			resolve(response);
+		});
+	});
+}
+
+getSimilarRepos(repoId)
+	.then((response) => {
+		if (response.found) {
+			console.log('💈 Found similar repos for repoId:', repoId, 'Index:', response.index);
+		} else {
+			console.log('💈 No similar repos found for repoId:', repoId);
+		}
+	})
+	.catch((error) => {
+		console.error('💈 Error finding similar repos:', error);
+	});
 
 async function init() {
 	const options = await optionsStorage.getAll();
