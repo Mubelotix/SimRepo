@@ -1,8 +1,7 @@
-#text-notice {
-	position: fixed;
-	top: 10px;
-	left: 10px;
-	padding: 10px;
-	background: #fff;
-	z-index: 999999;
+#similar-repos-container .pinned-item-meta + .pinned-item-meta {
+	margin-left: var(--base-size-16);
+}
+
+#similar-repos-container>.BorderGrid-cell>div {
+	margin-bottom: var(--base-size-8);
 }
