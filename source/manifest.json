@@ -1,17 +1,10 @@
 {
 	"$schema": "https://json.schemastore.org/chrome-manifest",
-	"name": "Awesome Extension",
-	"version": "0.0.0",
-	"description": "An awesome new browser extension",
-	"homepage_url": "https://github.com/fregante/browser-extension-template",
+	"name": "SimRepo",
+	"version": "0.1.0",
+	"description": "Shows similar repositories on GitHub",
+	"homepage_url": "https://github.com/Mubelotix/similar-repositories-extension",
 	"manifest_version": 3,
-	"minimum_chrome_version": "121",
-	"browser_specific_settings": {
-		"gecko": {
-			"id": "awesome-extension@notlmn.github.io",
-			"strict_min_version": "109.0"
-		}
-	},
 	"icons": {
 		"128": "icon.png"
 	},
@@ -27,14 +20,6 @@
 			"js": [ "content.js" ],
 			"css": [ "content.css" ],
 			"run_at": "document_end"
-		}
-	],
-	"web_accessible_resources": [
-		{
-			"resources": [
-				"data/embeddings.npy"
-			],
-			"matches": ["<all_urls>"]
 		}
 	],
 	"options_ui": {
