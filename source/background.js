@@ -2,6 +2,7 @@
 import { optionsStorage } from './options-storage.js';
 import npyjs from 'npyjs';
 import { BiMap } from '@rimbu/bimap';
+import { Decompress } from 'fflate';
 
 var model = null;
 var repoIds = null;
@@ -79,12 +80,9 @@ function getClosestNIndexes(index, n) {
 	}
 
 	const totalVectors = model.shape[0];
-	const vectorSize = model.shape[1];
-
 	const targetVector = getVector(index);
 
 	const scores = [];
-
 	for (let i = 0; i < totalVectors; i++) {
 		if (i === index) continue; // skip self
 		const compareVector = getVector(i);
@@ -97,6 +95,101 @@ function getClosestNIndexes(index, n) {
 	return scores.slice(0, n);
 }
 
+async function findReposInfo(repoIds) {
+  const url = chrome.runtime.getURL('repos.json.gz');
+  const response = await fetch(url);
+
+  if (!response.body) throw new Error('Streaming not supported');
+
+  const decompress = new Decompress();
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+
+  let buffer = '';
+  const keySet = new Set(repoIds.map(String)); // repo IDs as strings for lookup
+  const foundRepos = new Map();
+
+  return new Promise((resolve, reject) => {
+    decompress.ondata = (chunk, final) => {
+      buffer += decoder.decode(chunk, { stream: !final });
+
+      // Try to find all repo keys in the buffer
+      for (const repoId of [...keySet]) {
+        const key = `"${repoId}":`;
+        const keyIndex = buffer.indexOf(key);
+
+        if (keyIndex !== -1) {
+          let objStart = keyIndex + key.length;
+
+          // Parse the JSON object for repo
+          let braceCount = 0;
+          let objEnd = -1;
+
+          for (let i = objStart; i < buffer.length; i++) {
+            if (buffer[i] === '{') braceCount++;
+            else if (buffer[i] === '}') {
+              braceCount--;
+              if (braceCount === 0) {
+                objEnd = i + 1;
+                break;
+              }
+            }
+          }
+
+          if (objEnd !== -1) {
+            const objStr = buffer.slice(objStart, objEnd);
+            try {
+              const repoObj = JSON.parse(objStr);
+              foundRepos.set(repoId, {
+                full_name: repoObj.full_name,
+                stargazers_count: repoObj.stargazers_count,
+                forks_count: repoObj.forks_count,
+                language: repoObj.language,
+              });
+              keySet.delete(repoId);
+            } catch (e) {
+              // Partial JSON, wait for more data
+            }
+          }
+        }
+      }
+
+      // Trim buffer to avoid memory blowup
+      if (buffer.length > 1_000_000) {
+        buffer = buffer.slice(buffer.length - 500_000);
+      }
+
+      // Resolve early if all found
+      if (keySet.size === 0) {
+        reader.cancel();
+        resolve(foundRepos);
+      }
+
+      // If final chunk & some not found, resolve anyway with what we have
+      if (final) {
+        resolve(foundRepos.values());
+      }
+    };
+
+    decompress.onerror = (err) => {
+      reject(err);
+    };
+
+    function pump() {
+      reader.read().then(({ done, value }) => {
+        if (done) {
+          resolve(Array.from(foundRepos.values()));
+          return;
+        }
+        decompress.push(value);
+        pump();
+      }).catch(reject);
+    }
+
+    pump();
+  });
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 	if (message.type === 'getSimilarRepos') {
         (async () => {
@@ -106,24 +199,32 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 			const repoId = Number(message.repoId);
 			const index = repoIds.getValue(repoId);
-			console.log('Received request for similar repos for repoId:', repoId, 'Index:', index);
 			
 			if (index == null) {
-				sendResponse({ found: false });
+				sendResponse({ status: "unknown" });
 				return;
 			}
 
-			let vector = getVector(index);
-			console.log('Vector for repoId', repoId, 'at index', index, ':', vector);
+			let similarIndexes = getClosestNIndexes(index, 10);
+			let similarIds = similarIndexes.map(i => repoIds.getKey(i.index));
+			let similarityMap = new Map(similarIndexes.map(i => [repoIds.getKey(i.index), i.similarity]));
 
-			let similarIndexes = getClosestNIndexes(index, 5);
-			console.log('Similar indexes for repoId', repoId, ':', similarIndexes);
+			let similarInfos = await findReposInfo(similarIds);
 
+			const similarInfosWithSimilarity = [];
+			for (const [repoId, info] of similarInfos.entries()) {
+				similarInfosWithSimilarity.push({
+					...info,
+					repo_id: repoId,
+					similarity: similarityMap.get(repoId) ?? null,
+				});
+			}
+
+			console.log('repo informations: ', similarInfosWithSimilarity);
 
 			sendResponse({
-				found: index != null,
-				index,
-				// include more data as needed
+				status: similarInfosWithSimilarity.length > 0 ? "success" : "error",
+				data: similarInfosWithSimilarity,
 			});
 		})();
 
