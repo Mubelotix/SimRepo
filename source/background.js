@@ -73,23 +73,34 @@ function cosineSimilarity(vecA, vecB) {
 	return dot / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
-function getClosestNIndexes(index, n) {
+function getClosestNIndexes(index, max, min, threshold) {
 	if (!model || !model.data || !model.shape) {
 		throw new Error('Model not initialized or invalid');
 	}
 
 	const totalVectors = model.shape[0];
 	const targetVector = getVector(index);
+  let aboveThreshold = 0;
 
 	const scores = [];
 	for (let i = 0; i < totalVectors; i++) {
 		if (i === index) continue; // skip self
 		const compareVector = getVector(i);
 		const similarity = cosineSimilarity(targetVector, compareVector);
+
+    if (similarity >= threshold) {
+      aboveThreshold++;
+    } else if (aboveThreshold >= min) {
+      continue;
+    }
+
 		scores.push({ index: i, similarity });
 	}
 
 	scores.sort((a, b) => b.similarity - a.similarity);
+
+  let n = Math.min(max, aboveThreshold);
+  n = Math.max(n, min);
 
 	return scores.slice(0, n);
 }
@@ -199,6 +210,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 			await ready;
 
 			const repoId = Number(message.repoId);
+      const max = Number(message.max) || 10;
+      const min = Number(message.min) || 3;
+      const threshold = Number(message.threshold) || 0.95;
+
 			const index = repoIds.getValue(repoId);
 			
 			if (index == null) {
@@ -206,7 +221,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 				return;
 			}
 
-			let similarIndexes = getClosestNIndexes(index, 10);
+			let similarIndexes = getClosestNIndexes(index, max, min, threshold);
 			let similarIds = similarIndexes.map(i => repoIds.getKey(i.index));
 			let similarityMap = new Map(similarIndexes.map(i => [repoIds.getKey(i.index), i.similarity]));
 

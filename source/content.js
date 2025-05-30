@@ -10,12 +10,13 @@ let repoId = null;
 document.querySelectorAll('meta[name="octolytics-dimension-repository_id"]').forEach((el) => {
 	repoId = el.getAttribute('content');
 });
+var loading = false;
 
 console.log('💈 Repo ID:', repoId);
 
-function getSimilarRepos(repoId) {
+function getSimilarRepos(repoId, min, max, threshold) {
 	return new Promise((resolve, reject) => {
-		chrome.runtime.sendMessage({ type: 'getSimilarRepos', repoId }, (response) => {
+		chrome.runtime.sendMessage({ type: 'getSimilarRepos', repoId, min, max, threshold }, (response) => {
 			if (chrome.runtime.lastError) {
 				return reject(chrome.runtime.lastError);
 			}
@@ -85,8 +86,9 @@ function getHtml(owner, repo, fullname, description, language, stars, forks, arc
   </div>`;
 }
 
-function getContainerHtml(similarReposCount, repos) {
+function getContainerHtml(repos) {
 	let innerHtml = '';
+	console.log('💈 Repos:', repos);
 	for (const repo of repos) {
 		let owner = repo.full_name.split('/')[0];
 		let repoName = repo.full_name.split('/')[1];
@@ -98,37 +100,51 @@ function getContainerHtml(similarReposCount, repos) {
     <div class="BorderGrid-cell">
   		<h2 class="h4 mb-3">
   			Similar repositories
-			<span title="${similarReposCount}" data-view-component="true" class="Counter">${formatNumber(similarReposCount)}</span>
+			<span title="${repos.length}" data-view-component="true" class="Counter">${formatNumber(repos.length)}</span>
 		</h2>
 
 		${innerHtml}
+
+		<div class="mt-2">
+			<a class="Link--muted" id="similar-repos-view-more">View more</a>
+		</div>
     </div></div>`;
 }
 
-getSimilarRepos(repoId)
-	.then((response) => {
-		if (response.status === "success" && response.data !== undefined) {
-			console.log('💈 Found similar repos for repoId:', repoId, ', data:', response.data);
-
-			const similarReposContainer = document.querySelector('#similar-repos-container');
-			if (similarReposContainer) {
-				similarReposContainer.outerHTML = getContainerHtml(response.data.length, response.data);
-				return;
+function setupCallback(nextMin) {
+	const viewMoreLink = document.querySelector('#similar-repos-view-more');
+	if (viewMoreLink) {
+		viewMoreLink.addEventListener('click', () => {
+			if (!loading) {
+				viewMoreLink.parentElement.insertAdjacentHTML('beforeend', `<span class="loading-spinner"></span>`);
+				init(nextMin);
 			}
+		});
+	}
+}
 
-			const sidebar = document.querySelector('.Layout-sidebar > div');
-			sidebar.insertAdjacentHTML('beforeend', getContainerHtml(response.data.length, response.data));
-		} else {
-			console.log('💈 No similar repos found for repoId:', repoId);
-		}
-	})
-	.catch((error) => {
-		console.error('💈 Error finding similar repos:', error);
-	});
-
-async function init() {
+async function init(min = 3) {
 	const options = await optionsStorage.getAll();
+	loading = true;
+	let response = await getSimilarRepos(repoId, min, 10, 0.9);
+	loading = false;
 
+	if (response.status === "success" && response.data !== undefined) {
+		console.log('💈 Found similar repos for repoId:', repoId, ', data:', response.data);
+
+		const similarReposContainer = document.querySelector('#similar-repos-container');
+		if (similarReposContainer) {
+			similarReposContainer.outerHTML = getContainerHtml(response.data);
+			setupCallback(response.data.length + 5);
+			return;
+		}
+
+		const sidebar = document.querySelector('.Layout-sidebar > div');
+		sidebar.insertAdjacentHTML('beforeend', getContainerHtml(response.data));
+		setupCallback(response.data.length + 5);
+	} else {
+		console.log('💈 No similar repos found for repoId:', repoId);
+	}
 }
 
 init();
