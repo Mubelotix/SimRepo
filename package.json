@@ -30,6 +30,7 @@
 	},
 	"dependencies": {
 		"@rimbu/bimap": "^2.0.4",
+		"@scdev/github-languages-colors": "^1.0.0",
 		"fflate": "^0.8.2",
 		"npyjs": "^0.7.0",
 		"webext-base-css": "^2.0.1",

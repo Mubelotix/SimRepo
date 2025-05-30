@@ -144,7 +144,9 @@ async function findReposInfo(repoIds) {
                 full_name: repoObj.full_name,
                 stargazers_count: repoObj.stargazers_count,
                 forks_count: repoObj.forks_count,
+				description: repoObj.description,
                 language: repoObj.language,
+				archived: repoObj.archived,
               });
               keySet.delete(repoId);
             } catch (e) {
