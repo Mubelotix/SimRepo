@@ -8,7 +8,7 @@
 [link-cws-keys]: https://github.com/fregante/chrome-webstore-upload-keys
 [link-amo-keys]: https://addons.mozilla.org/en-US/developers/addon/api/key
 
-> Cross-browser extension boilerplate - barebones template with Parcel 2, options handler and auto-publishing.
+> Browser extension showing similar repositories on GitHub. 
 
 Screenshot of extension options:
 
