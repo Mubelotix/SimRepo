@@ -24,8 +24,8 @@ function getSimilarRepos(repoId) {
 
 getSimilarRepos(repoId)
 	.then((response) => {
-		if (response.found) {
-			console.log('💈 Found similar repos for repoId:', repoId, 'Index:', response.index);
+		if (response.status === "success" && response.data !== undefined) {
+			console.log('💈 Found similar repos for repoId:', repoId, ', data:', response.data);
 		} else {
 			console.log('💈 No similar repos found for repoId:', repoId);
 		}
