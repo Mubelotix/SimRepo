@@ -3,3 +3,4 @@ distribution
 .parcel-cache
 static/embeddings.npy
 static/repo_ids.csv
+static/repos.json.gz
