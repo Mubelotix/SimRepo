@@ -29,6 +29,7 @@
 		"rules": {}
 	},
 	"dependencies": {
+		"@primer/octicons": "^19.15.2",
 		"@rimbu/bimap": "^2.0.4",
 		"@scdev/github-languages-colors": "^1.0.0",
 		"fflate": "^0.8.2",
