@@ -1,11 +1,12 @@
 // eslint-disable-next-line import/no-unassigned-import
 import { optionsStorage } from './options-storage.js';
 import npyjs from 'npyjs';
-import { BiMap } from '@rimbu/bimap';
 import { Decompress } from 'fflate';
+import { repo } from '@primer/octicons';
 
 var model = null;
-var repoIds = null;
+var repoIds = new Map();
+var repoIndexes = new Map();
 
 async function initModel() {
 	const modelUrl = chrome.runtime.getURL('embeddings.npy');
@@ -29,14 +30,12 @@ async function initRepoIds() {
 	// Parse CSV: expect header line, then lines like `repo_id,index,name`
 	// We want a Map from repo_id (string or number) to index (number)
 	const lines = text.trim().split('\n');
-	let data = [];
 	for (let i = 1; i < lines.length; i++) {
-		data.push([Number(lines[i]), i-1]);
+    repoIds.set(i-1, Number(lines[i]));
+    repoIndexes.set(Number(lines[i]), i-1);
 	}
 
-	repoIds = BiMap.of(...data);
-
-	console.log('Repo ID to index map loaded:', repoIds);
+	console.log('Repo ID to index map loaded:', repoIds, repoIndexes);
 }
 
 var ready = (async () => {
@@ -214,7 +213,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       const min = Number(message.min) || 3;
       const threshold = Number(message.threshold) || 0.95;
 
-			const index = repoIds.getValue(repoId);
+			const index = repoIndexes.get(repoId);
 			
 			if (index == null) {
 				sendResponse({ status: "unknown" });
@@ -222,8 +221,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 			}
 
 			let similarIndexes = getClosestNIndexes(index, max, min, threshold);
-			let similarIds = similarIndexes.map(i => repoIds.getKey(i.index));
-			let similarityMap = new Map(similarIndexes.map(i => [repoIds.getKey(i.index), i.similarity]));
+			let similarIds = similarIndexes.map(i => repoIds.get(i.index));
+			let similarityMap = new Map(similarIndexes.map(i => [repoIds.get(i.index), i.similarity]));
 
 			let similarInfos = await findReposInfo(similarIds);
 

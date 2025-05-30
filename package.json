@@ -1,7 +1,7 @@
 {
 	"private": true,
 	"scripts": {
-		"build": "NODE_NO_WARNINGS=1 parcel build && cp static/* distribution/",
+		"build": "rm -rf distribution/* && NODE_NO_WARNINGS=1 parcel build && cp static/* distribution/",
 		"lint": "run-p lint:*",
 		"lint-fix": "run-p 'lint:* -- --fix'",
 		"lint:css": "stylelint source/**/*.css",
@@ -30,7 +30,6 @@
 	},
 	"dependencies": {
 		"@primer/octicons": "^19.15.2",
-		"@rimbu/bimap": "^2.0.4",
 		"@scdev/github-languages-colors": "^1.0.0",
 		"fflate": "^0.8.2",
 		"npyjs": "^0.7.0",

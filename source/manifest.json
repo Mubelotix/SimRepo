@@ -17,9 +17,6 @@
 	"permissions": [
 		"storage"
 	],
-	"host_permissions": [
-		"https://github.com/*"
-	],
 	"content_scripts": [
 		{
 			"matches": [ "https://github.com/*" ],
