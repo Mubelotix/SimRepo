@@ -4,15 +4,7 @@ import ghColors from '@scdev/github-languages-colors';
 import octicons from "@primer/octicons"
 
 console.log('💈 Content script loaded for', chrome.runtime.getManifest().name);
-
-// Find the repo id from the element "<meta name="octolytics-dimension-repository_id" content="192725951" />"
-let repoId = null;
-document.querySelectorAll('meta[name="octolytics-dimension-repository_id"]').forEach((el) => {
-	repoId = el.getAttribute('content');
-});
 var loading = false;
-
-console.log('💈 Repo ID:', repoId);
 
 function getSimilarRepos(repoId, min, max, threshold) {
 	return new Promise((resolve, reject) => {
@@ -123,7 +115,21 @@ function setupCallback(nextMin) {
 	}
 }
 
+async function getRepoId() {
+	let repoId = null;
+	while (!repoId) {
+		document.querySelectorAll('meta[name="octolytics-dimension-repository_id"]').forEach((el) => {
+			repoId = el.getAttribute('content');
+		});
+		await new Promise(resolve => setTimeout(resolve, 100));
+	}
+	return repoId;
+}
+
 async function init(min = 3) {
+	let repoId = await getRepoId();
+	console.log('💈 Repo ID:', repoId);
+
 	const options = await optionsStorage.getAll();
 	loading = true;
 	let response = await getSimilarRepos(repoId, min, 10, 0.9);
@@ -131,6 +137,12 @@ async function init(min = 3) {
 
 	if (response.status === "success" && response.data !== undefined) {
 		console.log('💈 Found similar repos for repoId:', repoId, ', data:', response.data);
+
+		if (repoId != await getRepoId()) {
+			console.log('💈 Repo ID changed during fetch, aborting update.');
+			init();
+			return;
+		}
 
 		const similarReposContainer = document.querySelector('#similar-repos-container');
 		if (similarReposContainer) {
@@ -148,3 +160,14 @@ async function init(min = 3) {
 }
 
 init();
+
+// Periodically check for url changes
+let lastUrl = window.location.href;
+setInterval(() => {
+	const currentUrl = window.location.href;
+	if (currentUrl !== lastUrl) {
+		lastUrl = currentUrl;
+		console.log('💈 URL changed, re-initializing...');
+		init();
+	}
+}, 1000);
