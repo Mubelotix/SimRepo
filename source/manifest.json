@@ -5,6 +5,12 @@
 	"description": "Shows similar repositories on GitHub",
 	"homepage_url": "https://github.com/Mubelotix/similar-repositories-extension",
 	"manifest_version": 3,
+	"browser_specific_settings": {
+		"gecko": {
+			"id": "similar-repositories-extension@mub.lol",
+			"strict_min_version": "58.0"
+		}
+	},
 	"icons": {
 		"128": "icon.png"
 	},
