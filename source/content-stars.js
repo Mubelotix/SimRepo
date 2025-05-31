@@ -1,5 +1,5 @@
 import octicons from "@primer/octicons";
-import ghColors from '@scdev/github-languages-colors';
+import GH_LANG_COLORS from 'gh-lang-colors';
 import { formatNumber, getSimilarRepos, loadingSpinner } from './content.js';
 
 export async function initHome() {
@@ -7,7 +7,7 @@ export async function initHome() {
     let login = document.querySelector('meta[name="user-login"]').getAttribute('content');
     console.log("User login:", login);
 
-    let latestStars = 10;
+    let latestStars = 30;
     let after = null;
     let stars = new Set();
 
@@ -95,43 +95,22 @@ return `
         <span style="word-wrap:normal;max-width: 300px;" class="Truncate-text ws-normal flex-1">
         <img src="https://avatars.githubusercontent.com/u/${repo.owner.id}?s=40&amp;v=4" alt="@${repo.owner.login} profile" size="20" height="20" width="20" class="avatar avatar-small circle box-shadow-none mr-1">
         <a href="/${repo.full_name}" class="Link color-fg-default text-bold">${repo.owner.login} <span class="color-fg-muted text-light">/</span> ${repo.name}</a></span>
-        <span class="Truncate-text flex-shrink-0">
-            <div class="js-toggler-container js-social-container starring-container d-flex">
-                <div class="starred BtnGroup flex-1 ml-0">
-                    <form class="js-social-form BtnGroup-parent flex-auto width-full js-deferred-toggler-target">
-                        <button class="rounded-left-2 btn-sm btn BtnGroup-item">
-                        ${octicons["star-fill"].toSVG({ "class": "starred-button-icon d-none d-md-none mr-2" })}
-                        ${octicons["star-fill"].toSVG({ "class": "starred-button-icon mr-0 d-inline-block" })}
-                        <span class="d-none d-md-none">
-                        Starred
-                        </span>
-                        </button>
-                    </form>
-                </div>
-                <div class="unstarred BtnGroup ml-0 flex-1">
-                    <form class="js-social-form BtnGroup-parent flex-auto width-full">
-                        <button class="js-toggler-target rounded-left-2 btn-sm btn BtnGroup-item">
-                        ${octicons.star.toSVG({ "class": "d-none d-md-none mr-2" })}
-                        ${octicons.star.toSVG({ "class": "mr-0 d-inline-block" })}
-                        <span class="d-none d-md-none">
-                        Star
-                        </span>
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </span>
     </div>
     <p class="text-small color-fg-muted mt-2">
         ${repo.description}
     </p>
+
     <div class="color-fg-muted d-inline-block mr-4 mt-1 f6">
         ${octicons.star.toSVG()}
         ${formatNumber(repo.stargazers_count)}
     </div>
+    <div class="color-fg-muted d-inline-block mr-4 mt-1 f6">
+        ${octicons.flame.toSVG()}
+        ${Math.floor(repo.similarity * 100)}%
+    </div>
     <div class="color-fg-muted d-inline-block f6 mt-1">
         <span class="">
-        <span class="repo-language-color" style="background-color: ${ghColors[repo.language]}"></span>
+        <span class="repo-language-color" style="background-color: ${GH_LANG_COLORS[repo.language]}"></span>
         <span itemprop="programmingLanguage">${repo.language}</span>
         </span>
     </div>
