@@ -1,4 +1,4 @@
-import ghColors from '@scdev/github-languages-colors';
+import GH_LANG_COLORS from 'gh-lang-colors';
 import octicons from "@primer/octicons";
 import { getSimilarRepos, formatNumber } from './content.js';
 
@@ -27,7 +27,7 @@ function getHtml(owner, repo, fullname, description, language, stars, forks, arc
           <p class="mb-0 mt-2 f6 color-fg-muted">
             ${language ? `
             <span class="d-inline-block mr-3">
-                <span class="repo-language-color" style="background-color: ${ghColors[language]}"></span>
+                <span class="repo-language-color" style="background-color: ${GH_LANG_COLORS[language]}"></span>
                   <span itemprop="programmingLanguage">${language}</span>
             </span>` : ''}
 
