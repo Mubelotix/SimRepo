@@ -62,10 +62,10 @@ export async function initHome() {
     console.log('💈 Found similar repos for homepage:', response);
 
     let innerHtml = '';
-    for (const repo of response.data) {
-        innerHtml += getHtml(repo);
+    for (let i = 0; i < response.data.length; i++) {
+        const last = i === response.data.length - 1;
+        innerHtml += getHtml(response.data[i], last);
     }
-
 
     console.log("Container for recommendations:", container);
     container.innerHTML = innerHtml;
@@ -88,9 +88,9 @@ export async function initStarsList() {
     console.log('💈 Found similar repos for homepage:', response);
 }
 
-function getHtml(repo) {
+function getHtml(repo, lasts) {
 return `
-<div class="py-3 border-bottom">
+<div ${lasts ? 'class="pt-3"' : 'class="py-3 border-bottom"'}>
     <div class="Truncate d-flex flex-justify-between">
         <span style="word-wrap:normal;max-width: 300px;" class="Truncate-text ws-normal flex-1">
         <img src="https://avatars.githubusercontent.com/u/${repo.owner.id}?s=40&amp;v=4" alt="@${repo.owner.login} profile" size="20" height="20" width="20" class="avatar avatar-small circle box-shadow-none mr-1">
