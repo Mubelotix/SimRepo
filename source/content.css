@@ -1,34 +1,34 @@
 #similar-repos-container .pinned-item-meta+.pinned-item-meta {
-	margin-left: var(--base-size-16);
+    margin-left: var(--base-size-16);
 }
 
 #similar-repos-container>.BorderGrid-cell>div {
-	margin-bottom: var(--base-size-8);
+    margin-bottom: var(--base-size-8);
 }
 
 #similar-repos-view-more {
-	cursor: pointer;
+    cursor: pointer;
 }
 
 #similar-repos-container .loading-spinner {
-	width: .9rem;
-	height: .9rem;
-	position: relative;
-	top: calc(.05rem + 1px);
-	border: 1px solid var(--fgColor-default);
-	border-bottom-color: white;
-	border-radius: 50%;
-	display: inline-block;
-	box-sizing: border-box;
-	animation: rotation 1s linear infinite;
+    width: .9rem;
+    height: .9rem;
+    position: relative;
+    top: calc(.05rem + 1px);
+    border: 1px solid var(--fgColor-default);
+    border-bottom-color: white;
+    border-radius: 50%;
+    display: inline-block;
+    box-sizing: border-box;
+    animation: rotation 1s linear infinite;
 }
 
 @keyframes rotation {
-	0% {
-		transform: rotate(0deg);
-	}
+    0% {
+        transform: rotate(0deg);
+    }
 
-	100% {
-		transform: rotate(360deg);
-	}
+    100% {
+        transform: rotate(360deg);
+    }
 }
