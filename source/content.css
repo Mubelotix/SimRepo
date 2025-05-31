@@ -32,3 +32,8 @@
         transform: rotate(360deg);
     }
 }
+
+aside>div[aria-label="Explore repositories"]>div {
+	height: 0;
+	overflow: hidden;
+}
