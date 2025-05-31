@@ -1,36 +1,36 @@
 {
-	"$schema": "https://json.schemastore.org/chrome-manifest",
-	"name": "SimRepo",
-	"version": "0.1.0",
-	"description": "Shows similar repositories on GitHub",
-	"homepage_url": "https://github.com/Mubelotix/similar-repositories-extension",
-	"manifest_version": 3,
-	"browser_specific_settings": {
-		"gecko": {
-			"id": "similar-repositories-extension@mub.lol",
-			"strict_min_version": "58.0"
-		}
-	},
-	"icons": {
-		"128": "icon.png"
-	},
-	"permissions": [
-		"storage"
-	],
-	"content_scripts": [
-		{
-			"matches": [ "https://github.com/*" ],
-			"js": [ "content.js" ],
-			"css": [ "content.css" ],
-			"run_at": "document_end"
-		}
-	],
-	"options_ui": {
-		"page": "options.html"
-	},
-	"background": {
-		"service_worker": "background.js",
-		"type": "module",
-		"scripts": [ "background.js" ]
-	}
+    "$schema": "https://json.schemastore.org/chrome-manifest",
+    "name": "SimRepo",
+    "version": "0.1.0",
+    "description": "Shows similar repositories on GitHub",
+    "homepage_url": "https://github.com/Mubelotix/similar-repositories-extension",
+    "manifest_version": 3,
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "similar-repositories-extension@mub.lol",
+            "strict_min_version": "58.0"
+        }
+    },
+    "icons": {
+        "128": "icon.png"
+    },
+    "permissions": [
+        "storage"
+    ],
+    "content_scripts": [
+        {
+            "matches": [ "https://github.com/*" ],
+            "js": [ "content.js" ],
+            "css": [ "content.css" ],
+            "run_at": "document_end"
+        }
+    ],
+    "options_ui": {
+        "page": "options.html"
+    },
+    "background": {
+        "service_worker": "background.js",
+        "type": "module",
+        "scripts": [ "background.js" ]
+    }
 }
