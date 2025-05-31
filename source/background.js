@@ -5,8 +5,8 @@ import { Decompress } from 'fflate';
 import { repo } from '@primer/octicons';
 
 var model = null;
-var repoIds = new Map();
-var repoIndexes = new Map();
+var repoIdsMap = new Map();
+var repoIndexesMap = new Map();
 
 async function initModel() {
 	const modelUrl = chrome.runtime.getURL('embeddings.npy');
@@ -31,11 +31,11 @@ async function initRepoIds() {
 	// We want a Map from repo_id (string or number) to index (number)
 	const lines = text.trim().split('\n');
 	for (let i = 1; i < lines.length; i++) {
-    repoIds.set(i-1, Number(lines[i]));
-    repoIndexes.set(Number(lines[i]), i-1);
+    repoIdsMap.set(i-1, Number(lines[i]));
+    repoIndexesMap.set(Number(lines[i]), i-1);
 	}
 
-	console.log('Repo ID to index map loaded:', repoIds, repoIndexes);
+	console.log('Repo ID to index map loaded:', repoIdsMap, repoIndexesMap);
 }
 
 var ready = (async () => {
@@ -72,18 +72,31 @@ function cosineSimilarity(vecA, vecB) {
 	return dot / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
-function getClosestNIndexes(index, max, min, threshold) {
+function getClosestNIndexes(indexes, max, min, threshold) {
 	if (!model || !model.data || !model.shape) {
 		throw new Error('Model not initialized or invalid');
 	}
 
-	const totalVectors = model.shape[0];
-	const targetVector = getVector(index);
-  let aboveThreshold = 0;
+  const totalVectors = model.shape[0];
+	const vectors = indexes.map(getVector);
+	const vectorLength = vectors[0].length;
+	const targetVector = new Array(vectorLength).fill(0);
 
+	for (const vec of vectors) {
+		for (let i = 0; i < vectorLength; i++) {
+			targetVector[i] += vec[i];
+		}
+	}
+	// for (let i = 0; i < vectorLength; i++) {
+	// 	targetVector[i] /= indexes.length;
+	// }
+
+  let aboveThreshold = 0;
 	const scores = [];
 	for (let i = 0; i < totalVectors; i++) {
-		if (i === index) continue; // skip self
+		if (indexes.includes(i)) {
+      continue;
+    }
 		const compareVector = getVector(i);
 		const similarity = cosineSimilarity(targetVector, compareVector);
 
@@ -208,21 +221,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 			await ready;
 
-			const repoId = Number(message.repoId);
+			const ids = message.repoIds;
       const max = Number(message.max) || 10;
       const min = Number(message.min) || 3;
       const threshold = Number(message.threshold) || 0.95;
 
-			const index = repoIndexes.get(repoId);
+			const indexes = ids.map(id => repoIndexesMap.get(Number(id))).filter(i => i !== undefined);
 			
-			if (index == null) {
+			if (!indexes || indexes.length === 0) {
 				sendResponse({ status: "unknown" });
 				return;
 			}
 
-			let similarIndexes = getClosestNIndexes(index, max, min, threshold);
-			let similarIds = similarIndexes.map(i => repoIds.get(i.index));
-			let similarityMap = new Map(similarIndexes.map(i => [repoIds.get(i.index), i.similarity]));
+			let similarIndexes = getClosestNIndexes(indexes, max, min, threshold);
+			let similarIds = similarIndexes.map(i => repoIdsMap.get(i.index));
+			let similarityMap = new Map(similarIndexes.map(i => [repoIdsMap.get(i.index), i.similarity]));
 
 			let similarInfos = await findReposInfo(similarIds);
 
