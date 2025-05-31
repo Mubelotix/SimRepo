@@ -18,12 +18,16 @@
         "storage"
     ],
     "content_scripts": [
-        {
-            "matches": [ "https://github.com/*" ],
-            "js": [ "content.js" ],
-            "css": [ "content.css" ],
-            "run_at": "document_end"
-        }
+		{
+			"matches": [ "https://github.com/*" ],
+			"css": [ "content.css" ],
+			"run_at": "document_start"
+		},
+		{
+			"matches": [ "https://github.com/*" ],
+			"js": [ "content.js" ],
+			"run_at": "document_end"
+		}
     ],
     "options_ui": {
         "page": "options.html"
