@@ -91,19 +91,19 @@ function getClosestNIndexes(indexes, max, min, threshold) {
     //     targetVector[i] /= indexes.length;
     // }
 
-  let aboveThreshold = 0;
+    let aboveThreshold = 0;
     const scores = [];
     for (let i = 0; i < totalVectors; i++) {
         if (indexes.includes(i)) {
-          continue;
+            continue;
         }
         const compareVector = getVector(i);
         const similarity = cosineSimilarity(targetVector, compareVector);
 
         if (similarity >= threshold) {
-          aboveThreshold++;
+            aboveThreshold++;
         } else if (aboveThreshold >= min) {
-          continue;
+            continue;
         }
 
         scores.push({ index: i, similarity });
@@ -162,14 +162,7 @@ async function findReposInfo(repoIds) {
                         const objStr = buffer.slice(objStart, objEnd);
                         try {
                             const repoObj = JSON.parse(objStr);
-                            foundRepos.set(repoId, {
-                                full_name: repoObj.full_name,
-                                stargazers_count: repoObj.stargazers_count,
-                                forks_count: repoObj.forks_count,
-                                description: repoObj.description,
-                                language: repoObj.language,
-                                archived: repoObj.archived,
-                            });
+                            foundRepos.set(repoId, repoObj);
                             keySet.delete(repoId);
                         } catch (e) {
                             // Partial JSON, wait for more data
