@@ -99,6 +99,21 @@ function getLoadingContainerHtml() {
     </div>`;
 }
 
+function getErrorContainerHtml(error = "No similar repositories found.") {
+    return `
+    <div class="BorderGrid-row" id="similar-repos-container">
+        <div class="BorderGrid-cell">
+            <h2 class="h4 mb-3">
+                Similar repositories
+            </h2>
+
+            <div class="text-small color-fg-muted">
+                ${error}
+            </div>
+        </div>
+    </div>`;
+}
+
 function setupCallback(nextMin) {
     const viewMoreLink = document.querySelector('#similar-repos-view-more');
     if (viewMoreLink) {
@@ -133,22 +148,37 @@ export async function initRepo(min = 3) {
         container = document.querySelector('#similar-repos-container');
     }
 
-    loading = true;
-    let response = await getSimilarRepos([repoId], min, 10, 0.9);
-    loading = false;
+    try {
+        loading = true;
+        let response = await getSimilarRepos([repoId], min, 10, 0.9);
+        loading = false;
 
-    if (response.status === "success" && response.data !== undefined) {
-        console.log('💈 Found similar repos for repoId:', repoId, ', data:', response.data);
+        if (response.status === "success" && response.data !== undefined) {
+            console.log('💈 Found similar repos for repoId:', repoId, ', data:', response.data);
 
-        if (repoId != await getRepoId()) {
-            console.log('💈 Repo ID changed during fetch, aborting update.');
-            init();
-            return;
+            if (repoId != await getRepoId()) {
+                console.log('💈 Repo ID changed during fetch, aborting update.');
+                init();
+                return;
+            }
+
+            container.outerHTML = getContainerHtml(response.data);
+            setupCallback(response.data.length + 5);
+        } else {
+            console.log('No similar repos found');
+
+            let starSpan = document.querySelector("span[id=\"repo-stars-counter-star\"]");
+            let starsCount = starSpan ? parseInt(starSpan.textContent.replace(/,/g, '')) : 0;
+
+            if (starsCount < 150) {
+                container.outerHTML = getErrorContainerHtml("Unavailable for repositories with less than 150 stars.");
+            } else {
+                container.outerHTML = getErrorContainerHtml("No similar repositories found. Try on older repositories.");
+            }
         }
-
-        container.outerHTML = getContainerHtml(response.data);
-        setupCallback(response.data.length + 5);
-    } else {
-        console.log('💈 No similar repos found for repoId:', repoId);
+    } catch (error) {
+        console.error('Error fetching similar repos:', error);
+        loading = false;
+        container.outerHTML = getErrorContainerHtml(`Error fetching similar repositories. Details:<br><code> ${error.message}</code>`);
     }
 }
