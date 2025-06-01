@@ -1,6 +1,6 @@
 import GH_LANG_COLORS from 'gh-lang-colors';
 import octicons from "@primer/octicons";
-import { getSimilarRepos, formatNumber } from './content.js';
+import { getSimilarRepos, formatNumber, loadingSpinner } from './content.js';
 
 var loading = false;
 
@@ -79,13 +79,33 @@ function getContainerHtml(repos) {
     </div></div>`;
 }
 
+function getLoadingContainerHtml() {
+    return `
+    <div class="BorderGrid-row" id="similar-repos-container">
+        <div class="BorderGrid-cell">
+            <h2 class="h4 mb-3">
+                Similar repositories
+            </h2>
+
+            <div class="d-flex align-items-center justify-content-star mt-3">
+                <p class="color-fg-muted mb-0 min-width-0">
+                    Loading
+                </p>
+                <span class="flex-shrink-0 d-inline-flex align-items-center" style="height: 1.5rem;">
+                    ${loadingSpinner("", "height: 1rem; margin: .25rem 0 .25rem 0;")}
+                </span>
+            </div>
+        </div>
+    </div>`;
+}
+
 function setupCallback(nextMin) {
     const viewMoreLink = document.querySelector('#similar-repos-view-more');
     if (viewMoreLink) {
         viewMoreLink.addEventListener('click', () => {
             if (!loading) {
-                viewMoreLink.parentElement.insertAdjacentHTML('beforeend', `<span class="loading-spinner"></span>`);
-                initRepo(nextMin);
+                viewMoreLink.insertAdjacentHTML('beforeend', loadingSpinner("", "height: 1rem;margin: 0 0 0 0;position: relative;top: 3px;"));
+                // initRepo(nextMin);
             }
         });
     }
@@ -106,6 +126,13 @@ export async function initRepo(min = 3) {
     let repoId = await getRepoId();
     console.log('💈 Repo ID:', repoId);
 
+    let container = document.querySelector('#similar-repos-container');
+    if (!container) {
+        const sidebar = document.querySelector('.Layout-sidebar > div');
+        sidebar.insertAdjacentHTML('beforeend', getLoadingContainerHtml());
+        container = document.querySelector('#similar-repos-container');
+    }
+
     loading = true;
     let response = await getSimilarRepos([repoId], min, 10, 0.9);
     loading = false;
@@ -119,15 +146,7 @@ export async function initRepo(min = 3) {
             return;
         }
 
-        const similarReposContainer = document.querySelector('#similar-repos-container');
-        if (similarReposContainer) {
-            similarReposContainer.outerHTML = getContainerHtml(response.data);
-            setupCallback(response.data.length + 5);
-            return;
-        }
-
-        const sidebar = document.querySelector('.Layout-sidebar > div');
-        sidebar.insertAdjacentHTML('beforeend', getContainerHtml(response.data));
+        container.outerHTML = getContainerHtml(response.data);
         setupCallback(response.data.length + 5);
     } else {
         console.log('💈 No similar repos found for repoId:', repoId);
