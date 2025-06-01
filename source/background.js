@@ -3,6 +3,7 @@ import { optionsStorage } from './options-storage.js';
 import npyjs from 'npyjs';
 import { Decompress } from 'fflate';
 import { repo } from '@primer/octicons';
+import { initCache } from './cache.js';
 
 var model = null;
 var repoIdsMap = new Map();
@@ -42,6 +43,7 @@ var ready = (async () => {
     try {
         await initModel();
         await initRepoIds();
+        initCache();
     } catch (error) {
         console.error('Error initializing model or repo IDs:', error);
     }
@@ -111,8 +113,8 @@ function getClosestNIndexes(indexes, max, min, threshold) {
 
     scores.sort((a, b) => b.similarity - a.similarity);
 
-  let n = Math.min(max, aboveThreshold);
-  n = Math.max(n, min);
+    let n = Math.min(max, aboveThreshold);
+    n = Math.max(n, min);
 
     return scores.slice(0, n);
 }
@@ -214,38 +216,59 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         await ready;
 
         const ids = message.repoIds;
-        const max = Number(message.max) || 10;
         const min = Number(message.min) || 3;
+        const max = Number(message.max) || 10;
         const threshold = Number(message.threshold) || 0.95;
 
-        const indexes = ids.map(id => repoIndexesMap.get(Number(id))).filter(i => i !== undefined);
-        
-        if (!indexes || indexes.length === 0) {
-            sendResponse({ status: "unknown" });
-            return;
-        }
+        const cacheKey = `cache:getSimilarRepos:${ids.sort().join(',')}:${min}:${max}:${threshold}`;
 
-        let similarIndexes = getClosestNIndexes(indexes, max, min, threshold);
-        let similarIds = similarIndexes.map(i => repoIdsMap.get(i.index));
-        let similarityMap = new Map(similarIndexes.map(i => [repoIdsMap.get(i.index), i.similarity]));
+        // Check cache first
+        chrome.storage.local.get([cacheKey], async (result) => {
+            const cached = result[cacheKey];
+            if (cached) {
+                console.log('Serving from cache');
+                sendResponse({ status: 'success', cached: cached.timestamp, data: cached.data });
+                return;
+            }
 
-        let similarInfos = await findReposInfo(similarIds);
+            // Not in cache: compute results
+            const indexes = ids.map(id => repoIndexesMap.get(Number(id))).filter(i => i !== undefined);
 
-        const similarInfosWithSimilarity = [];
-        for (const [repoId, info] of similarInfos.entries()) {
-            similarInfosWithSimilarity.push({
-                ...info,
-                repo_id: repoId,
-                similarity: similarityMap.get(Number(repoId)) || 0,
+            if (!indexes || indexes.length === 0) {
+                sendResponse({ status: "unknown" });
+                return;
+            }
+
+            let similarIndexes = getClosestNIndexes(indexes, max, min, threshold);
+            let similarIds = similarIndexes.map(i => repoIdsMap.get(i.index));
+            let similarityMap = new Map(similarIndexes.map(i => [repoIdsMap.get(i.index), i.similarity]));
+
+            let similarInfos = await findReposInfo(similarIds);
+
+            const similarInfosWithSimilarity = [];
+            for (const [repoId, info] of similarInfos.entries()) {
+                similarInfosWithSimilarity.push({
+                    ...info,
+                    repo_id: repoId,
+                    similarity: similarityMap.get(Number(repoId)) || 0,
+                });
+            }
+            similarInfosWithSimilarity.sort((a, b) => b.similarity - a.similarity);
+
+            console.log('Computed and caching repo informations:', similarInfosWithSimilarity);
+
+            // Cache the result
+            chrome.storage.local.set({
+                [cacheKey]: {
+                    data: similarInfosWithSimilarity,
+                    timestamp: Date.now()
+                }
             });
-        }
-        similarInfosWithSimilarity.sort((a, b) => b.similarity - a.similarity);
 
-        console.log('repo informations: ', similarInfosWithSimilarity);
-
-        sendResponse({
-            status: similarInfosWithSimilarity.length > 0 ? "success" : "error",
-            data: similarInfosWithSimilarity,
+            sendResponse({
+                status: similarInfosWithSimilarity.length > 0 ? "success" : "error",
+                data: similarInfosWithSimilarity,
+            });
         });
         })();
 
