@@ -120,7 +120,7 @@ function getClosestNIndexes(indexes, max, min, threshold) {
 }
 
 async function findReposInfo(repoIds) {
-    const url = chrome.runtime.getURL('repos.json.gz');
+    const url = chrome.runtime.getURL('repos-json-gz');
     const response = await fetch(url);
 
     if (!response.body) throw new Error('Streaming not supported');
