@@ -120,7 +120,7 @@ function setupCallback(nextMin) {
         viewMoreLink.addEventListener('click', () => {
             if (!loading) {
                 viewMoreLink.insertAdjacentHTML('beforeend', loadingSpinner("", "height: 1rem;margin: 0 0 0 0;position: relative;top: 3px;"));
-                // initRepo(nextMin);
+                initRepo(nextMin);
             }
         });
     }
