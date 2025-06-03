@@ -21,6 +21,19 @@ Screenshot of extension:
 - [Auto-syncing options](#auto-syncing-options).
 - [Auto-publishing](#publishing) with auto-versioning and support for manual releases.
 
+## Installation
+
+<a href="https://addons.mozilla.org/en-US/firefox/addon/simrepo/" target="_blank"><img src="https://imgur.com/ihXsdDO.png" width="64" height="64" alt="Firefox"></a>
+<!-- <a href="https://chrome.google.com/webstore/detail/insa-login-rememberer/alnfaipldfkadlijdfjbkclngnmfokph?hl=fr&authuser=0" target="_blank"><img src="https://imgur.com/z8yjLZ2.png" width="64" height="64" alt="Brave"></a> -->
+<!-- <a href="https://chrome.google.com/webstore/detail/insa-login-rememberer/alnfaipldfkadlijdfjbkclngnmfokph?hl=fr&authuser=0" target="_blank"><img src="https://imgur.com/3C4iKO0.png" width="64" height="64" alt="Chrome"></a> -->
+<!-- <a href="https://chrome.google.com/webstore/detail/insa-login-rememberer/alnfaipldfkadlijdfjbkclngnmfokph?hl=fr&authuser=0" target="_blank"><img src="https://imgur.com/vMcaXaw.png" width="64" height="64" alt="Edge"></a> -->
+<!-- <a href="https://chrome.google.com/webstore/detail/insa-login-rememberer/alnfaipldfkadlijdfjbkclngnmfokph?hl=fr&authuser=0" target="_blank"><img src="https://imgur.com/EuDp4vP.png" width="64" height="64" alt="Vivaldi"></a> -->
+<!-- <a href="https://chrome.google.com/webstore/detail/insa-login-rememberer/alnfaipldfkadlijdfjbkclngnmfokph?hl=fr&authuser=0" target="_blank"><img src="https://imgur.com/nSJ9htU.png" width="64" height="64" alt="Opera"></a> -->
+<!-- <a href="https://github.com/Mubelotix/insa-login-rememberer/releases/download/v3/164d1a1b8f5d4b7184ce-3.0.xpi" target="_blank"><img src="https://imgur.com/MQYBSrD.png" width="64" height="64" alt="Tor"></a> -->
+<!--
+<a href="https://bitwarden.com/download/" target="_blank"><img src="https://imgur.com/ENbaWUu.png" width="64" height="64"></a>
+-->
+
 ## Getting started
 
 ### Requirements
