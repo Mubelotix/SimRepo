@@ -2,6 +2,7 @@
 	"private": true,
 	"scripts": {
 		"build": "rm -rf distribution/* && NODE_NO_WARNINGS=1 parcel build && cp static/* distribution/",
+		"build:chrome": "rm -rf distribution/* && NODE_NO_WARNINGS=1 parcel build --no-optimize --no-content-hash --no-source-maps --no-scope-hoist --no-cache --detailed-report 0 && cp static/* distribution/",
 		"lint": "run-p lint:*",
 		"lint-fix": "run-p 'lint:* -- --fix'",
 		"lint:css": "stylelint source/**/*.css",
@@ -37,8 +38,8 @@
 		"webext-options-sync": "^4.2.3"
 	},
 	"devDependencies": {
-		"@parcel/config-webextension": "^2.13.0",
-		"@parcel/resolver-default": "^2.13.0",
+		"@parcel/config-webextension": "^2.15.2",
+		"@parcel/resolver-default": "^2.15.2",
 		"npm-run-all2": "^7.0.1",
 		"parcel": "^2.13.0",
 		"stylelint": "^16.6.1",
