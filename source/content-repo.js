@@ -1,6 +1,6 @@
 import GH_LANG_COLORS from 'gh-lang-colors';
 import octicons from "@primer/octicons";
-import { getSimilarRepos, formatNumber, loadingSpinner } from './content.js';
+import { getSimilarRepos, formatNumber, loadingSpinner } from './common.js';
 
 var loading = false;
 
