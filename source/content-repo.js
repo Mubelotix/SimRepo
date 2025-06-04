@@ -168,7 +168,7 @@ export async function initRepo(min = 3) {
             console.log('No similar repos found');
 
             let starSpan = document.querySelector("span[id=\"repo-stars-counter-star\"]");
-            let starsCount = starSpan ? parseInt(starSpan.textContent.replace(/,/g, '')) : 0;
+            let starsCount = starSpan ? parseInt(starSpan.getAttribute("title").replace(/,/g, '')) : 0;
 
             if (starsCount < 150) {
                 container.outerHTML = getErrorContainerHtml("Unavailable for repositories with less than 150 stars.");
