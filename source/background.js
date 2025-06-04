@@ -1,8 +1,5 @@
-// eslint-disable-next-line import/no-unassigned-import
-import { optionsStorage } from './options-storage.js';
 import npyjs from 'npyjs';
 import { Decompress } from 'fflate';
-import { repo } from '@primer/octicons';
 import { initCache } from './cache.js';
 
 var model = null;

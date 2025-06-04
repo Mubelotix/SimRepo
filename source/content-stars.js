@@ -1,6 +1,6 @@
 import octicons from "@primer/octicons";
 import GH_LANG_COLORS from 'gh-lang-colors';
-import { formatNumber, getSimilarRepos, loadingSpinner } from './content.js';
+import { formatNumber, getSimilarRepos, loadingSpinner } from './common.js';
 
 export async function initHome() {
     console.log("Producing recommendations on the homepage");

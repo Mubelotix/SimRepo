@@ -32,7 +32,7 @@
 	"dependencies": {
 		"@primer/octicons": "^19.15.2",
 		"fflate": "^0.8.2",
-		"gh-lang-colors": "^0.1.10",
+		"gh-lang-colors": "^0.1.11",
 		"npyjs": "^0.7.0",
 		"webext-base-css": "^2.0.1",
 		"webext-options-sync": "^4.2.3"
@@ -40,8 +40,8 @@
 	"devDependencies": {
 		"@parcel/config-webextension": "^2.15.2",
 		"@parcel/resolver-default": "^2.15.2",
+		"parcel": "^2.15.2",
 		"npm-run-all2": "^7.0.1",
-		"parcel": "^2.13.0",
 		"stylelint": "^16.6.1",
 		"stylelint-config-prettier": "^9.0.5",
 		"stylelint-config-xo": "^1.0.2",
