@@ -16,7 +16,7 @@ export async function initHome() {
         await run(container, latestStars);
     } catch (error) {
         console.error("Error during homepage recommendations:", error);
-        container.innerHTML = `<div class="color-fg-muted">Failed to load recommendations. Please try again later or <a href="https://github.com/Mubelotix/similar-repositories-extension/issues">open an issue</a>.<br/>Details: <code>${error.message}</code></div>`;
+        container.innerHTML = `<div class="color-fg-muted">Failed to load recommendations. Please try again later or <a href="https://github.com/Mubelotix/SimRepo/issues">open an issue</a>.<br/>Details: <code>${error.message}</code></div>`;
     }
 }
 

@@ -3,7 +3,7 @@
     "name": "SimRepo",
     "version": "0.2.2",
     "description": "Shows similar repositories on GitHub",
-    "homepage_url": "https://github.com/Mubelotix/similar-repositories-extension",
+    "homepage_url": "https://github.com/Mubelotix/SimRepo",
     "manifest_version": 3,
     "browser_specific_settings": {
         "gecko": {
