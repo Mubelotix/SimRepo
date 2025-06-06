@@ -24,6 +24,7 @@ export async function initStarsList() {
     let documentHtml = document.documentElement.innerHTML;
     let regex = /details-user-list-(\d+)-unstarred/g;
     let stars = new Set();
+    let matches;
     while ((matches = regex.exec(documentHtml)) !== null) {
         let id = matches[1];
         if (id) {
@@ -55,6 +56,7 @@ async function run(container, latestStars) {
 
         // Extract starred repository IDs from the HTML
         let regex = /details-user-list-(\d+)-unstarred/g;
+        let matches;
         while ((matches = regex.exec(text)) !== null) {
             let id = matches[1];
             if (id) {
