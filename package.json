@@ -1,67 +1,71 @@
 {
-	"private": true,
-	"scripts": {
-		"build": "rm -rf distribution/* && NODE_NO_WARNINGS=1 parcel build && cp static/* distribution/",
-		"build:chrome": "rm -rf distribution/* && NODE_NO_WARNINGS=1 parcel build --no-optimize --no-content-hash --no-source-maps --no-scope-hoist --no-cache --detailed-report 0 && cp static/* distribution/",
-		"lint": "run-p lint:*",
-		"lint-fix": "run-p 'lint:* -- --fix'",
-		"lint:css": "stylelint source/**/*.css",
-		"lint:js": "xo",
-		"test": "run-p lint:* build",
-		"watch": "cp static/* distribution/ && NODE_NO_WARNINGS=1 parcel watch --no-hmr"
-	},
-	"browserslist": [
-		"last 1 Chrome version",
-		"last 1 Firefox version"
-	],
-	"xo": {
-		"envs": [
-			"browser",
-			"webextensions"
-		],
-		"rules": {
-			"unicorn/prefer-top-level-await": "off"
-		}
-	},
-	"stylelint": {
-		"extends": [
-			"stylelint-config-xo"
-		],
-		"rules": {}
-	},
-	"dependencies": {
-		"@primer/octicons": "^19.15.2",
-		"fflate": "^0.8.2",
-		"gh-lang-colors": "^0.1.11",
-		"npyjs": "^0.7.0",
-		"webext-base-css": "^2.0.1",
-		"webext-options-sync": "^4.2.3"
-	},
-	"devDependencies": {
-		"@parcel/config-webextension": "^2.15.2",
-		"@parcel/resolver-default": "^2.15.2",
-		"parcel": "^2.15.2",
-		"npm-run-all2": "^7.0.1",
-		"stylelint": "^16.6.1",
-		"stylelint-config-prettier": "^9.0.5",
-		"stylelint-config-xo": "^1.0.2",
-		"xo": "^0.59.3"
-	},
-	"@parcel/resolver-default": {
-		"packageExports": true
-	},
-	"targets": {
-		"default": {
-			"source": "source/manifest.json",
-			"distDir": "./distribution"
-		}
-	},
-	"webExt": {
-		"sourceDir": "distribution",
-		"run": {
-			"startUrl": [
-				"https://github.com/fregante/browser-extension-template"
-			]
-		}
-	}
+    "private": true,
+    "scripts": {
+        "build": "rm -rf distribution/* && NODE_NO_WARNINGS=1 parcel build && cp static/* distribution/",
+        "build:chrome": "rm -rf distribution/* && NODE_NO_WARNINGS=1 parcel build --no-optimize --no-content-hash --no-source-maps --no-scope-hoist --no-cache --detailed-report 0 && cp static/* distribution/",
+        "lint": "run-p lint:*",
+        "lint-fix": "run-p 'lint:* -- --fix'",
+        "lint:css": "stylelint source/**/*.css",
+        "lint:js": "xo",
+        "test": "run-p lint:* build",
+        "watch": "cp static/* distribution/ && NODE_NO_WARNINGS=1 parcel watch --no-hmr"
+    },
+    "browserslist": [
+        "last 1 Chrome version",
+        "last 1 Firefox version"
+    ],
+    "xo": {
+        "envs": [
+            "browser",
+            "webextensions"
+        ],
+        "rules": {
+            "unicorn/prefer-top-level-await": "off",
+            "indent": ["error", 4]
+        }
+    },
+    "stylelint": {
+        "extends": [
+            "stylelint-config-standard"
+        ],
+        "rules": {
+            "selector-class-pattern": null,
+            "custom-property-pattern": null
+        }
+    },
+    "dependencies": {
+        "@primer/octicons": "^19.15.2",
+        "fflate": "^0.8.2",
+        "gh-lang-colors": "^0.1.11",
+        "npyjs": "^0.7.0",
+        "webext-base-css": "^2.0.1",
+        "webext-options-sync": "^4.2.3"
+    },
+    "devDependencies": {
+        "@parcel/config-webextension": "^2.15.2",
+        "@parcel/resolver-default": "^2.15.2",
+        "npm-run-all2": "^7.0.1",
+        "parcel": "^2.15.2",
+        "stylelint": "^16.6.1",
+        "stylelint-config-prettier": "^9.0.5",
+        "stylelint-config-standard": "^38.0.0",
+        "xo": "^0.59.3"
+    },
+    "@parcel/resolver-default": {
+        "packageExports": true
+    },
+    "targets": {
+        "default": {
+            "source": "source/manifest.json",
+            "distDir": "./distribution"
+        }
+    },
+    "webExt": {
+        "sourceDir": "distribution",
+        "run": {
+            "startUrl": [
+                "https://github.com/fregante/browser-extension-template"
+            ]
+        }
+    }
 }

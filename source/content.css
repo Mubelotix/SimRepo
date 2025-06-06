@@ -1,3 +1,8 @@
+aside>div[aria-label="Explore repositories"]>div {
+	height: 0;
+	overflow: hidden;
+}
+
 #similar-repos-container .pinned-item-meta+.pinned-item-meta {
     margin-left: var(--base-size-16);
 }
@@ -31,9 +36,4 @@
     100% {
         transform: rotate(360deg);
     }
-}
-
-aside>div[aria-label="Explore repositories"]>div {
-	height: 0;
-	overflow: hidden;
 }
