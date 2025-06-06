@@ -164,7 +164,7 @@ async function findReposInfo(repoIds) {
                             foundRepos.set(repoId, repoObj);
                             keySet.delete(repoId);
                         } catch (e) {
-                            // Partial JSON, wait for more data
+                            console.warn(`Partial JSON parse failed for repo ID ${repoId}:`, e);
                         }
                     }
                 }
