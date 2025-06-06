@@ -6,7 +6,7 @@
         "lint": "run-p lint:*",
         "lint-fix": "run-p 'lint:* -- --fix'",
         "lint:css": "stylelint source/**/*.css",
-        "lint:js": "xo",
+        "lint:js": "eslint source/**/*.js",
         "test": "run-p lint:* build",
         "watch": "cp static/* distribution/ && NODE_NO_WARNINGS=1 parcel watch --no-hmr"
     },
@@ -14,16 +14,6 @@
         "last 1 Chrome version",
         "last 1 Firefox version"
     ],
-    "xo": {
-        "envs": [
-            "browser",
-            "webextensions"
-        ],
-        "rules": {
-            "unicorn/prefer-top-level-await": "off",
-            "indent": ["error", 4]
-        }
-    },
     "stylelint": {
         "extends": [
             "stylelint-config-standard"
@@ -42,14 +32,17 @@
         "webext-options-sync": "^4.2.3"
     },
     "devDependencies": {
+        "@eslint/eslintrc": "^3.3.1",
+        "@eslint/js": "^9.28.0",
         "@parcel/config-webextension": "^2.15.2",
         "@parcel/resolver-default": "^2.15.2",
+        "eslint": "^9.28.0",
+        "globals": "^16.2.0",
         "npm-run-all2": "^7.0.1",
         "parcel": "^2.15.2",
         "stylelint": "^16.6.1",
         "stylelint-config-prettier": "^9.0.5",
-        "stylelint-config-standard": "^38.0.0",
-        "xo": "^0.59.3"
+        "stylelint-config-standard": "^38.0.0"
     },
     "@parcel/resolver-default": {
         "packageExports": true

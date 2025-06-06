@@ -158,7 +158,7 @@ export async function initRepo(min = 3) {
 
             if (repoId != await getRepoId()) {
                 console.log('💈 Repo ID changed during fetch, aborting update.');
-                init();
+                initRepo();
                 return;
             }
 
