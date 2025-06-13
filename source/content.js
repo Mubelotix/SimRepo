@@ -8,7 +8,7 @@ async function init() {
         await initHome();
     } else if (window.location.pathname.startsWith('/stars/') && window.location.pathname.includes('/lists/')) {
         await initStarsList();
-    } else if (window.location.pathname.split('/').length === 3) {
+    } else if (window.location.pathname.split('/').length === 3 || (window.location.pathname.split('/').length === 4 && window.location.pathname.endsWith('/'))) {
         await initRepo();
     }
 }
