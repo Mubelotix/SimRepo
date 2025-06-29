@@ -54,21 +54,22 @@ function getHtml(owner, repo, fullname, description, language, stars, forks, arc
   </div>`;
 }
 
-function getContainerHtml(repos) {
+function getContainerHtml(results) {
     let innerHtml = '';
-    console.log('💈 Repos:', repos);
-    for (const repo of repos) {
+    console.log('💈 Repos:', results);
+    for (const result of results) {
+        let repo = result.payload;
         let owner = repo.full_name.split('/')[0];
         let repoName = repo.full_name.split('/')[1];
-        innerHtml += getHtml(owner, repoName, repo.full_name, repo.description, repo.language, repo.stargazers_count, repo.forks_count, repo.archived, repo.similarity);
+        innerHtml += getHtml(owner, repoName, repo.full_name, repo.description, repo.language, repo.stargazers_count, repo.forks_count, repo.archived, result.score);
     }
 
     return `
     <div class="BorderGrid-row" id="similar-repos-container">
     <div class="BorderGrid-cell">
-          <h2 class="h4 mb-3">
-              Similar repositories
-            <span title="${repos.length}" data-view-component="true" class="Counter">${formatNumber(repos.length)}</span>
+        <h2 class="h4 mb-3">
+            Similar repositories
+            <!-- <span title="${results.length}" data-view-component="true" class="Counter">${formatNumber(results.length)}</span> -->
         </h2>
 
         ${innerHtml}
@@ -134,10 +135,10 @@ async function getRepoId() {
         });
         await new Promise(resolve => setTimeout(resolve, 100));
     }
-    return repoId;
+    return Number(repoId);
 }
 
-export async function initRepo(min = 3) {
+export async function initRepo(offset = 0) {
     let repoId = await getRepoId();
     console.log('💈 Repo ID:', repoId);
 
@@ -150,7 +151,7 @@ export async function initRepo(min = 3) {
 
     try {
         loading = true;
-        let response = await getSimilarRepos([repoId], min, 10, 0.9);
+        let response = await getSimilarRepos([repoId], offset, 5);
         loading = false;
 
         if (response.status === "success" && response.data !== undefined) {
