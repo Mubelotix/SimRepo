@@ -6,6 +6,7 @@ async function getClosestN(ids, offset = 0, limit = 10) {
 
     let remainingIds = [...ids];
 
+    // TODO: Fork Qdrant to support ignoring invalid IDs
     while (remainingIds.length > 0) {
         const payload = {
             limit: limit,
@@ -97,19 +98,3 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return true;
     }
 });
-
-// function isChromeBrowser() {
-//     if (navigator.userAgentData) {
-//         return navigator.userAgentData.brands.some(brand => brand.brand === "Google Chrome");
-//     }
-//     return /Chrome/.test(navigator.userAgent) &&
-//          /Google Inc/.test(navigator.vendor);
-// }
-
-// // Keep the service worker alive on chrome because the extension breaks otherwise
-// async function runHeartbeat() {
-//   await chrome.storage.local.set({ 'last-heartbeat': new Date().getTime() });
-// }
-// if (isChromeBrowser()) {
-//   setInterval(runHeartbeat, 20 * 1000);
-// }
