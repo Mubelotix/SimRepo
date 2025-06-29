@@ -7,7 +7,7 @@ aside>div[aria-label="Explore repositories"]>div {
     margin-left: var(--base-size-16);
 }
 
-#similar-repos-container>.BorderGrid-cell>div {
+#similar-repos-inner-container>div {
     margin-bottom: var(--base-size-8);
 }
 
