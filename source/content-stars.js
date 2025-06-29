@@ -7,7 +7,24 @@ export async function initHome() {
 
     let latestStars = 30;
 
-    let container = document.querySelector('aside>div[aria-label="Explore repositories"]>div');
+    let container = document.querySelector('aside.feed-right-sidebar>div[aria-label="Explore repositories"]>div');
+
+    if (!container) {
+        // Fallback to creating a new container. Might be buggy if the structure changes.
+        let aside = document.querySelector('aside.feed-right-sidebar');
+        let newContainer = document.createElement('div');
+        newContainer.setAttribute("class", "mb-3 dashboard-changelog <color-bg-default border color-border-default p-3 rounded-2");
+        let title = document.createElement('h2');
+        title.setAttribute("class", "f5 text-bold mb-3");
+        title.textContent = "For you";
+        newContainer.appendChild(title);
+        let newContainerInner = document.createElement('div');
+        newContainer.appendChild(newContainerInner);
+        
+        aside.appendChild(newContainer);
+        container = newContainerInner;
+    }
+
     container.innerHTML = getLoadingHtml(latestStars);
     container.style.height = 'unset';
     container.style.overflow = 'unset';
@@ -34,7 +51,7 @@ export async function initStarsList() {
 
     console.log("Collected stars:", stars);
 
-    let response = await getSimilarRepos(Array.from(stars), 20, 20, 0.9);
+    let response = await getSimilarRepos(Array.from(stars), 0, 20);
     console.log('💈 Found similar repos for homepage:', response);
 }
 
@@ -81,7 +98,7 @@ async function run(container, latestStars) {
 
     console.log("Collected stars:", stars);
 
-    let response = await getSimilarRepos(Array.from(stars), 10, 20, 0.9);
+    let response = await getSimilarRepos(Array.from(stars), 0, 15);
     console.log('💈 Found similar repos for homepage:', response);
 
     let innerHtml = '';
@@ -106,7 +123,8 @@ function getLoadingHtml(latestStars) {
     </div>`
 }
 
-function getHtml(repo, lasts) {
+function getHtml(result, lasts) {
+    let repo = result.payload;
     return `
     <div ${lasts ? 'class="pt-3"' : 'class="py-3 border-bottom"'}>
         <div class="Truncate d-flex flex-justify-between">
@@ -124,7 +142,7 @@ function getHtml(repo, lasts) {
         </div>
         <div class="color-fg-muted d-inline-block mr-4 mt-1 f6">
             ${octicons.flame.toSVG()}
-            ${Math.floor(repo.similarity * 100)}%
+            ${Math.floor(result.score * 100)}%
         </div>
         <div class="color-fg-muted d-inline-block f6 mt-1">
             <span class="">

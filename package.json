@@ -1,14 +1,14 @@
 {
     "private": true,
     "scripts": {
-        "build": "rm -rf distribution/* && NODE_NO_WARNINGS=1 parcel build && cp static/* distribution/",
-        "build:chrome": "rm -rf distribution/* && NODE_NO_WARNINGS=1 parcel build --no-optimize --no-content-hash --no-source-maps --no-scope-hoist --no-cache --detailed-report 0 && cp static/* distribution/",
+        "build": "NODE_NO_WARNINGS=1 parcel build && cp static/* distribution/",
+        "build:chrome": "NODE_NO_WARNINGS=1 parcel build --no-optimize --no-content-hash --no-source-maps --no-scope-hoist --no-cache --detailed-report 0 && cp static/* distribution/",
         "lint": "run-p lint:*",
         "lint-fix": "run-p 'lint:* -- --fix'",
         "lint:css": "stylelint source/**/*.css",
         "lint:js": "eslint source/**/*.js",
         "test": "run-p lint:* build",
-        "watch": "cp static/* distribution/ && NODE_NO_WARNINGS=1 parcel watch --no-hmr"
+        "watch": "NODE_NO_WARNINGS=1 parcel watch --no-hmr"
     },
     "browserslist": [
         "last 1 Chrome version",
@@ -25,9 +25,7 @@
     },
     "dependencies": {
         "@primer/octicons": "^19.15.2",
-        "fflate": "^0.8.2",
         "gh-lang-colors": "^0.1.11",
-        "npyjs": "^0.7.0",
         "webext-base-css": "^2.0.1",
         "webext-options-sync": "^4.2.3"
     },
