@@ -1,6 +1,6 @@
-export function getSimilarRepos(repoIds, min, max, threshold) {
+export function getSimilarRepos(repoIds, offset = 0, limit = 10) {
     return new Promise((resolve, reject) => {
-        chrome.runtime.sendMessage({ type: 'getSimilarRepos', repoIds, min, max, threshold }, (response) => {
+        chrome.runtime.sendMessage({ type: 'getSimilarRepos', repoIds, offset, limit }, (response) => {
             if (chrome.runtime.lastError) {
                 return reject(chrome.runtime.lastError);
             }
