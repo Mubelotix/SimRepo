@@ -77,8 +77,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 return;
             }
 
-            let similarRepos = await getClosestN(ids, offset, limit);
-
+            let similarRepos;
+            try {
+                similarRepos = await getClosestN(ids, offset, limit);
+            } catch (error) {
+                console.error('Error fetching similar repos:', error);
+                sendResponse({ status: "error", message: error.message });
+                return;
+            }
+            
             // Cache the result
             chrome.storage.local.set({
                 [cacheKey]: {

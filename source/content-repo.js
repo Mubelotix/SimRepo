@@ -155,11 +155,24 @@ export async function loadMoreRepos(resetOffset = false) {
     let repoId = await getRepoId();
     console.log('💈 Repo ID:', repoId);
 
+    // Ensure the container exists
     let container = document.querySelector('#similar-repos-container');
     if (!container) {
         const sidebar = document.querySelector('.Layout-sidebar > div');
         sidebar.insertAdjacentHTML('beforeend', getLoadingContainerHtml());
         container = document.querySelector('#similar-repos-container');
+    }
+
+    // Don't fetch if less than 150 stars
+    try {
+        let starSpan = document.querySelector("span[id=\"repo-stars-counter-star\"]");
+        let starsCount = starSpan ? parseInt(starSpan.getAttribute("title").replace(/,/g, '')) : 0;
+        if (starsCount < 150) {
+            container.outerHTML = getErrorContainerHtml("Unavailable for repositories with less than 150 stars.");
+            return;
+        }
+    } catch (error) {
+        console.error('Error fetching stars count:', error);
     }
 
     try {
@@ -188,11 +201,8 @@ export async function loadMoreRepos(resetOffset = false) {
         } else {
             console.log('No similar repos found');
 
-            let starSpan = document.querySelector("span[id=\"repo-stars-counter-star\"]");
-            let starsCount = starSpan ? parseInt(starSpan.getAttribute("title").replace(/,/g, '')) : 0;
-
-            if (starsCount < 150) {
-                container.outerHTML = getErrorContainerHtml("Unavailable for repositories with less than 150 stars.");
+            if (response.status === "error" && response.message) {
+                container.outerHTML = getErrorContainerHtml(`Error fetching similar repositories. Details:<br><code>${response.message}</code>`);
             } else {
                 container.outerHTML = getErrorContainerHtml("No similar repositories found. Try on older repositories.");
             }
