@@ -1,8 +1,8 @@
 {
     "private": true,
     "scripts": {
-        "build": "NODE_NO_WARNINGS=1 parcel build && cp static/* distribution/",
-        "build:chrome": "NODE_NO_WARNINGS=1 parcel build --no-optimize --no-content-hash --no-source-maps --no-scope-hoist --no-cache --detailed-report 0 && cp static/* distribution/",
+        "build": "rm -rf distribution; NODE_NO_WARNINGS=1 parcel build",
+        "build:chrome": "rm -rf distribution; NODE_NO_WARNINGS=1 parcel build --no-optimize --no-content-hash --no-source-maps --no-scope-hoist --no-cache --detailed-report 0",
         "lint": "run-p lint:*",
         "lint-fix": "run-p 'lint:* -- --fix'",
         "lint:css": "stylelint source/**/*.css",
