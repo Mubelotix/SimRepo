@@ -3,6 +3,7 @@ import octicons from "@primer/octicons";
 import { getSimilarRepos, formatNumber, loadingSpinner } from './common.js';
 
 var loading = false;
+var nextOffset = 0;
 
 function getHtml(owner, repo, fullname, description, language, stars, forks, archived, similarity) {
     return `
@@ -54,7 +55,7 @@ function getHtml(owner, repo, fullname, description, language, stars, forks, arc
   </div>`;
 }
 
-function getContainerHtml(results) {
+function getContainerInnerHtml(results) {
     let innerHtml = '';
     console.log('💈 Repos:', results);
     for (const result of results) {
@@ -63,6 +64,11 @@ function getContainerHtml(results) {
         let repoName = repo.full_name.split('/')[1];
         innerHtml += getHtml(owner, repoName, repo.full_name, repo.description, repo.language, repo.stargazers_count, repo.forks_count, repo.archived, result.score);
     }
+    return innerHtml;
+}
+
+function getContainerHtml(results) {
+    let innerHtml = getContainerInnerHtml(results);
 
     return `
     <div class="BorderGrid-row" id="similar-repos-container">
@@ -72,7 +78,7 @@ function getContainerHtml(results) {
             <!-- <span title="${results.length}" data-view-component="true" class="Counter">${formatNumber(results.length)}</span> -->
         </h2>
 
-        ${innerHtml}
+        <div id="similar-repos-inner-container">${innerHtml}</div>
 
         <div class="mt-2">
             <a class="Link--muted" id="similar-repos-view-more">View more</a>
@@ -115,13 +121,16 @@ function getErrorContainerHtml(error = "No similar repositories found.") {
     </div>`;
 }
 
-function setupCallback(nextMin) {
+function setupCallback() {
     const viewMoreLink = document.querySelector('#similar-repos-view-more');
     if (viewMoreLink) {
-        viewMoreLink.addEventListener('click', () => {
+        viewMoreLink.addEventListener('click', async () => {
             if (!loading) {
-                viewMoreLink.insertAdjacentHTML('beforeend', loadingSpinner("", "height: 1rem;margin: 0 0 0 0;position: relative;top: 3px;"));
-                initRepo(nextMin);
+                let newSpinner = document.createElement("span");
+                viewMoreLink.appendChild(newSpinner);
+                newSpinner.innerHTML = loadingSpinner("", "height: 1rem;margin: 0 0 0 0;position: relative;top: 3px;");
+                await loadMoreRepos();
+                newSpinner.remove();
             }
         });
     }
@@ -138,7 +147,11 @@ async function getRepoId() {
     return Number(repoId);
 }
 
-export async function initRepo(offset = 0) {
+export async function loadMoreRepos(resetOffset = false) {
+    if (resetOffset) {
+        nextOffset = 0;
+    }
+
     let repoId = await getRepoId();
     console.log('💈 Repo ID:', repoId);
 
@@ -151,6 +164,8 @@ export async function initRepo(offset = 0) {
 
     try {
         loading = true;
+        let offset = nextOffset;
+        nextOffset += 5;
         let response = await getSimilarRepos([repoId], offset, 5);
         loading = false;
 
@@ -159,12 +174,17 @@ export async function initRepo(offset = 0) {
 
             if (repoId != await getRepoId()) {
                 console.log('💈 Repo ID changed during fetch, aborting update.');
-                initRepo();
+                loadMoreRepos();
                 return;
             }
 
-            container.outerHTML = getContainerHtml(response.data);
-            setupCallback(response.data.length + 5);
+            let innerContainer = document.getElementById("similar-repos-inner-container");
+            if (innerContainer) {
+                innerContainer.insertAdjacentHTML('beforeend', getContainerInnerHtml(response.data));
+            } else {
+                container.outerHTML = getContainerHtml(response.data);
+                setupCallback();
+            }
         } else {
             console.log('No similar repos found');
 
