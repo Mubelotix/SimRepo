@@ -46,7 +46,7 @@ async function getClosestN(ids, offset = 0, limit = 10) {
             return data.result;
 
         } catch (err) {
-            throw new Error(`Failed to fetch recommendations: ${text}`);
+            throw new Error(`Failed to fetch recommendations: ${text} ${err.message}`);
         }
     }
 
@@ -98,3 +98,5 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return true;
     }
 });
+
+initCache();
