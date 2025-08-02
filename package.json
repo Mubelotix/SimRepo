@@ -29,6 +29,8 @@
         "@codemirror/lang-yaml": "^6.1.2",
         "@primer/octicons": "^19.15.2",
         "codemirror": "^6.0.2",
+        "codemirror-json-schema": "^0.8.1",
+        "codemirror-json5": "^1.0.3",
         "gh-lang-colors": "^0.1.11",
         "webext-base-css": "^2.0.1",
         "webext-options-sync": "^4.2.3"
