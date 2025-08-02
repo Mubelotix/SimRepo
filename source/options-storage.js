@@ -2,10 +2,14 @@ import OptionsSync from 'webext-options-sync';
 
 const optionsStorage = new OptionsSync({
     defaults: {
-        colorRed: 244,
-        colorGreen: 67,
-        colorBlue: 54,
-        text: 'Set a text!',
+        similarEnabled: true,
+        similarCount: 5,
+        // similarShowArchived: true,
+
+        homepageEnabled: true,
+        homepageCount: 90,
+        poolSize: 3.0,
+        // homepageShowArchived: true,
     },
     migrations: [
         OptionsSync.migrations.removeUnused,
