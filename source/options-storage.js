@@ -2,12 +2,15 @@ import OptionsSync from 'webext-options-sync';
 
 const optionsStorage = new OptionsSync({
     defaults: {
+        optionsYaml: "",
+
         similarEnabled: true,
         similarCount: 5,
         // similarShowArchived: true,
 
         homepageEnabled: true,
-        homepageCount: 90,
+        homepageCount: 25,
+        homepageStarsToLoad: 60,
         poolSize: 3.0,
         // homepageShowArchived: true,
     },
