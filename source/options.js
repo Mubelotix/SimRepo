@@ -3,7 +3,7 @@ import './options.css';
 import { optionsStorage } from './options-storage.js';
 
 import { basicSetup } from "codemirror"
-import {EditorView, keymap } from "@codemirror/view"
+import { EditorView, keymap } from "@codemirror/view"
 import { yaml } from "@codemirror/lang-yaml"
 import { yamlSchema } from 'codemirror-json-schema/yaml';
 import { indentWithTab } from "@codemirror/commands"
@@ -72,7 +72,7 @@ const schema = {
 let editor = document.getElementById('editor');
 
 function defaultCode() {
-    let code = "# Welcome the SimRepo's settings\n# See the readme for a complete example of a valid config\n# If you want to reset settings, just clear everything and the default configuration will be restored.\n\n"
+    let code = "# Welcome the SimRepo's settings\n# See the readme for a complete example of a valid config\n# If you want to reset settings, just clear everything and the default configuration will be restored.\n# Settings are saved automatically\n\n"
     for (const [key, prop] of Object.entries(schema.properties)) {
         code += `\n# ${prop.description}\n${key}:\n`;
         for (const [subKey, subProp] of Object.entries(prop.properties)) {
@@ -82,10 +82,22 @@ function defaultCode() {
     return code;
 }
 
+const resetOnEmpty = EditorView.updateListener.of((update) => {
+    if (update.docChanged) {
+        const currentContent = update.state.doc.toString().trim();
+        if (currentContent === "") {
+            // Reset the editor content to default
+            update.view.dispatch({
+                changes: { from: 0, to: 0, insert: defaultCode() },
+            });
+        }
+    }
+});
+
 const view = new EditorView({
     parent: editor,
     doc: defaultCode(),
-    extensions: [basicSetup, keymap.of([indentWithTab]), EditorView.lineWrapping, yaml(), yamlSchema(schema)]
+    extensions: [basicSetup, keymap.of([indentWithTab]), resetOnEmpty, EditorView.lineWrapping, yaml(), yamlSchema(schema)]
 })
 
 console.log("successfully loaded options.js");
