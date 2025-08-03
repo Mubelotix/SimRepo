@@ -1,6 +1,7 @@
 import GH_LANG_COLORS from 'gh-lang-colors';
 import octicons from "@primer/octicons";
 import { getSimilarRepos, formatNumber, loadingSpinner } from './common.js';
+import { optionsStorage } from './options-storage.js';
 
 var loading = false;
 var nextOffset = 0;
@@ -148,6 +149,12 @@ async function getRepoId() {
 }
 
 export async function loadMoreRepos(resetOffset = false) {
+    let options = await optionsStorage.getAll();
+    if (!options.similarEnabled) {
+        console.log("Similar repositories are disabled");
+        return;
+    }
+
     if (resetOffset) {
         nextOffset = 0;
     }
@@ -178,8 +185,9 @@ export async function loadMoreRepos(resetOffset = false) {
     try {
         loading = true;
         let offset = nextOffset;
+        let limit = offset == 0 ? options.similarCount : 5;
         nextOffset += 5;
-        let response = await getSimilarRepos([repoId], offset, 5);
+        let response = await getSimilarRepos([repoId], offset, limit);
         loading = false;
 
         if (response.status === "success" && response.data !== undefined) {
