@@ -22,18 +22,15 @@ const schema = {
                 enabled: {
                     type: "boolean",
                     description: "Whether to show similar repositories",
-                    default: true,
                 },
                 count: {
                     type: "integer",
                     description: "Number of similar items to show",
-                    default: 5,
                     minimum: 1,
                 },
                 // showArchived: {
                 //   type: "boolean",
                 //   description: "Whether to include archived repositories in the list of similar projects",
-                //   default: true,
                 // },
             },
             required: [],
@@ -45,32 +42,27 @@ const schema = {
                 enabled: {
                     type: "boolean",
                     description: "Enable or disable the homepage feature",
-                    default: true,
                 },
                 count: {
                     type: "integer",
                     description: "Number of items to display on the homepage",
-                    default: 25,
                     maximum: 150,
                 },
                 starsToLoad: {
                     type: "integer",
                     description: "Number of your latest stars to load in order to provide you recommendations. Since repositories with less than 150 stars won't be used, the actual number may be less. Stars are loaded 30 by 30 so this would benefit being a multiple of 30.",
-                    default: 60,
                     minimum: 1,
                     maximum: 120,
                 },
                 poolSize: {
                     type: "number",
                     description: "Size ratio of a pool against the count of recommendations shown. Recommendations are randomly selected from the pool. If you find the homepage recommendations to be too repetitive, increase this value.",
-                    default: 3.0,
                     minimum: 1.0,
                     maximum: 10.0,
                 },
                 // showArchived: {
                 //   type: "boolean",
                 //   description: "Whether to include archived repositories in the homepage recommendations",
-                //   default: false,
                 // },
             },
             required: [],
@@ -83,29 +75,30 @@ let editor = document.getElementById('editor');
 
 async function defaultCode() {
     let options = await optionsStorage.getAll();
+    console.log("Default options:", options);
 
-    let code = "# Welcome the SimRepo's settings\n# If you want to reset settings, just clear everything and the default configuration will be restored.\n# Settings are saved automatically\n# Comments will NOT be saved\n\n"
+    let code = "# Welcome the SimRepo's options\n# If you want to reset options, just clear everything and the default configuration will be restored.\n# Options are saved automatically, but comments will be ignored\n# Options are experimental, feel free to open issues on GitHub if you find any\n\n"
     for (const [key, prop] of Object.entries(schema.properties)) {
         code += `\n# ${prop.description}\n${key}:\n`;
         for (const [subKey, subProp] of Object.entries(prop.properties)) {
             let value = null;
-            switch ((key, subKey)) {
-                case ("similar", "enabled"):
+            switch (`${key}.${subKey}`) {
+                case "similar.enabled":
                     value = options.similarEnabled;
                     break;
-                case ("similar", "count"):
+                case "similar.count":
                     value = options.similarCount;
                     break;
-                case ("homepage", "enabled"):
+                case "homepage.enabled":
                     value = options.homepageEnabled;
                     break;
-                case ("homepage", "count"):
+                case "homepage.count":
                     value = options.homepageCount;
                     break;
-                case ("homepage", "starsToLoad"):
+                case "homepage.starsToLoad":
                     value = options.homepageStarsToLoad;
                     break;
-                case ("homepage", "poolSize"):
+                case "homepage.poolSize":
                     value = options.homepagePoolSize;
                     break;
                 default:
