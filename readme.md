@@ -1,3 +1,11 @@
+<h1 align="center" style="color:red;">⚠️ NOVEMBER MAINTAINANCE ⚠️</h1>
+
+<p align="center" style="color:red;">
+The API will be down for a few days as I'm moving my server to a new location. This project is still maintained, please do not open issues about this.
+</p>
+
+
+
 # SimRepo
 
 [link-rgh]: https://github.com/sindresorhus/refined-github
