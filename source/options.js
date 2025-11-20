@@ -23,6 +23,10 @@ const schema = {
                     description: "Number of similar items to show",
                     minimum: 1,
                 },
+                showUnavailable: {
+                    type: "boolean",
+                    description: "Whether to show a notice when similar repositories are unavailable (e.g. private or < 150 stars)",
+                },
                 // showArchived: {
                 //   type: "boolean",
                 //   description: "Whether to include archived repositories in the list of similar projects",
@@ -88,6 +92,9 @@ async function defaultCode() {
                 case "similar.count":
                     value = options.similarCount;
                     break;
+                case "similar.showUnavailable":
+                    value = options.similarShowUnavailable;
+                    break;
                 case "homepage.enabled":
                     value = options.homepageEnabled;
                     break;
@@ -147,6 +154,7 @@ async function saveIfChanged() {
                 optionsYaml: doc,
                 similarEnabled: parsed.similar?.enabled ?? optionsStorage.defaults.similarEnabled,
                 similarCount: parsed.similar?.count ?? optionsStorage.defaults.similarCount,
+                similarShowUnavailable: parsed.similar?.showUnavailable ?? optionsStorage.defaults.similarShowUnavailable,
                 homepageEnabled: parsed.homepage?.enabled ?? optionsStorage.defaults.homepageEnabled,
                 homepageCount: parsed.homepage?.count ?? optionsStorage.defaults.homepageCount,
                 homepageStarsToLoad: parsed.homepage?.starsToLoad ?? optionsStorage.defaults.homepageStarsToLoad,
