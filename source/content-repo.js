@@ -216,7 +216,11 @@ export async function loadMoreRepos(resetOffset = false) {
 
             let innerContainer = document.getElementById("similar-repos-inner-container");
             if (innerContainer) {
-                innerContainer.insertAdjacentHTML('beforeend', getContainerInnerHtml(response.data));
+                if (offset === 0) {
+                    innerContainer.innerHTML = getContainerInnerHtml(response.data);
+                } else {
+                    innerContainer.insertAdjacentHTML('beforeend', getContainerInnerHtml(response.data));
+                }
             } else {
                 container.outerHTML = getContainerHtml(response.data);
                 setupCallback();
