@@ -80,7 +80,7 @@ async function defaultCode() {
     let options = await optionsStorage.getAll();
     console.log("Default options:", options);
 
-    let code = "# Welcome the SimRepo's options\n# If you want to reset options, just clear everything and the default configuration will be restored.\n# Options are saved automatically, but comments will be ignored\n# Options are experimental, feel free to open issues on GitHub if you find any\n\n"
+    let code = "# Welcome to SimRepo's options\n# If you want to reset options, just clear everything and the default configuration will be restored.\n# Options are saved automatically, but comments will be ignored\n# Options are experimental, feel free to open issues on GitHub if you find any\n\n";
     for (const [key, prop] of Object.entries(schema.properties)) {
         code += `\n# ${prop.description}\n${key}:\n`;
         for (const [subKey, subProp] of Object.entries(prop.properties)) {
@@ -124,9 +124,12 @@ const resetOnEmpty = EditorView.updateListener.of((update) => {
         const currentContent = update.state.doc.toString().trim();
         if (currentContent === "") {
             // Reset the editor content to default
-            update.view.dispatch({
-                changes: { from: 0, to: 0, insert: defaultCode() },
-            });
+            (async () => {
+                const code = await defaultCode();
+                update.view.dispatch({
+                    changes: { from: 0, to: 0, insert: code },
+                });
+            })();
         }
     }
 });
@@ -172,10 +175,6 @@ async function saveIfChanged() {
         }
     }
 }
-
-window.addEventListener("beforeunload", () => {
-    saveIfChanged();
-});
 
 var view = null;
 async function init() {

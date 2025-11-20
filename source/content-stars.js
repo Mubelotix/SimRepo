@@ -60,8 +60,9 @@ export async function initStarsList() {
 }
 
 function getRandomSubsetInOrder(array, count) {
+    const actualCount = Math.min(count, array.length);
     const indices = new Set();
-    while (indices.size < count) {
+    while (indices.size < actualCount) {
         const i = Math.floor(Math.random() * array.length);
         indices.add(i);
     }
