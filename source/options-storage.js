@@ -13,6 +13,7 @@ const optionsStorage = new OptionsSync({
         homepageStarsToLoad: 60,
         homepagePoolSize: 3.0,
         // homepageShowArchived: true,
+        homepageRedirectToFeed: false,
     },
     migrations: [
         OptionsSync.migrations.removeUnused,
