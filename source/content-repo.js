@@ -200,8 +200,8 @@ export async function loadMoreRepos(resetOffset = false) {
     try {
         loading = true;
         let offset = nextOffset;
-        let limit = offset == 0 ? options.similarCount : 5;
-        nextOffset += 5;
+        let limit = options.similarCount;
+        nextOffset += limit;
         let response = await getSimilarRepos([repoId], offset, limit);
         loading = false;
 
