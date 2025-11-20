@@ -6,6 +6,7 @@ const optionsStorage = new OptionsSync({
 
         similarEnabled: true,
         similarCount: 5,
+        similarShowUnavailable: true,
         // similarShowArchived: true,
 
         homepageEnabled: true,

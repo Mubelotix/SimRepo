@@ -173,7 +173,11 @@ export async function loadMoreRepos(resetOffset = false) {
     // Don't fetch if private
     const isPrivate = document.querySelector('.Label.Label--secondary')?.textContent.trim() === 'Private';
     if (isPrivate) {
-        container.outerHTML = getErrorContainerHtml("Unavailable for private repositories.");
+        if (options.similarShowUnavailable) {
+            container.outerHTML = getErrorContainerHtml("Unavailable for private repositories.");
+        } else {
+            container.remove();
+        }
         return;
     }
 
@@ -182,7 +186,11 @@ export async function loadMoreRepos(resetOffset = false) {
         let starSpan = document.querySelector("span[id=\"repo-stars-counter-star\"]");
         let starsCount = starSpan ? parseInt(starSpan.getAttribute("title").replace(/,/g, '')) : 0;
         if (starsCount < 150) {
-            container.outerHTML = getErrorContainerHtml("Unavailable for repositories with less than 150 stars.");
+            if (options.similarShowUnavailable) {
+                container.outerHTML = getErrorContainerHtml("Unavailable for repositories with less than 150 stars.");
+            } else {
+                container.remove();
+            }
             return;
         }
     } catch (error) {
