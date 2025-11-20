@@ -225,7 +225,11 @@ export async function loadMoreRepos(resetOffset = false) {
             console.log('No similar repos found');
 
             if (response.status === "error" && response.message) {
-                container.outerHTML = getErrorContainerHtml(`Error fetching similar repositories. Details:<br><code>${response.message}</code>`);
+                if (response.message === "All provided IDs were invalid or caused errors.") {
+                    container.outerHTML = getErrorContainerHtml("This repository got popular too recently! It will be included in the dataset soon.");
+                } else {
+                    container.outerHTML = getErrorContainerHtml(`Error fetching similar repositories. Details:<br><code>${response.message}</code>`);
+                }
             } else {
                 container.outerHTML = getErrorContainerHtml("No similar repositories found. Try on older repositories.");
             }
