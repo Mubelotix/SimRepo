@@ -10,6 +10,11 @@ export async function initHome() {
         return;
     }
 
+    if (options.homepageRedirectToFeed && window.location.pathname === '/') {
+        window.location.replace('/feed');
+        return;
+    }
+
     console.log("Producing recommendations on the homepage");
 
     let aside = document.querySelector('aside.feed-right-column');

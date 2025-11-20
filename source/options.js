@@ -55,13 +55,17 @@ const schema = {
                     minimum: 1.0,
                     maximum: 10.0,
                 },
-                // showArchived: {
                 //   type: "boolean",
                 //   description: "Whether to include archived repositories in the homepage recommendations",
                 // },
+                redirectToFeed: {
+                    type: "boolean",
+                    description: "Automatically redirect from the homepage to the feed page",
+                },
             },
             required: [],
         },
+
     },
     required: [],
 };
@@ -95,6 +99,9 @@ async function defaultCode() {
                     break;
                 case "homepage.poolSize":
                     value = options.homepagePoolSize;
+                    break;
+                case "homepage.redirectToFeed":
+                    value = options.homepageRedirectToFeed;
                     break;
                 default:
                     value = "Unknown value. Open an issue on GitHub if you see this.";
@@ -144,6 +151,7 @@ async function saveIfChanged() {
                 homepageCount: parsed.homepage?.count ?? optionsStorage.defaults.homepageCount,
                 homepageStarsToLoad: parsed.homepage?.starsToLoad ?? optionsStorage.defaults.homepageStarsToLoad,
                 homepagePoolSize: parsed.homepage?.poolSize ?? optionsStorage.defaults.homepagePoolSize,
+                homepageRedirectToFeed: parsed.homepage?.redirectToFeed ?? optionsStorage.defaults.homepageRedirectToFeed,
             });
 
             let options = await optionsStorage.getAll();
