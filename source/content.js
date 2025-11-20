@@ -16,11 +16,11 @@ async function init() {
 init();
 
 // Periodically check for url changes
-let lastUrl = window.location.href;
+let lastPathname = window.location.pathname;
 setInterval(() => {
-    const currentUrl = window.location.href;
-    if (currentUrl !== lastUrl) {
-        lastUrl = currentUrl;
+    const currentPathname = window.location.pathname;
+    if (currentPathname !== lastPathname) {
+        lastPathname = currentPathname;
         console.log('💈 URL changed, re-initializing...');
         init();
     }
