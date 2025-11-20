@@ -4,7 +4,7 @@ import { initHome, initStarsList } from './content-stars.js';
 console.log('💈 Content script loaded for', chrome.runtime.getManifest().name);
 
 async function init() {
-    if (window.location.pathname === '/') {
+    if (window.location.pathname === '/' || window.location.pathname === '/feed') {
         await initHome();
     } else if (window.location.pathname.startsWith('/stars/') && window.location.pathname.includes('/lists/')) {
         await initStarsList();
