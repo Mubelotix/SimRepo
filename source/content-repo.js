@@ -170,6 +170,13 @@ export async function loadMoreRepos(resetOffset = false) {
         container = document.querySelector('#similar-repos-container');
     }
 
+    // Don't fetch if private
+    const isPrivate = document.querySelector('.Label.Label--secondary')?.textContent.trim() === 'Private';
+    if (isPrivate) {
+        container.outerHTML = getErrorContainerHtml("Unavailable for private repositories.");
+        return;
+    }
+
     // Don't fetch if less than 150 stars
     try {
         let starSpan = document.querySelector("span[id=\"repo-stars-counter-star\"]");
