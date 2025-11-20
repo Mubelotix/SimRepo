@@ -1,15 +1,10 @@
-import 'webext-base-css';
-import './options.css';
 import { optionsStorage } from './options-storage.js';
-
 import { basicSetup } from "codemirror"
 import { EditorView, keymap } from "@codemirror/view"
 import { yaml } from "@codemirror/lang-yaml"
 import { yamlSchema } from 'codemirror-json-schema/yaml';
 import { indentWithTab } from "@codemirror/commands"
-import { ensureSyntaxTree, syntaxTree, syntaxTreeAvailable } from "@codemirror/language";
 import YAML from 'yaml';
-import { optionsStorage } from './options-storage.js';
 
 const schema = {
     type: "object",
@@ -140,7 +135,7 @@ async function saveIfChanged() {
     if (changed) {
         const doc = view.state.doc.toString();
         try {
-            const parsed = YAML.parse(doc);            
+            const parsed = YAML.parse(doc);
             await optionsStorage.set({
                 optionsYaml: doc,
                 similarEnabled: parsed.similar?.enabled ?? optionsStorage.defaults.similarEnabled,
