@@ -11,22 +11,18 @@ export async function initHome() {
     }
 
     console.log("Producing recommendations on the homepage");
-    let container = document.querySelector('aside.feed-right-sidebar>div[aria-label="Explore repositories"]>div');
-    if (!container) {
-        // Fallback to creating a new container. Might be buggy if the structure changes.
-        let aside = document.querySelector('aside.feed-right-sidebar');
-        let newContainer = document.createElement('div');
-        newContainer.setAttribute("class", "mb-3 dashboard-changelog color-bg-default border color-border-default p-3 rounded-2");
-        let title = document.createElement('h2');
-        title.setAttribute("class", "f5 text-bold mb-3");
-        title.textContent = "For you";
-        newContainer.appendChild(title);
-        let newContainerInner = document.createElement('div');
-        newContainer.appendChild(newContainerInner);
-        
-        aside.appendChild(newContainer);
-        container = newContainerInner;
-    }
+
+    let aside = document.querySelector('aside.feed-right-column');
+    let outerContainer = document.createElement('div');
+    outerContainer.setAttribute("class", "mb-3 dashboard-changelog color-bg-default border color-border-muted p-3 rounded-3");
+    let title = document.createElement('h2');
+    title.setAttribute("class", "f5 text-bold mb-3 width-full dashboard-changelog__title");
+    title.textContent = "For you";
+    outerContainer.appendChild(title);
+    let container = document.createElement('div');
+    outerContainer.appendChild(container);
+
+    aside.appendChild(outerContainer);
 
     container.innerHTML = getLoadingHtml(options.homepageStarsToLoad);
     container.style.height = 'unset';
