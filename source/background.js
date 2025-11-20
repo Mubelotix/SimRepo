@@ -2,7 +2,7 @@ import { initCache } from './cache.js';
 
 async function getClosestN(ids, offset = 0, limit = 10) {
     const apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJyIn0.drJ8F-oa_6UfCpmKdv4Mbng_E8p71UrZAR895gKOOAk";
-    const url = "https://simrepo.mub.lol/collections/repos/points/recommend";
+    const url = "https://simrepo.dera.page/collections/repos/points/recommend";
 
     let remainingIds = [...ids];
 
