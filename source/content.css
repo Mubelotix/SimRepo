@@ -1,6 +1,6 @@
 aside>div[aria-label="Explore repositories"]>div {
-	height: 0;
-	overflow: hidden;
+    height: 0;
+    overflow: hidden;
 }
 
 #similar-repos-container .pinned-item-meta+.pinned-item-meta {
@@ -26,6 +26,16 @@ aside>div[aria-label="Explore repositories"]>div {
     display: inline-block;
     box-sizing: border-box;
     animation: rotation 1s linear infinite;
+}
+
+#similar-repos-container h2 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#simrepo-settings-btn .octicon {
+    vertical-align: baseline;
 }
 
 @keyframes rotation {
