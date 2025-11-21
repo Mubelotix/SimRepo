@@ -1,6 +1,6 @@
 import GH_LANG_COLORS from 'gh-lang-colors';
 import octicons from "@primer/octicons";
-import { getSimilarRepos, formatNumber, loadingSpinner } from './common.js';
+import { getSimilarRepos, formatNumber, loadingSpinner, setupSettingsListener } from './common.js';
 import { optionsStorage } from './options-storage.js';
 
 var loading = false;
@@ -76,6 +76,9 @@ function getContainerHtml(results) {
     <div class="BorderGrid-cell">
         <h2 class="h4 mb-3">
             Similar repositories
+            <a href="#" id="simrepo-settings-btn" class="Link--secondary pt-1 pl-2" title="Settings">
+                ${octicons.gear.toSVG()}
+            </a>
             <!-- <span title="${results.length}" data-view-component="true" class="Counter">${formatNumber(results.length)}</span> -->
         </h2>
 
@@ -93,6 +96,9 @@ function getLoadingContainerHtml() {
         <div class="BorderGrid-cell">
             <h2 class="h4 mb-3">
                 Similar repositories
+                <a href="#" id="simrepo-settings-btn" class="Link--secondary pt-1 pl-2" title="Settings">
+                    ${octicons.gear.toSVG()}
+                </a>
             </h2>
 
             <div class="d-flex align-items-center justify-content-star mt-3">
@@ -113,6 +119,9 @@ function getErrorContainerHtml(error = "No similar repositories found.") {
         <div class="BorderGrid-cell">
             <h2 class="h4 mb-3">
                 Similar repositories
+                <a href="#" id="simrepo-settings-btn" class="Link--secondary pt-1 pl-2" title="Settings">
+                    ${octicons.gear.toSVG()}
+                </a>
             </h2>
 
             <div class="text-small color-fg-muted">
@@ -135,6 +144,8 @@ function setupCallback() {
             }
         });
     }
+
+    setupSettingsListener();
 }
 
 async function getRepoId() {
@@ -167,6 +178,7 @@ export async function loadMoreRepos(resetOffset = false) {
     if (!container) {
         const sidebar = document.querySelector('.Layout-sidebar > div');
         sidebar.insertAdjacentHTML('beforeend', getLoadingContainerHtml());
+        setupSettingsListener();
         container = document.querySelector('#similar-repos-container');
     }
 
@@ -175,6 +187,7 @@ export async function loadMoreRepos(resetOffset = false) {
     if (isPrivate) {
         if (options.similarShowUnavailable) {
             container.outerHTML = getErrorContainerHtml("Unavailable for private repositories.");
+            setupSettingsListener();
         } else {
             container.remove();
         }
@@ -188,6 +201,7 @@ export async function loadMoreRepos(resetOffset = false) {
         if (starsCount < 150) {
             if (options.similarShowUnavailable) {
                 container.outerHTML = getErrorContainerHtml("Unavailable for repositories with less than 150 stars.");
+                setupSettingsListener();
             } else {
                 container.remove();
             }
@@ -237,10 +251,12 @@ export async function loadMoreRepos(resetOffset = false) {
             } else {
                 container.outerHTML = getErrorContainerHtml("No similar repositories found. Try on older repositories.");
             }
+            setupSettingsListener();
         }
     } catch (error) {
         console.error('Error fetching similar repos:', error);
         loading = false;
         container.outerHTML = getErrorContainerHtml(`Error fetching similar repositories. Details:<br><code> ${error.message}</code>`);
+        setupSettingsListener();
     }
 }

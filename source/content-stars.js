@@ -1,6 +1,6 @@
 import octicons from "@primer/octicons";
 import GH_LANG_COLORS from 'gh-lang-colors';
-import { formatNumber, getSimilarRepos, loadingSpinner } from './common.js';
+import { formatNumber, getSimilarRepos, loadingSpinner, setupSettingsListener } from './common.js';
 import { optionsStorage } from "./options-storage.js";
 
 export async function initHome() {
@@ -22,7 +22,10 @@ export async function initHome() {
     outerContainer.setAttribute("class", "mb-3 dashboard-changelog color-bg-default border color-border-muted p-3 rounded-3");
     let title = document.createElement('h2');
     title.setAttribute("class", "f5 text-bold mb-3 width-full dashboard-changelog__title");
-    title.textContent = "For you";
+    title.innerHTML = `For you
+    <a href="#" id="simrepo-settings-btn" class="Link--secondary pt-1 pl-2" title="Settings" style="float: right;">
+        ${octicons.gear.toSVG()}
+    </a>`;
     outerContainer.appendChild(title);
     let container = document.createElement('div');
     outerContainer.appendChild(container);
@@ -32,6 +35,8 @@ export async function initHome() {
     container.innerHTML = getLoadingHtml(options.homepageStarsToLoad);
     container.style.height = 'unset';
     container.style.overflow = 'unset';
+
+    setupSettingsListener();
 
     try {
         await run(container, options);
