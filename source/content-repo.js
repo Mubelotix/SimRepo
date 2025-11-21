@@ -1,6 +1,7 @@
 import GH_LANG_COLORS from 'gh-lang-colors';
 import octicons from "@primer/octicons";
-import { getSimilarRepos, formatNumber, loadingSpinner } from './common.js';
+import { getSimilarRepos, formatNumber, loadingSpinner, setupSettingsListener } from './common.js';
+import { optionsStorage } from './options-storage.js';
 
 var loading = false;
 var nextOffset = 0;
@@ -75,6 +76,9 @@ function getContainerHtml(results) {
     <div class="BorderGrid-cell">
         <h2 class="h4 mb-3">
             Similar repositories
+            <a href="#" id="simrepo-settings-btn" class="Link--secondary pt-1 pl-2" title="Settings">
+                ${octicons.gear.toSVG()}
+            </a>
             <!-- <span title="${results.length}" data-view-component="true" class="Counter">${formatNumber(results.length)}</span> -->
         </h2>
 
@@ -92,6 +96,9 @@ function getLoadingContainerHtml() {
         <div class="BorderGrid-cell">
             <h2 class="h4 mb-3">
                 Similar repositories
+                <a href="#" id="simrepo-settings-btn" class="Link--secondary pt-1 pl-2" title="Settings">
+                    ${octicons.gear.toSVG()}
+                </a>
             </h2>
 
             <div class="d-flex align-items-center justify-content-star mt-3">
@@ -112,6 +119,9 @@ function getErrorContainerHtml(error = "No similar repositories found.") {
         <div class="BorderGrid-cell">
             <h2 class="h4 mb-3">
                 Similar repositories
+                <a href="#" id="simrepo-settings-btn" class="Link--secondary pt-1 pl-2" title="Settings">
+                    ${octicons.gear.toSVG()}
+                </a>
             </h2>
 
             <div class="text-small color-fg-muted">
@@ -134,6 +144,8 @@ function setupCallback() {
             }
         });
     }
+
+    setupSettingsListener();
 }
 
 async function getRepoId() {
@@ -148,6 +160,12 @@ async function getRepoId() {
 }
 
 export async function loadMoreRepos(resetOffset = false) {
+    let options = await optionsStorage.getAll();
+    if (!options.similarEnabled) {
+        console.log("Similar repositories are disabled");
+        return;
+    }
+
     if (resetOffset) {
         nextOffset = 0;
     }
@@ -160,7 +178,20 @@ export async function loadMoreRepos(resetOffset = false) {
     if (!container) {
         const sidebar = document.querySelector('.Layout-sidebar > div');
         sidebar.insertAdjacentHTML('beforeend', getLoadingContainerHtml());
+        setupSettingsListener();
         container = document.querySelector('#similar-repos-container');
+    }
+
+    // Don't fetch if private
+    const isPrivate = document.querySelector('.Label.Label--secondary')?.textContent.trim() === 'Private';
+    if (isPrivate) {
+        if (options.similarShowUnavailable) {
+            container.outerHTML = getErrorContainerHtml("Unavailable for private repositories.");
+            setupSettingsListener();
+        } else {
+            container.remove();
+        }
+        return;
     }
 
     // Don't fetch if less than 150 stars
@@ -168,7 +199,12 @@ export async function loadMoreRepos(resetOffset = false) {
         let starSpan = document.querySelector("span[id=\"repo-stars-counter-star\"]");
         let starsCount = starSpan ? parseInt(starSpan.getAttribute("title").replace(/,/g, '')) : 0;
         if (starsCount < 150) {
-            container.outerHTML = getErrorContainerHtml("Unavailable for repositories with less than 150 stars.");
+            if (options.similarShowUnavailable) {
+                container.outerHTML = getErrorContainerHtml("Unavailable for repositories with less than 150 stars.");
+                setupSettingsListener();
+            } else {
+                container.remove();
+            }
             return;
         }
     } catch (error) {
@@ -178,8 +214,9 @@ export async function loadMoreRepos(resetOffset = false) {
     try {
         loading = true;
         let offset = nextOffset;
-        nextOffset += 5;
-        let response = await getSimilarRepos([repoId], offset, 5);
+        let limit = options.similarCount;
+        nextOffset += limit;
+        let response = await getSimilarRepos([repoId], offset, limit);
         loading = false;
 
         if (response.status === "success" && response.data !== undefined) {
@@ -193,7 +230,11 @@ export async function loadMoreRepos(resetOffset = false) {
 
             let innerContainer = document.getElementById("similar-repos-inner-container");
             if (innerContainer) {
-                innerContainer.insertAdjacentHTML('beforeend', getContainerInnerHtml(response.data));
+                if (offset === 0) {
+                    innerContainer.innerHTML = getContainerInnerHtml(response.data);
+                } else {
+                    innerContainer.insertAdjacentHTML('beforeend', getContainerInnerHtml(response.data));
+                }
             } else {
                 container.outerHTML = getContainerHtml(response.data);
                 setupCallback();
@@ -202,14 +243,20 @@ export async function loadMoreRepos(resetOffset = false) {
             console.log('No similar repos found');
 
             if (response.status === "error" && response.message) {
-                container.outerHTML = getErrorContainerHtml(`Error fetching similar repositories. Details:<br><code>${response.message}</code>`);
+                if (response.message === "All provided IDs were invalid or caused errors.") {
+                    container.outerHTML = getErrorContainerHtml("This repository got popular too recently! It will be included in the dataset soon.");
+                } else {
+                    container.outerHTML = getErrorContainerHtml(`Error fetching similar repositories. Details:<br><code>${response.message}</code>`);
+                }
             } else {
                 container.outerHTML = getErrorContainerHtml("No similar repositories found. Try on older repositories.");
             }
+            setupSettingsListener();
         }
     } catch (error) {
         console.error('Error fetching similar repos:', error);
         loading = false;
         container.outerHTML = getErrorContainerHtml(`Error fetching similar repositories. Details:<br><code> ${error.message}</code>`);
+        setupSettingsListener();
     }
 }

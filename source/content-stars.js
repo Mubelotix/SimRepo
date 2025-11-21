@@ -1,36 +1,45 @@
 import octicons from "@primer/octicons";
 import GH_LANG_COLORS from 'gh-lang-colors';
-import { formatNumber, getSimilarRepos, loadingSpinner } from './common.js';
+import { formatNumber, getSimilarRepos, loadingSpinner, setupSettingsListener } from './common.js';
+import { optionsStorage } from "./options-storage.js";
 
 export async function initHome() {
-    console.log("Producing recommendations on the homepage");
-
-    let latestStars = 30;
-
-    let container = document.querySelector('aside.feed-right-sidebar>div[aria-label="Explore repositories"]>div');
-
-    if (!container) {
-        // Fallback to creating a new container. Might be buggy if the structure changes.
-        let aside = document.querySelector('aside.feed-right-sidebar');
-        let newContainer = document.createElement('div');
-        newContainer.setAttribute("class", "mb-3 dashboard-changelog <color-bg-default border color-border-default p-3 rounded-2");
-        let title = document.createElement('h2');
-        title.setAttribute("class", "f5 text-bold mb-3");
-        title.textContent = "For you";
-        newContainer.appendChild(title);
-        let newContainerInner = document.createElement('div');
-        newContainer.appendChild(newContainerInner);
-        
-        aside.appendChild(newContainer);
-        container = newContainerInner;
+    let options = await optionsStorage.getAll();
+    if (!options.homepageEnabled) {
+        console.log("Homepage recommendations are disabled in options.");
+        return;
     }
 
-    container.innerHTML = getLoadingHtml(latestStars);
+    if (options.homepageRedirectToFeed && window.location.pathname === '/') {
+        window.location.replace('/feed');
+        return;
+    }
+
+    console.log("Producing recommendations on the homepage");
+
+    let aside = document.querySelector('aside.feed-right-column');
+    let outerContainer = document.createElement('div');
+    outerContainer.setAttribute("class", "mb-3 dashboard-changelog color-bg-default border color-border-muted p-3 rounded-3");
+    let title = document.createElement('h2');
+    title.setAttribute("class", "f5 text-bold mb-3 width-full dashboard-changelog__title");
+    title.innerHTML = `For you
+    <a href="#" id="simrepo-settings-btn" class="Link--secondary pt-1 pl-2" title="Settings" style="float: right;">
+        ${octicons.gear.toSVG()}
+    </a>`;
+    outerContainer.appendChild(title);
+    let container = document.createElement('div');
+    outerContainer.appendChild(container);
+
+    aside.appendChild(outerContainer);
+
+    container.innerHTML = getLoadingHtml(options.homepageStarsToLoad);
     container.style.height = 'unset';
     container.style.overflow = 'unset';
 
+    setupSettingsListener();
+
     try {
-        await run(container, latestStars);
+        await run(container, options);
     } catch (error) {
         console.error("Error during homepage recommendations:", error);
         container.innerHTML = `<div class="color-fg-muted">Failed to load recommendations. Please try again later or <a href="https://github.com/Mubelotix/SimRepo/issues">open an issue</a>.<br/>Details: <code>${error.message}</code></div>`;
@@ -55,14 +64,26 @@ export async function initStarsList() {
     console.log('💈 Found similar repos for homepage:', response);
 }
 
-async function run(container, latestStars) {
+function getRandomSubsetInOrder(array, count) {
+    const actualCount = Math.min(count, array.length);
+    const indices = new Set();
+    while (indices.size < actualCount) {
+        const i = Math.floor(Math.random() * array.length);
+        indices.add(i);
+    }
+
+    const sortedIndices = Array.from(indices).sort((a, b) => a - b);
+    return sortedIndices.map(i => array[i]);
+}
+
+async function run(container, options) {
     let login = document.querySelector('meta[name="user-login"]').getAttribute('content');
     console.log("User login:", login);
 
     let after = null;
     let stars = new Set();
 
-    while (stars.size < latestStars) {
+    while (stars.size < options.homepageStarsToLoad) {
         let url = `https://github.com/${login}?tab=stars`;
         if (after) {
             url += `&after=${after}`;
@@ -78,7 +99,7 @@ async function run(container, latestStars) {
             let id = matches[1];
             if (id) {
                 stars.add(Number(id));
-                if (stars.size >= latestStars) {
+                if (stars.size >= options.homepageStarsToLoad) {
                     break;
                 }
             }
@@ -98,8 +119,13 @@ async function run(container, latestStars) {
 
     console.log("Collected stars:", stars);
 
-    let response = await getSimilarRepos(Array.from(stars), 0, 15);
+    let recommendationCount = Math.round(options.homepageCount * options.homepagePoolSize);
+    let response = await getSimilarRepos(Array.from(stars), 0, recommendationCount);
     console.log('💈 Found similar repos for homepage:', response);
+    if (options.homepagePoolSize > 1) {
+        response.data = getRandomSubsetInOrder(response.data, options.homepageCount);
+        console.log('💈 Created a subset of', options.homepageCount, 'repositories');
+    }
 
     let innerHtml = '';
     for (let i = 0; i < response.data.length; i++) {
