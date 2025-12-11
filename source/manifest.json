@@ -1,7 +1,7 @@
 {
     "$schema": "https://json.schemastore.org/chrome-manifest",
     "name": "SimRepo",
-    "version": "0.4.0",
+    "version": "0.5.0",
     "description": "Shows similar repositories on GitHub",
     "homepage_url": "https://github.com/Mubelotix/SimRepo",
     "manifest_version": 3,
