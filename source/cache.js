@@ -1,23 +1,22 @@
-const CACHE_MAX_SIZE = 500;
 const CACHE_PREFIX = 'cache:';
+const CACHE_EXPIRATION_MS = 86400 * 1000; // 24 hours
 
 function cleanupExpiredCache() {
     chrome.storage.local.get(null, (items) => {
-        const cached = [];
+        const expiredKeys = [];
+        const now = Date.now();
 
         for (const [key, value] of Object.entries(items)) {
             if (key.startsWith(CACHE_PREFIX)) {
-                cached.push({ key, timestamp: value.timestamp });
+                if (value.timestamp && (now - value.timestamp > CACHE_EXPIRATION_MS)) {
+                    expiredKeys.push(key);
+                }
             }
         }
 
-        if (cached.length <= CACHE_MAX_SIZE) {
-            return
+        if (expiredKeys.length === 0) {
+            return;
         }
-
-        cached.sort((a, b) => b.timestamp - a.timestamp);
-        const expired = cached.slice(CACHE_MAX_SIZE);
-        const expiredKeys = expired.map(item => item.key);
         
         console.log(`Cleaning up ${expiredKeys.length} expired cache entries...`);
         chrome.storage.local.remove(expiredKeys, () => {
