@@ -25,7 +25,7 @@ const schema = {
                 },
                 showUnavailable: {
                     type: "boolean",
-                    description: "Whether to show a notice when similar repositories are unavailable (e.g. private or < 150 stars)",
+                    description: "Whether to show a notice when similar repositories are unavailable (e.g. private or < 100 stars)",
                 },
                 // showArchived: {
                 //   type: "boolean",
@@ -49,7 +49,7 @@ const schema = {
                 },
                 starsToLoad: {
                     type: "integer",
-                    description: "Number of your latest stars to load in order to provide you recommendations. Since repositories with less than 150 stars won't be used, the actual number may be less. Stars are loaded 30 by 30 so this would benefit being a multiple of 30.",
+                    description: "Number of your latest stars to load in order to provide you recommendations. Since repositories with less than 100 stars won't be used, the actual number may be less. Stars are loaded 30 by 30 so this would benefit being a multiple of 30.",
                     minimum: 1,
                     maximum: 120,
                 },
