@@ -194,13 +194,13 @@ export async function loadMoreRepos(resetOffset = false) {
         return;
     }
 
-    // Don't fetch if less than 150 stars
+    // Don't fetch if less than 100 stars
     try {
         let starSpan = document.querySelector("span[id=\"repo-stars-counter-star\"]");
         let starsCount = starSpan ? parseInt(starSpan.getAttribute("title").replace(/,/g, '')) : 0;
-        if (starsCount < 150) {
+        if (starsCount < 100) {
             if (options.similarShowUnavailable) {
-                container.outerHTML = getErrorContainerHtml("Unavailable for repositories with less than 150 stars.");
+                container.outerHTML = getErrorContainerHtml("Unavailable for repositories with less than 100 stars.");
                 setupSettingsListener();
             } else {
                 container.remove();

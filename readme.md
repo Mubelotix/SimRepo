@@ -14,7 +14,7 @@
 
 ## Features
 
-- [x] Provides similar repositories for all repositories with more than 150 stars
+- [x] Provides similar repositories for all repositories with more than 100 stars
 - [x] Adds recommendations on your home page based on your latest stars
 - [ ] Recommends new elements for a specific star list
 
