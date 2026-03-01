@@ -5,7 +5,7 @@ LABEL org.opencontainers.image.revision=${GIT_COMMIT}
 ENV GIT_COMMIT=${GIT_COMMIT}
 
 # Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@9 --activate
 
 # Set working directory
 WORKDIR /app
@@ -26,8 +26,8 @@ COPY backend/ ./backend/
 COPY gh/data/repos.json ./gh/data/repos.json
 
 # Expose port
-EXPOSE 3000
+EXPOSE 8080
 
 # Start the application
 WORKDIR /app/backend
-CMD ["npx", "tsx", "main.ts"]
+CMD ["./node_modules/.bin/tsx", "main.ts"]
