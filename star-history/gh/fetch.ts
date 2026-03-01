@@ -1,6 +1,7 @@
 import { createDatabase, insertRepos, insertStats, exportLeaderboard, exportWeeklyRanking, exportRepos } from "./db.js";
-import { fetchQualifyingRepos } from "./github.js";
+import { fetchQualifyingRepos, githubFetch as ghFetch } from "./github.js";
 import { fetchRepoStats } from "./bigquery.js";
+import { fetchStarCount } from "./star-count.js";
 
 function validateWeek(w: string): void {
   if (!/^\d{4}-W\d{2}$/.test(w)) {
@@ -110,6 +111,9 @@ async function main() {
   exportWeeklyRanking(db);
   exportRepos(db);
   db.close();
+
+  // Fetch star counts by threshold (independent of SQLite pipeline)
+  await fetchStarCount(ghFetch);
 
   console.log(`\nDone! ${qualifyingRepos.length} repos, ${allStats.length} stat rows written to data.db`);
 }

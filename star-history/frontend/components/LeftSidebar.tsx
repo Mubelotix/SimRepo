@@ -1,9 +1,13 @@
 import { useState } from "react"
 import Link from "next/link"
-import leaderboard from "@gh-data/leaderboard.json"
+import leaderboardData from "@gh-data/leaderboard.json"
 import weeklyRankingData from "@gh-data/weekly-ranking.json"
+import starCountData from "@gh-data/star-count.json"
 
-const weeklyRanking = weeklyRankingData as { name: string; new_stars: number; stars_total: number }[]
+const leaderboard = (leaderboardData as { updated_at: string; repos: { name: string; stars_total: number }[] })
+const weeklyRankingRaw = (weeklyRankingData as { updated_at: string; repos: { name: string; new_stars: number; stars_total: number }[] })
+const weeklyRanking = weeklyRankingRaw.repos
+const starCount = starCountData as { updated_at: string; tiers: { threshold: number; label: string; count: number }[] }
 
 function formatStars(count: number): string {
     if (count >= 1000) {
@@ -12,11 +16,22 @@ function formatStars(count: number): string {
     return String(count)
 }
 
-type Tab = "weekly" | "alltime"
+function formatCount(count: number): string {
+    if (count >= 1_000_000) {
+        return `${(count / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`
+    }
+    if (count >= 1_000) {
+        return `${(count / 1_000).toFixed(1).replace(/\.0$/, "")}K`
+    }
+    return String(count)
+}
+
+type Tab = "weekly" | "alltime" | "pyramid"
 
 const tabs: { key: Tab; label: string }[] = [
     { key: "weekly", label: "Weekly" },
     { key: "alltime", label: "All-time" },
+    { key: "pyramid", label: "Pyramid" },
 ]
 
 const LeftSidebar: React.FC = () => {
@@ -24,7 +39,7 @@ const LeftSidebar: React.FC = () => {
 
     const items = activeTab === "weekly"
         ? weeklyRanking.map((r) => ({ name: r.name, metric: `+${formatStars(r.new_stars)}`, metricClass: "accent-text" }))
-        : leaderboard.map((r) => ({ name: r.name, metric: formatStars(r.stars_total), metricClass: "text-gray-400" }))
+        : leaderboard.repos.map((r) => ({ name: r.name, metric: formatStars(r.stars_total), metricClass: "text-gray-400" }))
 
     return (
         <div className="sidebar-sticky">
@@ -44,56 +59,87 @@ const LeftSidebar: React.FC = () => {
                         </button>
                     ))}
                 </div>
-                <ol className="space-y-0.5">
-                    {items.map((item, i) => {
-                        const repoName = item.name.split("/")[1]
-                        return (
-                            <li key={item.name}>
-                                <Link
-                                    href={`/${item.name.toLowerCase()}`}
-                                    className="flex items-center gap-2 py-1 text-sm group cursor-pointer"
-                                >
-                                    <span className="text-xs text-gray-400 w-4 shrink-0">
-                                        {i + 1}
-                                    </span>
-                                    <img
-                                        src={`https://github.com/${item.name.split("/")[0]}.png?size=32`}
-                                        alt=""
-                                        width={16}
-                                        height={16}
-                                        className="rounded-full shrink-0"
-                                    />
-                                    <span className="truncate text-gray-700 group-hover:text-blue-600">
-                                        {repoName}
-                                    </span>
-                                    {item.name === "openclaw/openclaw" ? (
-                                        <span className="flex-1 min-w-0 relative h-6 lobster-container">
-                                            <img
-                                                src="/assets/lobster.png"
-                                                alt="🦞"
-                                                width={20}
-                                                height={20}
-                                                className="lobster-static absolute top-0 bottom-0 my-auto left-0"
-                                            />
-                                            <img
-                                                src="/assets/lobster-animated.gif"
-                                                alt="🦞"
-                                                width={20}
-                                                height={20}
-                                                className="lobster-animated absolute top-0 bottom-0 my-auto left-0"
-                                            />
+                {activeTab === "pyramid" ? (
+                    <div className="space-y-2 mt-1">
+                        {starCount.tiers.map((tier, i) => {
+                            const maxCount = starCount.tiers[starCount.tiers.length - 1].count
+                            const widthPct = (tier.count / maxCount) * 100
+                            return (
+                                <div key={tier.threshold}>
+                                    <div className="flex items-baseline justify-between text-xs mb-0.5">
+                                        <span className="text-gray-700 font-medium">
+                                            ★ {tier.label}
                                         </span>
-                                    ) : (
-                                        <span className="flex-1 min-w-0" />
-                                    )}
-                                    <span className={`text-xs shrink-0 ${item.metricClass}`}>
-                                        {item.metric}
-                                    </span>
-                                </Link>
-                            </li>
-                        )
-                    })}
-                </ol>
+                                        <span className="text-gray-400">
+                                            {formatCount(tier.count)}
+                                        </span>
+                                    </div>
+                                    <div
+                                        className="h-3 rounded-sm"
+                                        style={{
+                                            width: `${widthPct}%`,
+                                            backgroundColor: "#16a34a",
+                                        }}
+                                    />
+                                </div>
+                            )
+                        })}
+                    </div>
+                ) : (
+                    <ol className="space-y-0.5">
+                        {items.map((item, i) => {
+                            const repoName = item.name.split("/")[1]
+                            return (
+                                <li key={item.name}>
+                                    <Link
+                                        href={`/${item.name.toLowerCase()}`}
+                                        className="flex items-center gap-2 py-1 text-sm group cursor-pointer"
+                                    >
+                                        <span className="text-xs text-gray-400 w-4 shrink-0">
+                                            {i + 1}
+                                        </span>
+                                        <img
+                                            src={`https://github.com/${item.name.split("/")[0]}.png?size=32`}
+                                            alt=""
+                                            width={16}
+                                            height={16}
+                                            className="rounded-full shrink-0"
+                                        />
+                                        <span className="truncate text-gray-700 group-hover:text-blue-600">
+                                            {repoName}
+                                        </span>
+                                        {item.name === "openclaw/openclaw" ? (
+                                            <span className="flex-1 min-w-0 relative h-6 lobster-container">
+                                                <img
+                                                    src="/assets/lobster.png"
+                                                    alt="🦞"
+                                                    width={20}
+                                                    height={20}
+                                                    className="lobster-static absolute top-0 bottom-0 my-auto left-0"
+                                                />
+                                                <img
+                                                    src="/assets/lobster-animated.gif"
+                                                    alt="🦞"
+                                                    width={20}
+                                                    height={20}
+                                                    className="lobster-animated absolute top-0 bottom-0 my-auto left-0"
+                                                />
+                                            </span>
+                                        ) : (
+                                            <span className="flex-1 min-w-0" />
+                                        )}
+                                        <span className={`text-xs shrink-0 ${item.metricClass}`}>
+                                            {item.metric}
+                                        </span>
+                                    </Link>
+                                </li>
+                            )
+                        })}
+                    </ol>
+                )}
+                <p className="text-[10px] text-gray-300 mt-3">
+                    Updated {activeTab === "weekly" ? weeklyRankingRaw.updated_at : activeTab === "alltime" ? leaderboard.updated_at : starCount.updated_at}
+                </p>
             </div>
         </div>
     )

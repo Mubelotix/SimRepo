@@ -105,8 +105,12 @@ export function exportLeaderboard(db: Database.Database, limit = 20): void {
     "SELECT name, stars_total FROM repos ORDER BY stars_total DESC LIMIT ?"
   ).all(limit) as { name: string; stars_total: number }[];
 
+  const output = {
+    updated_at: new Date().toISOString().slice(0, 10),
+    repos: rows,
+  };
   const outPath = path.join(__dirname, "data", "leaderboard.json");
-  writeFileSync(outPath, JSON.stringify(rows, null, 2) + "\n");
+  writeFileSync(outPath, JSON.stringify(output, null, 2) + "\n");
   console.log(`Exported top ${rows.length} repos to leaderboard.json`);
 }
 
@@ -120,8 +124,12 @@ export function exportWeeklyRanking(db: Database.Database, limit = 20): void {
     LIMIT ?
   `).all(limit) as { name: string; new_stars: number; stars_total: number }[];
 
+  const output = {
+    updated_at: new Date().toISOString().slice(0, 10),
+    repos: rows,
+  };
   const outPath = path.join(__dirname, "data", "weekly-ranking.json");
-  writeFileSync(outPath, JSON.stringify(rows, null, 2) + "\n");
+  writeFileSync(outPath, JSON.stringify(output, null, 2) + "\n");
   console.log(`Exported top ${rows.length} repos by weekly stars to weekly-ranking.json`);
 }
 

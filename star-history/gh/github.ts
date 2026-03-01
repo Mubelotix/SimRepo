@@ -9,7 +9,7 @@ const TOKEN_PATH = path.join(__dirname, "github-token.env");
 const tokens: string[] = [];
 let tokenIndex = 0;
 
-function loadTokens(): void {
+export function loadTokens(): void {
   if (tokens.length > 0) return;
 
   // Prefer GITHUB_TOKENS env var (newline-separated, used in CI)
@@ -38,7 +38,7 @@ function getNextToken(): string {
   return token;
 }
 
-async function githubFetch(url: string, retries = 0): Promise<any> {
+export async function githubFetch(url: string, retries = 0): Promise<any> {
   const token = getNextToken();
   const res = await fetch(url, {
     headers: {
