@@ -32,7 +32,7 @@ jobs:
         working-directory: gh
 
       - name: Fetch gh data
-        run: pnpm run fetch ${{ inputs.week }}
+        run: pnpm run star:fetch ${{ inputs.week }}
         working-directory: gh
         env:
           GITHUB_TOKENS: ${{ secrets.GITHUB_TOKENS }}
