@@ -50,3 +50,7 @@ token.env
 # generated files
 frontend/helpers/blog.json
 gh/data/
+
+# gh archive pipeline
+gh/archive.db
+gh/archive-data/
