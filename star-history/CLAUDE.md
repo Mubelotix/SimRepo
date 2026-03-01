@@ -20,7 +20,7 @@ The following files are auto-generated and gitignored. Never `git add -f` them:
 
 **Frontend:** Next.js ^14.1.0 (Pages Router, static export) · React ^18.2.0 · TypeScript ^4.9.5 · Tailwind CSS ^3.4.0 · D3.js (axis, scale, selection, shape) · Axios ^1.8.2 · FontAwesome ^6.5.1 · Lodash ^4.17.21 · Dayjs ^1.11.10 · Gray-matter ^4.0.3 · Marked ^9.1.6
 
-**Backend:** Koa.js 2.13.4 · TypeScript 4.8.4 · D3.js (server-side SVG) · JSDOM 20.0.2 · SVGO ^3.2.0 · Satori ^0.12.0 · LRU cache 7.14.1
+**Backend:** Hono ^4.7.4 · @hono/node-server · TypeScript 4.8.4 · D3.js (server-side SVG) · JSDOM 20.0.2 · SVGO ^3.2.0 · Satori ^0.12.0 · LRU cache 7.14.1
 
 ## Project Structure
 
@@ -110,7 +110,7 @@ The project uses an **xkcd / hand-drawn aesthetic**. All interactive overlays an
 
 ## Backend (API Server)
 
-The `backend/` directory is a Koa.js server (deployed as `api.star-history.com`) that generates star history SVG charts and OG card images.
+The `backend/` directory is a Hono server (deployed as `api.star-history.com`) that generates star history SVG charts and OG card images.
 
 - **Dev**: `cd backend && pnpm dev`
 - **Build**: `cd backend && pnpm build`
@@ -118,7 +118,7 @@ The `backend/` directory is a Koa.js server (deployed as `api.star-history.com`)
 
 | File | Purpose |
 |------|---------|
-| `main.ts` | Koa server with `/svg` endpoint (query params: `repos`, `type`, `style`, `size`, `theme`) |
+| `main.ts` | Hono server with `/svg` endpoint (query params: `repos`, `type`, `style`, `size`, `theme`) |
 | `og-card.ts` | Satori-based OG card image renderer (`style=card` → 1200×630 PNG) |
 | `cache.ts` | LRU cache (10K repos, 1GB, 24h TTL) for star records |
 | `token.ts` | GitHub token rotation |

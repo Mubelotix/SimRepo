@@ -11,7 +11,8 @@
     "allowSyntheticDefaultImports": true,
     "jsx": "react-jsx",
     "resolveJsonModule": true,
-    "allowJs": true
+    "allowJs": true,
+    "skipLibCheck": true
   },
   "include": [
     "./*.ts",

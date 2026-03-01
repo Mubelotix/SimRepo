@@ -1,5 +1,3 @@
-import fetch from "node-fetch";
-
 /**
  * In nodejs, the filter element from d3 will auto-transfrom its attributes to lower case with unfound reason.
  * So we have to replace it with camel case string.
