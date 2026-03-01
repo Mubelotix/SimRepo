@@ -1,4 +1,4 @@
-import { createDatabase, insertRepos, insertStats, getLatestDate, exportLeaderboard, exportWeeklyRanking, exportRepos } from "./db.js";
+import { createDatabase, insertRepos, insertStats, formatDate, getWeeklyDate, exportLeaderboard, exportWeeklyRanking, exportRepos } from "./db.js";
 import { fetchQualifyingRepos, githubFetch as ghFetch } from "./github.js";
 import { fetchRepoStats } from "./bigquery.js";
 import { fetchStarCount } from "./star-count.js";
@@ -107,9 +107,8 @@ async function main() {
   const db = createDatabase();
   insertRepos(db, qualifyingRepos);
   insertStats(db, allStats);
-  const updatedAt = getLatestDate(db);
-  exportLeaderboard(db, updatedAt);
-  exportWeeklyRanking(db, updatedAt);
+  exportLeaderboard(db, formatDate(new Date()));
+  exportWeeklyRanking(db, getWeeklyDate(db));
   exportRepos(db);
   db.close();
 
