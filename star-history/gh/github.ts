@@ -53,9 +53,8 @@ export async function githubFetch(url: string, retries = 0): Promise<any> {
       throw new Error("All GitHub tokens are rate limited");
     }
     const resetAt = res.headers.get("x-ratelimit-reset");
-    console.warn(
-      `[GitHub] Rate limited (token ...${token.slice(-4)}), resets at: ${resetAt ? new Date(Number(resetAt) * 1000).toISOString() : "unknown"}`
-    );
+    const resetStr = resetAt ? `, resets at ${new Date(Number(resetAt) * 1000).toISOString()}` : "";
+    console.warn(`[GitHub] Rate limited (token ...${token.slice(-4)})${resetStr}, retrying`);
     return githubFetch(url, retries + 1);
   }
 

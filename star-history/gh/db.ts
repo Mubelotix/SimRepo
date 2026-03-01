@@ -1,5 +1,5 @@
 import Database from "better-sqlite3";
-import { writeFileSync } from "fs";
+import { writeFileSync, unlinkSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import type { QualifyingRepo, RepoStats } from "./types.js";
@@ -15,10 +15,10 @@ export function formatDate(d: Date): string {
   return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
 }
 
-/** Convert ISO week "2026-W09" to the Monday of that week, formatted. */
-function formatWeek(week: string): string {
+/** Convert ISO week "2026-W09" to Monday of that week as a Date. */
+function weekToMonday(week: string): Date {
   const match = week.match(/^(\d{4})-W(\d{2})$/);
-  if (!match) return week;
+  if (!match) return new Date();
   const year = parseInt(match[1]);
   const weekNum = parseInt(match[2]);
   // Jan 4 is always in ISO week 1
@@ -26,19 +26,33 @@ function formatWeek(week: string): string {
   const dayOfWeek = jan4.getUTCDay() || 7;
   const monday = new Date(jan4);
   monday.setUTCDate(jan4.getUTCDate() - dayOfWeek + 1 + (weekNum - 1) * 7);
-  return formatDate(monday);
+  return monday;
+}
+
+/** Format ISO week "2026-W08" as "Feb 16 – 22, 2026" date range. */
+function formatWeekRange(week: string): string {
+  const monday = weekToMonday(week);
+  const sunday = new Date(monday);
+  sunday.setUTCDate(monday.getUTCDate() + 6);
+
+  const monMonth = MONTHS[monday.getUTCMonth()];
+  const sunMonth = MONTHS[sunday.getUTCMonth()];
+  const year = sunday.getUTCFullYear();
+
+  if (monday.getUTCMonth() === sunday.getUTCMonth()) {
+    return `${monMonth} ${monday.getUTCDate()} – ${sunday.getUTCDate()}, ${year}`;
+  }
+  return `${monMonth} ${monday.getUTCDate()} – ${sunMonth} ${sunday.getUTCDate()}, ${year}`;
 }
 
 export function createDatabase(): Database.Database {
+  for (const f of [DB_PATH, `${DB_PATH}-wal`, `${DB_PATH}-shm`]) {
+    try { unlinkSync(f); } catch {}
+  }
   const db = new Database(DB_PATH);
   db.pragma("journal_mode = WAL");
 
   db.exec(`
-    PRAGMA foreign_keys = OFF;
-    DROP TABLE IF EXISTS weekly_stats;
-    DROP VIEW IF EXISTS owners;
-    DROP TABLE IF EXISTS repos;
-    PRAGMA foreign_keys = ON;
 
     CREATE TABLE repos (
       name TEXT PRIMARY KEY,
@@ -121,11 +135,11 @@ export function insertRepos(db: Database.Database, repos: QualifyingRepo[]): voi
   insertMany(repos);
 }
 
-export function getLatestDate(db: Database.Database): string {
+export function getWeeklyDate(db: Database.Database): string {
   const { week } = db.prepare(
     "SELECT MAX(week) AS week FROM weekly_stats"
   ).get() as { week: string };
-  return week ? formatWeek(week) : "";
+  return week ? formatWeekRange(week) : "";
 }
 
 export function exportLeaderboard(db: Database.Database, updatedAt: string, limit = 20): void {
