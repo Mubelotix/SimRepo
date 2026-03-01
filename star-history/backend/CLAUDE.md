@@ -15,7 +15,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture
 
-This is a Koa.js backend server that generates SVG charts of GitHub repository star history.
+This is a Hono backend server that generates SVG charts of GitHub repository star history.
 
 ### Core Flow
 1. **Token Management** (`token.ts`): Validates and rotates GitHub API tokens from environment file

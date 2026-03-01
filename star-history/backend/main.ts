@@ -1,7 +1,6 @@
-import http from "http";
-import Koa from "koa";
-import Router from "koa-router";
-import cors from "@koa/cors";
+import { Hono } from "hono";
+import { cors } from "hono/cors";
+import { serve } from "@hono/node-server";
 import { optimize, Config } from 'svgo';
 import { JSDOM } from "jsdom";
 import XYChart from "../shared/packages/xy-chart.js";
@@ -18,41 +17,41 @@ import { getNextToken, initTokenFromEnv } from "./token.js";
 import { CHART_SIZES, MAX_REQUEST_AMOUNT } from "./const.js";
 import { initOgAssets, renderOgCard } from "./og-card.js";
 import { loadRepos } from "../shared/common/repo-data.js";
-import fetch from "node-fetch";
 
 const startServer = async () => {
   await initTokenFromEnv();
   initOgAssets();
   const repoStore = loadRepos();
 
-  const app = new Koa();
+  const app = new Hono();
   app.use(cors());
-  const router = new Router();
+
+  app.onError((err, c) => {
+    logger.error("server error: ", err);
+    return c.text("Internal Server Error", 500);
+  });
 
   // Health check endpoint
-  router.get("/healthz", async (ctx) => {
-    ctx.status = 200;
-    ctx.body = "OK";
+  app.get("/healthz", (c) => {
+    return c.text("OK", 200);
   });
 
   // Example request link:
   // /svg?repos=star-history/star-history&type=timeline&logscale&legend=bottom-right
-  router.get("/svg", async (ctx) => {
-    const repos = `${ctx.query["repos"]}`.split(",");
-
-    if (repos.length === 0) {
-      ctx.throw(400, `${http.STATUS_CODES[400]}: Repo name required`);
-      return;
+  app.get("/svg", async (c) => {
+    const reposParam = c.req.query("repos");
+    if (!reposParam) {
+      return c.text("Repo name required", 400);
     }
+    const repos = reposParam.split(",");
 
-    // Landscape1 card: returns a 1200×630 SVG with radar chart and attributes
-    const style = `${ctx.query["style"]}`;
+    // Landscape1 card: returns a 1200x630 SVG with radar chart and attributes
+    const style = c.req.query("style") ?? "";
     if (style === "landscape1") {
       const repo = repos[0];
       const cardData = repoStore.getRepo(repo);
       if (!cardData) {
-        ctx.throw(404, `Repo not found in gh dataset: ${repo}`);
-        return;
+        return c.text(`Repo not found in gh dataset: ${repo}`, 404);
       }
       const token = getNextToken();
       try {
@@ -60,8 +59,7 @@ const startServer = async () => {
           headers: { Authorization: `token ${token}`, Accept: "application/json" },
         });
         if (!res.ok) {
-          ctx.throw(res.status, `GitHub API: ${res.statusText}`);
-          return;
+          return c.text(`GitHub API: ${res.statusText}`, res.status as any);
         }
         const gh = (await res.json()) as any;
         const avatarBase64 = await getBase64Image(`${gh.owner.avatar_url}&s=200`);
@@ -77,37 +75,35 @@ const startServer = async () => {
           attributes: cardData.attributes,
           rank: cardData.rank,
         });
-        ctx.type = "image/svg+xml;charset=utf-8";
-        ctx.set("cache-control", "max-age=86400");
-        ctx.body = svg;
+        return c.body(svg, 200, {
+          "Content-Type": "image/svg+xml;charset=utf-8",
+          "Cache-Control": "max-age=86400",
+        });
       } catch (error: any) {
         const status = error.status || 500;
-        ctx.throw(status, `Failed to generate card: ${error.message}`);
+        return c.text(`Failed to generate card: ${error.message}`, status);
       }
-      return;
     }
 
     // --- Star history chart params (only relevant when style is not set) ---
-    const theme = `${ctx.query["theme"]}`;
-    const transparent = `${ctx.query["transparent"]}`;
-    const typeParam = `${ctx.query["type"]}`;
-    const timelineParam = ctx.query["timeline"];
-    const dateParam = ctx.query["date"];
-    const logscaleParam = ctx.query["logscale"];
-    const legendParam = `${ctx.query["legend"]}`;
+    const theme = c.req.query("theme") ?? "";
+    const transparent = c.req.query("transparent") ?? "";
+    const typeParam = c.req.query("type") ?? "";
+    const logscaleParam = c.req.query("logscale");
+    const legendParam = c.req.query("legend") ?? "";
     let type: ChartMode = "Date";
-    let size = `${ctx.query["size"]}`;
+    let size = c.req.query("size") ?? "";
 
-    if (typeParam && typeParam !== "undefined") {
+    if (typeParam) {
       const lowerType = typeParam.toLowerCase();
       if (lowerType === "timeline") {
         type = "Timeline";
       } else if (lowerType === "date") {
         type = "Date";
       }
-    } else if (timelineParam !== undefined) {
+    } else if (c.req.query("timeline") !== undefined) {
       type = "Timeline";
-    } else if (dateParam !== undefined) {
+    } else if (c.req.query("date") !== undefined) {
       type = "Date";
     }
 
@@ -159,9 +155,7 @@ const startServer = async () => {
         const message =
           error.message || "Some unexpected error happened, try again later";
 
-        ctx.status = status;
-        ctx.message = `${http.STATUS_CODES[status]}: ${message}`;
-        return;
+        return c.text(message, status);
       }
     }
 
@@ -172,11 +166,7 @@ const startServer = async () => {
     ) as unknown as SVGSVGElement;
 
     if (!dom || !body || !svg) {
-      ctx.throw(
-        500,
-        `${http.STATUS_CODES[500]}: Failed to mock dom with JSDOM`
-      );
-      return;
+      return c.text("Failed to mock dom with JSDOM", 500);
     }
 
     body.append(svg);
@@ -203,11 +193,7 @@ const startServer = async () => {
         }
       );
     } catch (error) {
-      ctx.throw(
-        500,
-        `${http.STATUS_CODES[500]}: Failed to generate chart, ${error}`
-      );
-      return;
+      return c.text(`Failed to generate chart, ${error}`, 500);
     }
 
     // Optimizing SVG to save bandwidth
@@ -217,19 +203,14 @@ const startServer = async () => {
     };
     const optimized = optimize(svgContent, options).data;
 
-    ctx.type = "image/svg+xml;charset=utf-8";
-    // Consistent with the ttl in cache.ts
-    ctx.set("cache-control", "max-age=86400");
-    ctx.body = optimized;
+    return c.body(optimized, 200, {
+      "Content-Type": "image/svg+xml;charset=utf-8",
+      // Consistent with the ttl in cache.ts
+      "Cache-Control": "max-age=86400",
+    });
   });
 
-  app.on("error", (err) => {
-    logger.error("server error: ", err);
-  });
-
-  app.use(router.routes()).use(router.allowedMethods());
-
-  app.listen(8080, () => {
+  serve({ fetch: app.fetch, port: 8080 }, () => {
     logger.info(`server running on port ${8080}`);
   });
 };
