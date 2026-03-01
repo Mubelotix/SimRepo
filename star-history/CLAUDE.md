@@ -142,3 +142,18 @@ The `gh/` directory contains the data pipeline that fetches repo stats and expor
 | `db.ts` | SQLite schema, inserts, JSON export functions, date formatting |
 | `star-count.ts` | Fetches repo counts per star threshold from GitHub Search API |
 | `types.ts` | Shared TypeScript types |
+
+## CI/CD Workflows
+
+Three GitHub Actions workflows in `.github/workflows/`:
+
+| Workflow | Trigger | What it does |
+|----------|---------|-------------|
+| `gh-fetch.yml` | Monday 18:00 UTC cron + manual | Runs `gh/` pipeline (fetch → SQLite → JSON), commits `data.db`, triggers both deploy workflows |
+| `deploy-frontend.yml` | Push to `frontend/**`, `shared/**`, workflow file; PR preview; `workflow_dispatch` | Runs `pnpm run generate` in `gh/`, builds frontend, deploys to Cloudflare Pages |
+| `deploy-backend.yml` | Push to `backend/**`, `shared/**`, workflow file; `workflow_dispatch` | Runs `pnpm run generate` in `gh/`, builds Docker image, deploys to GKE |
+
+**Key design decisions:**
+- `gh/data/` is gitignored — JSON files are generated on the fly by deploy workflows via `pnpm run generate`, not committed
+- Only `gh/data.db` is committed (by `gh-fetch.yml`)
+- Deploy workflows don't trigger on `data.db` changes — `gh-fetch.yml` explicitly triggers them via `workflow_dispatch` to avoid double deploys
