@@ -8,13 +8,11 @@ on:
     paths:
       - 'frontend/**'
       - 'shared/**'
-      - 'gh/**'
       - '.github/workflows/deploy-frontend.yml'
   pull_request:
     paths:
       - 'frontend/**'
       - 'shared/**'
-      - 'gh/**'
       - '.github/workflows/deploy-frontend.yml'
 
 jobs:
