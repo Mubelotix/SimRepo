@@ -125,9 +125,13 @@ The `backend/` directory is a Hono server (deployed as `api.star-history.com`) t
 | `utils.ts` | SVG manipulation, image conversion helpers |
 | `assets/` | Fonts (xkcd.ttf, Inter.ttf) and logo for OG card rendering |
 
-## GH (Data Pipeline)
+## GH (Data Pipelines)
 
-The `gh/` directory contains the data pipeline that fetches repo stats and exports JSON files consumed by the frontend.
+The `gh/` directory contains two pipelines: **star** (repo rankings for the frontend) and **event** (raw GitHub event archive for analytics).
+
+### Star Pipeline
+
+Fetches repo stats and exports JSON files consumed by the frontend.
 
 - **Full run**: `cd gh && pnpm run star:fetch` — fetches from GitHub API + BigQuery, writes to SQLite (`star.db`), exports JSON files, and fetches star counts
 - **Generate only**: `cd gh && pnpm run star:generate` — generates JSON files from existing `star.db` without fetching (useful after code changes)
@@ -137,11 +141,24 @@ The `gh/` directory contains the data pipeline that fetches repo stats and expor
 | File | Purpose |
 |------|---------|
 | `star-fetch.ts` | Main entry point — orchestrates the full pipeline |
+| `star-generate.ts` | Generates JSON files from existing `star.db` |
 | `github.ts` | GitHub API client to find qualifying repos, token rotation |
 | `bigquery.ts` | BigQuery client to fetch weekly activity stats |
 | `db.ts` | SQLite schema, inserts, JSON export functions, date formatting |
 | `star-count.ts` | Fetches repo counts per star threshold from GitHub Search API |
 | `types.ts` | Shared TypeScript types |
+
+### Event Pipeline
+
+Downloads hourly GH Archive data into a local SQLite database with per-event-type tables (16 types) for schema exploration and analytics.
+
+- **Run**: `cd gh && pnpm run event [YYYY-MM-DD] [hour]` — defaults to yesterday hour 0
+- **DB**: `event.db` — separate per-type tables (e.g. `push_events`, `pull_request_events`), each with common fields (actor, repo, org) plus event-specific payload columns
+- **Data source**: `https://data.gharchive.org/{date}-{hour}.json.gz`
+
+| File | Purpose |
+|------|---------|
+| `event.ts` | Downloads, decompresses, and loads GH Archive events into `event.db` |
 
 ## CI/CD Workflows
 
