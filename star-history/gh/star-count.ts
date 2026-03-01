@@ -1,6 +1,7 @@
 import { writeFileSync, mkdirSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { formatDate } from "./db.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUT_DIR = path.join(__dirname, "data");
@@ -48,7 +49,7 @@ export async function fetchStarCount(
     console.log(`[Star Count]   ${label}: ${count.toLocaleString()} repos`);
   }
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = formatDate(new Date());
   const result: StarCountData = {
     updated_at: today,
     tiers,
