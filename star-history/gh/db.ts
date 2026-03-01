@@ -8,6 +8,27 @@ import { MIN_STARS } from "./github.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DB_PATH = path.join(__dirname, "data.db");
 
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** Format a Date to "Mar 1, 2026" style. */
+export function formatDate(d: Date): string {
+  return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+}
+
+/** Convert ISO week "2026-W09" to the Monday of that week, formatted. */
+function formatWeek(week: string): string {
+  const match = week.match(/^(\d{4})-W(\d{2})$/);
+  if (!match) return week;
+  const year = parseInt(match[1]);
+  const weekNum = parseInt(match[2]);
+  // Jan 4 is always in ISO week 1
+  const jan4 = new Date(Date.UTC(year, 0, 4));
+  const dayOfWeek = jan4.getUTCDay() || 7;
+  const monday = new Date(jan4);
+  monday.setUTCDate(jan4.getUTCDate() - dayOfWeek + 1 + (weekNum - 1) * 7);
+  return formatDate(monday);
+}
+
 export function createDatabase(): Database.Database {
   const db = new Database(DB_PATH);
   db.pragma("journal_mode = WAL");
@@ -100,21 +121,25 @@ export function insertRepos(db: Database.Database, repos: QualifyingRepo[]): voi
   insertMany(repos);
 }
 
-export function exportLeaderboard(db: Database.Database, limit = 20): void {
+export function getLatestDate(db: Database.Database): string {
+  const { week } = db.prepare(
+    "SELECT MAX(week) AS week FROM weekly_stats"
+  ).get() as { week: string };
+  return week ? formatWeek(week) : "";
+}
+
+export function exportLeaderboard(db: Database.Database, updatedAt: string, limit = 20): void {
   const rows = db.prepare(
     "SELECT name, stars_total FROM repos ORDER BY stars_total DESC LIMIT ?"
   ).all(limit) as { name: string; stars_total: number }[];
 
-  const output = {
-    updated_at: new Date().toISOString().slice(0, 10),
-    repos: rows,
-  };
+  const output = { updated_at: updatedAt, repos: rows };
   const outPath = path.join(__dirname, "data", "leaderboard.json");
   writeFileSync(outPath, JSON.stringify(output, null, 2) + "\n");
   console.log(`Exported top ${rows.length} repos to leaderboard.json`);
 }
 
-export function exportWeeklyRanking(db: Database.Database, limit = 20): void {
+export function exportWeeklyRanking(db: Database.Database, updatedAt: string, limit = 20): void {
   const rows = db.prepare(`
     SELECT w.repo_name AS name, w.new_stars, r.stars_total
     FROM weekly_stats w
@@ -124,10 +149,7 @@ export function exportWeeklyRanking(db: Database.Database, limit = 20): void {
     LIMIT ?
   `).all(limit) as { name: string; new_stars: number; stars_total: number }[];
 
-  const output = {
-    updated_at: new Date().toISOString().slice(0, 10),
-    repos: rows,
-  };
+  const output = { updated_at: updatedAt, repos: rows };
   const outPath = path.join(__dirname, "data", "weekly-ranking.json");
   writeFileSync(outPath, JSON.stringify(output, null, 2) + "\n");
   console.log(`Exported top ${rows.length} repos by weekly stars to weekly-ranking.json`);

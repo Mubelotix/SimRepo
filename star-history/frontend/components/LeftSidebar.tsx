@@ -4,9 +4,8 @@ import leaderboardData from "@gh-data/leaderboard.json"
 import weeklyRankingData from "@gh-data/weekly-ranking.json"
 import starCountData from "@gh-data/star-count.json"
 
-const leaderboard = (leaderboardData as { updated_at: string; repos: { name: string; stars_total: number }[] })
-const weeklyRankingRaw = (weeklyRankingData as { updated_at: string; repos: { name: string; new_stars: number; stars_total: number }[] })
-const weeklyRanking = weeklyRankingRaw.repos
+const leaderboard = leaderboardData as { updated_at: string; repos: { name: string; stars_total: number }[] }
+const weeklyRanking = weeklyRankingData as { updated_at: string; repos: { name: string; new_stars: number; stars_total: number }[] }
 const starCount = starCountData as { updated_at: string; tiers: { threshold: number; label: string; count: number }[] }
 
 function formatStars(count: number): string {
@@ -35,11 +34,15 @@ const tabs: { key: Tab; label: string }[] = [
 ]
 
 const LeftSidebar: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<Tab>(weeklyRanking.length > 0 ? "weekly" : "alltime")
+    const [activeTab, setActiveTab] = useState<Tab>(weeklyRanking.repos.length > 0 ? "weekly" : "alltime")
 
     const items = activeTab === "weekly"
-        ? weeklyRanking.map((r) => ({ name: r.name, metric: `+${formatStars(r.new_stars)}`, metricClass: "accent-text" }))
+        ? weeklyRanking.repos.map((r) => ({ name: r.name, metric: `+${formatStars(r.new_stars)}`, metricClass: "accent-text" }))
         : leaderboard.repos.map((r) => ({ name: r.name, metric: formatStars(r.stars_total), metricClass: "text-gray-400" }))
+
+    const updatedAt = activeTab === "weekly" ? weeklyRanking.updated_at
+        : activeTab === "alltime" ? leaderboard.updated_at
+        : starCount.updated_at
 
     return (
         <div className="sidebar-sticky">
@@ -61,9 +64,8 @@ const LeftSidebar: React.FC = () => {
                 </div>
                 {activeTab === "pyramid" ? (
                     <div className="space-y-2 mt-1">
-                        {starCount.tiers.map((tier, i) => {
-                            const maxCount = starCount.tiers[starCount.tiers.length - 1].count
-                            const widthPct = (tier.count / maxCount) * 100
+                        {starCount.tiers.map((tier) => {
+                            const widthPct = (tier.count / starCount.tiers[starCount.tiers.length - 1].count) * 100
                             return (
                                 <div key={tier.threshold}>
                                     <div className="flex items-baseline justify-between text-xs mb-0.5">
@@ -138,7 +140,7 @@ const LeftSidebar: React.FC = () => {
                     </ol>
                 )}
                 <p className="text-[10px] text-gray-300 mt-3">
-                    Updated {activeTab === "weekly" ? weeklyRankingRaw.updated_at : activeTab === "alltime" ? leaderboard.updated_at : starCount.updated_at}
+                    Updated {updatedAt}
                 </p>
             </div>
         </div>
