@@ -6,7 +6,7 @@ import { formatDate, getWeeklyDate, exportLeaderboard, exportWeeklyRanking, expo
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 mkdirSync(path.join(__dirname, "data"), { recursive: true });
-const db = new Database(path.join(__dirname, "data.db"), { readonly: true });
+const db = new Database(path.join(__dirname, "star.db"), { readonly: true });
 
 exportLeaderboard(db, formatDate(new Date()));
 exportWeeklyRanking(db, getWeeklyDate(db));
