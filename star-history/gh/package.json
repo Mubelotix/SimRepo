@@ -7,7 +7,7 @@
     "fetch": "tsx fetch.ts",
     "generate": "tsx generate.ts",
     "test": "tsx --test test.ts",
-    "archive": "tsx archive.ts"
+    "event": "tsx archive.ts"
   },
   "dependencies": {
     "@google-cloud/bigquery": "^7.9.0",

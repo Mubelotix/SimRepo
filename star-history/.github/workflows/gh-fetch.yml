@@ -40,17 +40,17 @@ jobs:
 
       - name: Show results
         run: |
-          ls -lh gh/data.db
-          sqlite3 gh/data.db "SELECT COUNT(*) || ' repos' FROM repos;"
-          sqlite3 gh/data.db "SELECT COUNT(*) || ' stat rows' FROM weekly_stats;"
-          sqlite3 gh/data.db "SELECT name, stars_total FROM repos ORDER BY stars_total DESC LIMIT 10;"
+          ls -lh gh/star.db
+          sqlite3 gh/star.db "SELECT COUNT(*) || ' repos' FROM repos;"
+          sqlite3 gh/star.db "SELECT COUNT(*) || ' stat rows' FROM weekly_stats;"
+          sqlite3 gh/star.db "SELECT name, stars_total FROM repos ORDER BY stars_total DESC LIMIT 10;"
 
       - name: Commit and push
         id: commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add gh/data.db
+          git add gh/star.db
           git diff --staged --quiet && echo "changes=false" >> $GITHUB_OUTPUT && exit 0
           git commit -m "data(gh): update $(date +%Y-W%V) gh stats"
           git push

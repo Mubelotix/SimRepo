@@ -6,7 +6,7 @@ import type { QualifyingRepo, RepoStats } from "./types.js";
 import { MIN_STARS } from "./github.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DB_PATH = path.join(__dirname, "data.db");
+const DB_PATH = path.join(__dirname, "star.db");
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 

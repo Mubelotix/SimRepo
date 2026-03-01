@@ -51,6 +51,6 @@ token.env
 frontend/helpers/blog.json
 gh/data/
 
-# gh archive pipeline
-gh/archive.db
+# gh event pipeline
+gh/event.db
 gh/archive-data/

@@ -129,9 +129,9 @@ The `backend/` directory is a Hono server (deployed as `api.star-history.com`) t
 
 The `gh/` directory contains the data pipeline that fetches repo stats and exports JSON files consumed by the frontend.
 
-- **Full run**: `cd gh && pnpm run fetch` — fetches from GitHub API + BigQuery, writes to SQLite (`data.db`), exports JSON files, and fetches star counts
-- **Generate only**: `cd gh && pnpm run generate` — generates JSON files from existing `data.db` without fetching (useful after code changes)
-- **DB is ephemeral**: `createDatabase()` deletes and recreates `data.db` on every run. The SQLite DB can always be regenerated from source APIs.
+- **Full run**: `cd gh && pnpm run fetch` — fetches from GitHub API + BigQuery, writes to SQLite (`star.db`), exports JSON files, and fetches star counts
+- **Generate only**: `cd gh && pnpm run generate` — generates JSON files from existing `star.db` without fetching (useful after code changes)
+- **DB is ephemeral**: `createDatabase()` deletes and recreates `star.db` on every run. The SQLite DB can always be regenerated from source APIs.
 - **Exported JSON files** (written to `gh/data/`, imported by frontend via `@gh-data/*` alias): `leaderboard.json`, `weekly-ranking.json`, `repos.json`, `star-count.json`
 
 | File | Purpose |
@@ -149,11 +149,11 @@ Three GitHub Actions workflows in `.github/workflows/`:
 
 | Workflow | Trigger | What it does |
 |----------|---------|-------------|
-| `gh-fetch.yml` | Monday 18:00 UTC cron + manual | Runs `gh/` pipeline (fetch → SQLite → JSON), commits `data.db`, triggers both deploy workflows |
+| `gh-fetch.yml` | Monday 18:00 UTC cron + manual | Runs `gh/` pipeline (fetch → SQLite → JSON), commits `star.db`, triggers both deploy workflows |
 | `deploy-frontend.yml` | Push to `frontend/**`, `shared/**`, workflow file; PR preview; `workflow_dispatch` | Runs `pnpm run generate` in `gh/`, builds frontend, deploys to Cloudflare Pages |
 | `deploy-backend.yml` | Push to `backend/**`, `shared/**`, workflow file; `workflow_dispatch` | Runs `pnpm run generate` in `gh/`, builds Docker image, deploys to GKE |
 
 **Key design decisions:**
 - `gh/data/` is gitignored — JSON files are generated on the fly by deploy workflows via `pnpm run generate`, not committed
-- Only `gh/data.db` is committed (by `gh-fetch.yml`)
-- Deploy workflows don't trigger on `data.db` changes — `gh-fetch.yml` explicitly triggers them via `workflow_dispatch` to avoid double deploys
+- Only `gh/star.db` is committed (by `gh-fetch.yml`)
+- Deploy workflows don't trigger on `star.db` changes — `gh-fetch.yml` explicitly triggers them via `workflow_dispatch` to avoid double deploys

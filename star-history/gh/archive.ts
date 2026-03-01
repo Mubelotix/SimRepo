@@ -8,7 +8,7 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = path.join(__dirname, "archive-data");
-const DB_PATH = path.join(__dirname, "archive.db");
+const DB_PATH = path.join(__dirname, "event.db");
 const BATCH_SIZE = 10_000;
 
 // --- Argument parsing ---
@@ -359,7 +359,7 @@ async function main() {
     console.log(`  Decompressed to ${(size / 1024 / 1024).toFixed(1)} MB`);
   }
 
-  console.log(`Creating archive.db ...`);
+  console.log(`Creating event.db ...`);
   const db = createArchiveDatabase();
 
   console.log(`Loading events from ${filename}.json ...`);
@@ -371,7 +371,7 @@ async function main() {
   console.log(`Tables: ${Object.keys(EVENT_SCHEMAS).length}`);
 
   db.close();
-  console.log(`\nDone! Data is in gh/archive.db — query with: sqlite3 gh/archive.db`);
+  console.log(`\nDone! Data is in gh/event.db — query with: sqlite3 gh/event.db`);
 }
 
 main().catch((err) => {

@@ -115,7 +115,7 @@ async function main() {
   // Fetch star counts by threshold (independent of SQLite pipeline)
   await fetchStarCount(ghFetch);
 
-  console.log(`\nDone! ${qualifyingRepos.length} repos, ${allStats.length} stat rows written to data.db`);
+  console.log(`\nDone! ${qualifyingRepos.length} repos, ${allStats.length} stat rows written to star.db`);
 }
 
 main().catch((err) => {
