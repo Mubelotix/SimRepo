@@ -129,15 +129,16 @@ The `backend/` directory is a Hono server (deployed as `api.star-history.com`) t
 
 The `gh/` directory contains the data pipeline that fetches repo stats and exports JSON files consumed by the frontend.
 
-- **Full run**: `cd gh && pnpm run fetch` — fetches from GitHub API + BigQuery, writes to SQLite (`data.db`), and exports JSON files
+- **Full run**: `cd gh && pnpm run fetch` — fetches from GitHub API + BigQuery, writes to SQLite (`data.db`), exports JSON files, and fetches star counts
 - **Generate only**: `cd gh && pnpm run generate` — generates JSON files from existing `data.db` without fetching (useful after code changes)
-- **DB is ephemeral**: `createDatabase()` drops all tables and recreates them on every run. The SQLite DB can always be regenerated from source APIs.
-- **Exported JSON files** (written to `frontend/helpers/`): `leaderboard.json`, `weekly-ranking.json`, `repos.json`, `repo-cards.json`
+- **DB is ephemeral**: `createDatabase()` deletes and recreates `data.db` on every run. The SQLite DB can always be regenerated from source APIs.
+- **Exported JSON files** (written to `gh/data/`, imported by frontend via `@gh-data/*` alias): `leaderboard.json`, `weekly-ranking.json`, `repos.json`, `star-count.json`
 
 | File | Purpose |
 |------|---------|
 | `fetch.ts` | Main entry point — orchestrates the full pipeline |
-| `github.ts` | GitHub API client to find qualifying repos |
+| `github.ts` | GitHub API client to find qualifying repos, token rotation |
 | `bigquery.ts` | BigQuery client to fetch weekly activity stats |
-| `db.ts` | SQLite schema, inserts, and JSON export functions |
+| `db.ts` | SQLite schema, inserts, JSON export functions, date formatting |
+| `star-count.ts` | Fetches repo counts per star threshold from GitHub Search API |
 | `types.ts` | Shared TypeScript types |
