@@ -49,7 +49,7 @@ jobs:
         working-directory: gh
 
       - name: Generate gh data
-        run: pnpm run generate
+        run: pnpm run star:generate
         working-directory: gh
 
       - name: Install frontend dependencies

@@ -4,8 +4,8 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "fetch": "tsx fetch.ts",
-    "generate": "tsx generate.ts",
+    "star:fetch": "tsx star-fetch.ts",
+    "star:generate": "tsx star-generate.ts",
     "test": "tsx --test test.ts",
     "event": "tsx event.ts"
   },
