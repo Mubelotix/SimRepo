@@ -33,7 +33,7 @@ const startServer = async () => {
 
   // Health check endpoint
   app.get("/healthz", (c) => {
-    return c.text("OK", 200);
+    return c.json({ status: "OK", commit: process.env.GIT_COMMIT || "unknown" }, 200);
   });
 
   // Example request link:
