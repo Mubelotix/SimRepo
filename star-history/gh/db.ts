@@ -1,5 +1,5 @@
 import Database from "better-sqlite3";
-import { writeFileSync, unlinkSync } from "fs";
+import { writeFileSync, unlinkSync, mkdirSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import type { QualifyingRepo, RepoStats } from "./types.js";
@@ -7,6 +7,8 @@ import { MIN_STARS } from "./github.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DB_PATH = path.join(__dirname, "star.db");
+const DATA_DIR = path.join(__dirname, "data");
+mkdirSync(DATA_DIR, { recursive: true });
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -148,7 +150,7 @@ export function exportLeaderboard(db: Database.Database, updatedAt: string, limi
   ).all(limit) as { name: string; stars_total: number }[];
 
   const output = { updated_at: updatedAt, repos: rows };
-  const outPath = path.join(__dirname, "data", "leaderboard.json");
+  const outPath = path.join(DATA_DIR, "leaderboard.json");
   writeFileSync(outPath, JSON.stringify(output, null, 2) + "\n");
   console.log(`Exported top ${rows.length} repos to leaderboard.json`);
 }
@@ -164,7 +166,7 @@ export function exportWeeklyRanking(db: Database.Database, updatedAt: string, li
   `).all(limit) as { name: string; new_stars: number; stars_total: number }[];
 
   const output = { updated_at: updatedAt, repos: rows };
-  const outPath = path.join(__dirname, "data", "weekly-ranking.json");
+  const outPath = path.join(DATA_DIR, "weekly-ranking.json");
   writeFileSync(outPath, JSON.stringify(output, null, 2) + "\n");
   console.log(`Exported top ${rows.length} repos by weekly stars to weekly-ranking.json`);
 }
@@ -276,7 +278,7 @@ export function exportRepos(db: Database.Database): void {
   });
 
   const output = { min_stars: MIN_STARS, repos: cards };
-  const outPath = path.join(__dirname, "data", "repos.json");
+  const outPath = path.join(DATA_DIR, "repos.json");
   writeFileSync(outPath, JSON.stringify(output, null, 2) + "\n");
   console.log(`Exported ${cards.length} repos to repos.json`);
 }
