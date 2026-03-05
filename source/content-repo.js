@@ -176,7 +176,19 @@ export async function loadMoreRepos(resetOffset = false) {
     // Ensure the container exists
     let container = document.querySelector('#similar-repos-container');
     if (!container) {
-        const sidebar = document.querySelector('.Layout-sidebar > div');
+        const sidebar =
+            document.querySelector(
+              'rails-partial[data-partial-name="codeViewRepoRoute.Sidebar"] .BorderGrid'
+            ) ||
+            document.querySelector('.Layout-sidebar > div') ||
+            document.querySelector('.Layout-sidebar') ||
+            document.querySelector('[data-testid="repository-sidebar"]');
+
+        if (!sidebar) {
+            console.warn('💈 SimRepo: no sidebar mount point (new GitHub layout)');
+            return;
+        }
+
         sidebar.insertAdjacentHTML('beforeend', getLoadingContainerHtml());
         setupSettingsListener();
         container = document.querySelector('#similar-repos-container');
