@@ -131,6 +131,21 @@ function getErrorContainerHtml(error = "No similar repositories found.") {
     </div>`;
 }
 
+function keepContainerAtBottom(sidebar) {
+    const observer = new MutationObserver(() => {
+        const container = document.querySelector('#similar-repos-container');
+        if (container &&
+            container.parentElement === sidebar &&
+            container !== sidebar.lastElementChild
+        ) {
+            sidebar.appendChild(container);
+        }
+    });
+    observer.observe(sidebar, {
+        childList: true,
+    });
+}
+
 function setupCallback() {
     const viewMoreLink = document.querySelector('#similar-repos-view-more');
     if (viewMoreLink) {
@@ -177,6 +192,12 @@ export async function loadMoreRepos(resetOffset = false) {
     let container = document.querySelector('#similar-repos-container');
     if (!container) {
         const sidebar =
+            // New Github sidebar (2026/07~).
+            document.querySelector(
+                '[data-component="SplitPageLayout.Pane"] ' +
+                '[class*="CodeViewSidebar-module__borderGrid__"]'
+            ) ||
+            // Previous Github sidebar.
             document.querySelector(
               'rails-partial[data-partial-name="codeViewRepoRoute.Sidebar"] .BorderGrid'
             ) ||
@@ -192,6 +213,9 @@ export async function loadMoreRepos(resetOffset = false) {
         sidebar.insertAdjacentHTML('beforeend', getLoadingContainerHtml());
         setupSettingsListener();
         container = document.querySelector('#similar-repos-container');
+        // Github appends sidebar sections asynchronously.
+        // Move SimRepo back to the bottom whenever that happens.
+        keepContainerAtBottom(sidebar);
     }
 
     // Don't fetch if private
