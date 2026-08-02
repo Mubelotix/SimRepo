@@ -146,6 +146,25 @@ function keepContainerAtBottom(sidebar) {
     });
 }
 
+function parseCount(text) {
+    const match = text
+        .trim()
+        .replace(/,/g, '')
+        .match(/^([\d.]+)\s*([kKmM]?)$/);
+
+    if (!match) {
+        return null;
+    }
+
+    const multipliers = {
+        '': 1,
+        k: 1_000,
+        m: 1_000_000,
+    };
+
+    return Number(match[1]) * multipliers[match[2].toLowerCase()];
+}
+
 function setupCallback() {
     const viewMoreLink = document.querySelector('#similar-repos-view-more');
     if (viewMoreLink) {
@@ -232,8 +251,35 @@ export async function loadMoreRepos(resetOffset = false) {
 
     // Don't fetch if less than 100 stars
     try {
+
+        /*
         let starSpan = document.querySelector("span[id=\"repo-stars-counter-star\"]");
         let starsCount = starSpan ? parseInt(starSpan.getAttribute("title").replace(/,/g, '')) : 0;
+        */
+        const repoPath = '/' + window.location.pathname
+            .split('/')
+            .filter(Boolean)
+            .slice(0, 2)
+            .join('/');
+
+        const starElement =
+            document.querySelector('#repo-stars-counter-star') ||
+            document.querySelector(
+                `a[href="${repoPath}/stargazers"] strong`
+            );
+
+        const starsCount = parseCount(
+            starElement?.getAttribute('title') ||
+            starElement?.textContent ||
+            ''
+        );
+
+        if (starsCount === null) {
+            console.warn('💈 SimRepo: repository star count not found');
+            return;
+        }
+
+
         if (starsCount < 100) {
             if (options.similarShowUnavailable) {
                 container.outerHTML = getErrorContainerHtml("Unavailable for repositories with less than 100 stars.");
