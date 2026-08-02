@@ -1,40 +1,26 @@
-name: Tag Release
+name: Attach Builds to Release
 
 on:
-  push:
-    tags:
-      - 'v*'
+  release:
+    types: [published]
 
 jobs:
-  release:
+  build:
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
 
-      - name: Validate tag matches v-prefixed semver
-        id: version
-        run: |
-          TAG="${GITHUB_REF#refs/tags/}"
-          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?(\+[a-zA-Z0-9.]+)?$ ]]; then
-            echo "Tag '$TAG' does not match v-prefixed semver (e.g. v0.5.0)"
-            exit 1
-          fi
-          VERSION="${TAG#v}"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-
       - name: Sync manifest.json version
-        id: manifest
         run: |
+          TAG="${{ github.event.release.tag_name }}"
+          VERSION="${TAG#v}"
           MANIFEST_VERSION=$(jq -r '.version' source/manifest.json)
-          if [ "$MANIFEST_VERSION" != "${{ steps.version.outputs.version }}" ]; then
-            echo "Manifest version '$MANIFEST_VERSION' does not match tag version '${{ steps.version.outputs.version }}'. Updating."
-            jq --arg v "${{ steps.version.outputs.version }}" '.version = $v' source/manifest.json > source/manifest.tmp.json
+          if [ "$MANIFEST_VERSION" != "$VERSION" ]; then
+            echo "Manifest version '$MANIFEST_VERSION' does not match tag version '$VERSION'. Updating."
+            jq --arg v "$VERSION" '.version = $v' source/manifest.json > source/manifest.tmp.json
             mv source/manifest.tmp.json source/manifest.json
-            echo "updated=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "updated=false" >> "$GITHUB_OUTPUT"
           fi
 
       - uses: actions/setup-node@v3
@@ -53,21 +39,12 @@ jobs:
       - name: Build Edge
         run: npm run build:edge
 
-      - name: Create Release
+      - name: Upload builds to release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "${{ github.ref_name }}" \
-            --generate-notes \
+          gh release upload "${{ github.event.release.tag_name }}" \
             chrome.zip \
             firefox.zip \
-            edge.zip
-
-      - name: Commit manifest.json version bump
-        if: steps.manifest.outputs.updated == 'true'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add source/manifest.json
-          git commit -m "Bump version in manifest.json"
-          git push
+            edge.zip \
+            --clobber
