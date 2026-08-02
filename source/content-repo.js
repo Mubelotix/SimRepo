@@ -146,6 +146,26 @@ function keepContainerAtBottom(sidebar) {
     });
 }
 
+// Convert GitHub counts like "1,234" or "1.2k" to numbers.
+function parseCount(text) {
+    const match = text
+        .trim()
+        .replace(/,/g, '')
+        .match(/^(\d+(?:\.\d+)?)\s*([kKmM]?)$/);
+
+    if (!match) {
+        return null;
+    }
+
+    const multipliers = {
+        '': 1,
+        k: 1_000,
+        m: 1_000_000,
+    };
+
+    return Number(match[1]) * multipliers[match[2].toLowerCase()];
+}
+
 function setupCallback() {
     const viewMoreLink = document.querySelector('#similar-repos-view-more');
     if (viewMoreLink) {
@@ -232,8 +252,38 @@ export async function loadMoreRepos(resetOffset = false) {
 
     // Don't fetch if less than 100 stars
     try {
-        let starSpan = document.querySelector("span[id=\"repo-stars-counter-star\"]");
-        let starsCount = starSpan ? parseInt(starSpan.getAttribute("title").replace(/,/g, '')) : 0;
+        // Build the current repository path for the star-count link.
+        const repoPath = '/' + window.location.pathname
+            .split('/')
+            .filter(Boolean)
+            .slice(0, 2)
+            .join('/');
+
+        // Support both githubs' previous and current star-count markup.
+        const starElement =
+            document.querySelector('#repo-stars-counter-star') ||
+            document.querySelector(
+                `a[href="${repoPath}/stargazers"] strong`
+            );
+
+        // Read the old numeric title or the new visible abbreviated count.
+        const starsCount = parseCount(
+            starElement?.getAttribute('title') ||
+            starElement?.textContent ||
+            ''
+        );
+
+        if (starsCount === null) {
+            console.warn('💈 SimRepo: repository star count not found');
+            // Avoid leaving the panel stuck on "Loading".
+            container.outerHTML = getErrorContainerHtml(
+                "Unable to determine repository star count."
+            );
+            setupSettingsListener();
+            return;
+        }
+
+
         if (starsCount < 100) {
             if (options.similarShowUnavailable) {
                 container.outerHTML = getErrorContainerHtml("Unavailable for repositories with less than 100 stars.");
