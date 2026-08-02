@@ -146,11 +146,12 @@ function keepContainerAtBottom(sidebar) {
     });
 }
 
+// Convert GitHub counts like "1,234" or "1.2k" to numbers.
 function parseCount(text) {
     const match = text
         .trim()
         .replace(/,/g, '')
-        .match(/^([\d.]+)\s*([kKmM]?)$/);
+        .match(/^(\d+(?:\.\d+)?)\s*([kKmM]?)$/);
 
     if (!match) {
         return null;
@@ -251,18 +252,21 @@ export async function loadMoreRepos(resetOffset = false) {
 
     // Don't fetch if less than 100 stars
     try {
+        // Build the current repository path for the star-count link.
         const repoPath = '/' + window.location.pathname
             .split('/')
             .filter(Boolean)
             .slice(0, 2)
             .join('/');
 
+        // Support both githubs' previous and current star-count markup.
         const starElement =
             document.querySelector('#repo-stars-counter-star') ||
             document.querySelector(
                 `a[href="${repoPath}/stargazers"] strong`
             );
 
+        // Read the old numeric title or the new visible abbreviated count.
         const starsCount = parseCount(
             starElement?.getAttribute('title') ||
             starElement?.textContent ||
