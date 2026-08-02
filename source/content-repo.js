@@ -251,11 +251,6 @@ export async function loadMoreRepos(resetOffset = false) {
 
     // Don't fetch if less than 100 stars
     try {
-
-        /*
-        let starSpan = document.querySelector("span[id=\"repo-stars-counter-star\"]");
-        let starsCount = starSpan ? parseInt(starSpan.getAttribute("title").replace(/,/g, '')) : 0;
-        */
         const repoPath = '/' + window.location.pathname
             .split('/')
             .filter(Boolean)
@@ -276,6 +271,11 @@ export async function loadMoreRepos(resetOffset = false) {
 
         if (starsCount === null) {
             console.warn('💈 SimRepo: repository star count not found');
+            // Avoid leaving the panel stuck on "Loading".
+            container.outerHTML = getErrorContainerHtml(
+                "Unable to determine repository star count."
+            );
+            setupSettingsListener();
             return;
         }
 
