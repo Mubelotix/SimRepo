@@ -1,4 +1,23 @@
 import { initCache } from './cache.js';
+import { TELEMETRY_ENDPOINT } from './analytics.js';
+
+async function handleReportMessage(message) {
+    try {
+        await fetch(TELEMETRY_ENDPOINT, {
+            method: "POST",
+            credentials: "omit",
+            mode: "cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                type: "event",
+                payload: message.payload,
+            }),
+        });
+    } catch (error) {
+        console.error("Failed to send usage statistics:", error);
+    }
+}
+
 
 async function getClosestN(ids, offset = 0, limit = 10) {
     const apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJyIn0.drJ8F-oa_6UfCpmKdv4Mbng_E8p71UrZAR895gKOOAk";
@@ -113,6 +132,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
         // Tell Chrome this is a synchronous response
         return true;
+    }
+
+    if (message.type === 'report') {
+        handleReportMessage(message);
+        return;
     }
 });
 

@@ -17,6 +17,9 @@
     "permissions": [
         "storage"
     ],
+    "host_permissions": [
+        "https://simrepo.dera.page/*"
+    ],
     "content_scripts": [
 		{
 			"matches": [ "https://github.com/*" ],

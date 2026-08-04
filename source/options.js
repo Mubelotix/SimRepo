@@ -69,13 +69,13 @@ const schema = {
             },
             required: [],
         },
-        telemetry: {
+        analytics: {
             type: "object",
-            description: "Settings for telemetry",
+            description: "Settings for anonymous usage statistics",
             properties: {
                 enabled: {
                     type: "boolean",
-                    description: "Enable telemetry to help improve recommendations. We collect the public repositories you visit and the recommendations you click, so we can identify good and bad recommendations and improve them over time. Private repositories are never collected.",
+                    description: "Enable anonymous usage statistics to help improve recommendations. We anonymously record the public repositories you visit and the recommendations you open, so we can identify good and bad recommendations and improve them over time. Private repositories are never recorded.",
                 },
             },
             required: [],
@@ -121,7 +121,7 @@ async function defaultCode() {
                 case "homepage.redirectToFeed":
                     value = options.homepageRedirectToFeed;
                     break;
-                case "telemetry.enabled":
+                case "analytics.enabled":
                     value = options.telemetryEnabled;
                     break;
                 default:
@@ -177,7 +177,7 @@ async function saveIfChanged() {
                 homepageStarsToLoad: parsed.homepage?.starsToLoad ?? optionsStorage.defaults.homepageStarsToLoad,
                 homepagePoolSize: parsed.homepage?.poolSize ?? optionsStorage.defaults.homepagePoolSize,
                 homepageRedirectToFeed: parsed.homepage?.redirectToFeed ?? optionsStorage.defaults.homepageRedirectToFeed,
-                telemetryEnabled: parsed.telemetry?.enabled ?? optionsStorage.defaults.telemetryEnabled,
+                telemetryEnabled: parsed.analytics?.enabled ?? optionsStorage.defaults.telemetryEnabled,
             });
 
             let options = await optionsStorage.getAll();
