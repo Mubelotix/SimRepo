@@ -66,6 +66,10 @@ const schema = {
                     type: "boolean",
                     description: "Automatically redirect from the homepage to the feed page",
                 },
+                hideChangelog: {
+                    type: "boolean",
+                    description: "Remove the GitHub 'Latest from our changelog' section from the homepage",
+                },
             },
             required: [],
         },
@@ -120,6 +124,9 @@ async function defaultCode() {
                     break;
                 case "homepage.redirectToFeed":
                     value = options.homepageRedirectToFeed;
+                    break;
+                case "homepage.hideChangelog":
+                    value = options.homepageHideChangelog;
                     break;
                 case "analytics.enabled":
                     value = options.telemetryEnabled;
@@ -177,6 +184,7 @@ async function saveIfChanged() {
                 homepageStarsToLoad: parsed.homepage?.starsToLoad ?? optionsStorage.defaults.homepageStarsToLoad,
                 homepagePoolSize: parsed.homepage?.poolSize ?? optionsStorage.defaults.homepagePoolSize,
                 homepageRedirectToFeed: parsed.homepage?.redirectToFeed ?? optionsStorage.defaults.homepageRedirectToFeed,
+                homepageHideChangelog: parsed.homepage?.hideChangelog ?? optionsStorage.defaults.homepageHideChangelog,
                 telemetryEnabled: parsed.analytics?.enabled ?? optionsStorage.defaults.telemetryEnabled,
             });
 

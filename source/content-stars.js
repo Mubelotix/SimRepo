@@ -6,6 +6,11 @@ import { reportEvent } from './analytics.js';
 
 export async function initHome() {
     let options = await optionsStorage.getAll();
+
+    if (options.homepageHideChangelog) {
+        hideGitHubChangelog();
+    }
+
     if (!options.homepageEnabled) {
         console.log("Homepage recommendations are disabled in options.");
         return;
@@ -44,6 +49,32 @@ export async function initHome() {
     } catch (error) {
         console.error("Error during homepage recommendations:", error);
         container.innerHTML = `<div class="color-fg-muted">Failed to load recommendations. Please try again later or <a href="https://github.com/Mubelotix/SimRepo/issues">open an issue</a>.<br/>Details: <code>${error.message}</code></div>`;
+    }
+}
+
+// GitHub's own "Latest from our changelog" box. The extension's "For you" box
+// reuses the same CSS classes, so match by the exact title text.
+function hideGitHubChangelog() {
+    const hide = () => {
+        for (const heading of document.querySelectorAll('.dashboard-changelog__title')) {
+            if (heading.textContent.includes('Latest from our changelog')) {
+                heading.closest('.dashboard-changelog').style.display = 'none';
+                return true;
+            }
+        }
+        return false;
+    };
+
+    if (!hide()) {
+        // GitHub renders the changelog asynchronously; retry until it appears.
+        const attempts = 200;
+        let count = 0;
+        const interval = setInterval(() => {
+            count += 1;
+            if (hide() || count >= attempts) {
+                clearInterval(interval);
+            }
+        }, 100);
     }
 }
 
