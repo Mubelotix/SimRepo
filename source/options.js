@@ -69,6 +69,17 @@ const schema = {
             },
             required: [],
         },
+        telemetry: {
+            type: "object",
+            description: "Settings for telemetry",
+            properties: {
+                enabled: {
+                    type: "boolean",
+                    description: "Enable telemetry to help improve recommendations. We collect the public repositories you visit and the recommendations you click, so we can identify good and bad recommendations and improve them over time. Private repositories are never collected.",
+                },
+            },
+            required: [],
+        },
 
     },
     required: [],
@@ -109,6 +120,9 @@ async function defaultCode() {
                     break;
                 case "homepage.redirectToFeed":
                     value = options.homepageRedirectToFeed;
+                    break;
+                case "telemetry.enabled":
+                    value = options.telemetryEnabled;
                     break;
                 default:
                     value = "Unknown value. Open an issue on GitHub if you see this.";
@@ -163,6 +177,7 @@ async function saveIfChanged() {
                 homepageStarsToLoad: parsed.homepage?.starsToLoad ?? optionsStorage.defaults.homepageStarsToLoad,
                 homepagePoolSize: parsed.homepage?.poolSize ?? optionsStorage.defaults.homepagePoolSize,
                 homepageRedirectToFeed: parsed.homepage?.redirectToFeed ?? optionsStorage.defaults.homepageRedirectToFeed,
+                telemetryEnabled: parsed.telemetry?.enabled ?? optionsStorage.defaults.telemetryEnabled,
             });
 
             let options = await optionsStorage.getAll();
