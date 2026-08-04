@@ -2,6 +2,7 @@ import GH_LANG_COLORS from 'gh-lang-colors';
 import octicons from "@primer/octicons";
 import { getSimilarRepos, formatNumber, loadingSpinner, setupSettingsListener } from './common.js';
 import { optionsStorage } from './options-storage.js';
+import { reportEvent } from './analytics.js';
 
 var loading = false;
 var nextOffset = 0;
@@ -170,12 +171,23 @@ function setupCallback() {
     const viewMoreLink = document.querySelector('#similar-repos-view-more');
     if (viewMoreLink) {
         viewMoreLink.addEventListener('click', async () => {
+            reportEvent('see-more', { context: 'repository' });
             if (!loading) {
                 let newSpinner = document.createElement("span");
                 viewMoreLink.appendChild(newSpinner);
                 newSpinner.innerHTML = loadingSpinner("", "height: 1rem;margin: 0 0 0 0;position: relative;top: 3px;");
                 await loadMoreRepos();
                 newSpinner.remove();
+            }
+        });
+    }
+
+    const container = document.querySelector('#similar-repos-container');
+    if (container) {
+        container.addEventListener('click', (event) => {
+            const link = event.target.closest('a[href^="/"]');
+            if (link) {
+                reportEvent('recommended-repo-click', { context: 'repository', repo: link.getAttribute('href') });
             }
         });
     }
