@@ -2,6 +2,7 @@ import octicons from "@primer/octicons";
 import GH_LANG_COLORS from 'gh-lang-colors';
 import { formatNumber, getSimilarRepos, loadingSpinner, setupSettingsListener } from './common.js';
 import { optionsStorage } from "./options-storage.js";
+import { reportEvent } from './analytics.js';
 
 export async function initHome() {
     let options = await optionsStorage.getAll();
@@ -135,6 +136,13 @@ async function run(container, options) {
 
     console.log("Container for recommendations:", container);
     container.innerHTML = innerHtml;
+
+    container.addEventListener('click', (event) => {
+        const link = event.target.closest('a[href^="/"]');
+        if (link) {
+            reportEvent('recommended-repo-click', { context: 'homepage', repo: link.getAttribute('href') });
+        }
+    });
 }
 
 function getLoadingHtml(latestStars) {
