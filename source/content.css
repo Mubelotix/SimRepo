@@ -28,14 +28,23 @@ aside>div[aria-label="Explore repositories"]>div {
     animation: rotation 1s linear infinite;
 }
 
+#similar-repos-container {
+    border-top: var(--borderWidth-thin, 1px) solid var(--borderColor-default, var(--color-border-default));
+}
+
 #similar-repos-container h2 {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--fgColor-default, var(--color-fg-default));
+    margin: var(--base-size-16) 0;
 }
 
 #simrepo-settings-btn .octicon {
-    vertical-align: baseline;
+    vertical-align: bottom;
 }
 
 @keyframes rotation {
