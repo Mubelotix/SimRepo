@@ -6,6 +6,31 @@ import { reportEvent } from './analytics.js';
 
 var loading = false;
 var nextOffset = 0;
+var similarReposSection = null;
+var similarReposSidebar = null;
+
+function setSection(section) {
+    similarReposSection = section;
+}
+
+// Render a fresh section, either replacing the current one or inserting a new
+// one, and keep tracking the new element so GitHub's re-renders can't orphan it.
+function renderSection(html) {
+    if (similarReposSection) {
+        similarReposSection.outerHTML = html;
+    } else if (similarReposSidebar) {
+        similarReposSidebar.insertAdjacentHTML('beforeend', html);
+    }
+    setSection(document.querySelector('#similar-repos-container'));
+}
+
+// Disable the section entirely (github should not restore it later).
+function removeSection() {
+    if (similarReposSection) {
+        similarReposSection.remove();
+        setSection(null);
+    }
+}
 
 function getHtml(owner, repo, fullname, description, language, stars, forks, archived, similarity) {
     return `
@@ -69,65 +94,55 @@ function getContainerInnerHtml(results) {
     return innerHtml;
 }
 
+// Match the new (2026) Github sidebar section markup (e.g. the "Releases"
+// section). Use stable class names only — never GitHub's hashed CSS-module
+// classes, which change on every deploy. Styling lives in content.css.
+const SECTION_HEADER_HTML = `
+    <h2 class="prc-Heading-Heading SidebarSection-module__sectionHeading" data-variant="small" data-component="Heading">
+        <span>Similar repositories</span>
+        <a href="#" id="simrepo-settings-btn" class="Link--secondary" title="Settings" aria-label="SimRepo settings">
+            ${octicons.gear.toSVG()}
+        </a>
+    </h2>`;
+
 function getContainerHtml(results) {
     let innerHtml = getContainerInnerHtml(results);
 
     return `
-    <div class="BorderGrid-row" id="similar-repos-container">
-    <div class="BorderGrid-cell">
-        <h2 class="h4 mb-3">
-            Similar repositories
-            <a href="#" id="simrepo-settings-btn" class="Link--secondary pt-1 pl-2" title="Settings">
-                ${octicons.gear.toSVG()}
-            </a>
-            <!-- <span title="${results.length}" data-view-component="true" class="Counter">${formatNumber(results.length)}</span> -->
-        </h2>
+    <div class="SidebarSection-module__sidebarSection" id="similar-repos-container">
+        ${SECTION_HEADER_HTML}
 
         <div id="similar-repos-inner-container">${innerHtml}</div>
 
         <div class="mt-2">
             <a class="Link--muted" id="similar-repos-view-more">View more</a>
         </div>
-    </div></div>`;
+    </div>`;
 }
 
 function getLoadingContainerHtml() {
     return `
-    <div class="BorderGrid-row" id="similar-repos-container">
-        <div class="BorderGrid-cell">
-            <h2 class="h4 mb-3">
-                Similar repositories
-                <a href="#" id="simrepo-settings-btn" class="Link--secondary pt-1 pl-2" title="Settings">
-                    ${octicons.gear.toSVG()}
-                </a>
-            </h2>
+    <div class="SidebarSection-module__sidebarSection" id="similar-repos-container">
+        ${SECTION_HEADER_HTML}
 
-            <div class="d-flex align-items-center justify-content-star mt-3">
-                <p class="color-fg-muted mb-0 min-width-0">
-                    Loading
-                </p>
-                <span class="flex-shrink-0 d-inline-flex align-items-center" style="height: 1.5rem;">
-                    ${loadingSpinner("", "height: 1rem; margin: .25rem 0 .25rem 0;")}
-                </span>
-            </div>
+        <div class="d-flex align-items-center justify-content-star mt-3">
+            <p class="color-fg-muted mb-0 min-width-0">
+                Loading
+            </p>
+            <span class="flex-shrink-0 d-inline-flex align-items-center" style="height: 1.5rem;">
+                ${loadingSpinner("", "height: 1rem; margin: .25rem 0 .25rem 0;")}
+            </span>
         </div>
     </div>`;
 }
 
 function getErrorContainerHtml(error = "No similar repositories found.") {
     return `
-    <div class="BorderGrid-row" id="similar-repos-container">
-        <div class="BorderGrid-cell">
-            <h2 class="h4 mb-3">
-                Similar repositories
-                <a href="#" id="simrepo-settings-btn" class="Link--secondary pt-1 pl-2" title="Settings">
-                    ${octicons.gear.toSVG()}
-                </a>
-            </h2>
+    <div class="SidebarSection-module__sidebarSection" id="similar-repos-container">
+        ${SECTION_HEADER_HTML}
 
-            <div class="text-small color-fg-muted">
-                ${error}
-            </div>
+        <div class="text-small color-fg-muted">
+            ${error}
         </div>
     </div>`;
 }
@@ -140,6 +155,10 @@ function keepContainerAtBottom(sidebar) {
             container !== sidebar.lastElementChild
         ) {
             sidebar.appendChild(container);
+        } else if (similarReposSection && !sidebar.contains(similarReposSection)) {
+            // Github's logic re-rendered the sidebar and dropped our section;
+            // put it back at the bottom.
+            sidebar.appendChild(similarReposSection);
         }
     });
     observer.observe(sidebar, {
@@ -244,7 +263,8 @@ export async function loadMoreRepos(resetOffset = false) {
 
         sidebar.insertAdjacentHTML('beforeend', getLoadingContainerHtml());
         setupSettingsListener();
-        container = document.querySelector('#similar-repos-container');
+        similarReposSidebar = sidebar;
+        setSection(document.querySelector('#similar-repos-container'));
         // Github appends sidebar sections asynchronously.
         // Move SimRepo back to the bottom whenever that happens.
         keepContainerAtBottom(sidebar);
@@ -254,10 +274,10 @@ export async function loadMoreRepos(resetOffset = false) {
     const isPrivate = document.querySelector('.Label.Label--secondary')?.textContent.trim() === 'Private';
     if (isPrivate) {
         if (options.similarShowUnavailable) {
-            container.outerHTML = getErrorContainerHtml("Unavailable for private repositories.");
+            renderSection(getErrorContainerHtml("Unavailable for private repositories."));
             setupSettingsListener();
         } else {
-            container.remove();
+            removeSection();
         }
         return;
     }
@@ -288,9 +308,9 @@ export async function loadMoreRepos(resetOffset = false) {
         if (starsCount === null) {
             console.warn('💈 SimRepo: repository star count not found');
             // Avoid leaving the panel stuck on "Loading".
-            container.outerHTML = getErrorContainerHtml(
+            renderSection(getErrorContainerHtml(
                 "Unable to determine repository star count."
-            );
+            ));
             setupSettingsListener();
             return;
         }
@@ -298,10 +318,10 @@ export async function loadMoreRepos(resetOffset = false) {
 
         if (starsCount < 100) {
             if (options.similarShowUnavailable) {
-                container.outerHTML = getErrorContainerHtml("Unavailable for repositories with less than 100 stars.");
+                renderSection(getErrorContainerHtml("Unavailable for repositories with less than 100 stars."));
                 setupSettingsListener();
             } else {
-                container.remove();
+                removeSection();
             }
             return;
         }
@@ -334,7 +354,7 @@ export async function loadMoreRepos(resetOffset = false) {
                     innerContainer.insertAdjacentHTML('beforeend', getContainerInnerHtml(response.data));
                 }
             } else {
-                container.outerHTML = getContainerHtml(response.data);
+                renderSection(getContainerHtml(response.data));
                 setupCallback();
             }
         } else {
@@ -342,19 +362,19 @@ export async function loadMoreRepos(resetOffset = false) {
 
             if (response.status === "error" && response.message) {
                 if (response.message === "All provided IDs were invalid or caused errors.") {
-                    container.outerHTML = getErrorContainerHtml("This repository got popular too recently! It will be included in the dataset soon.");
+                    renderSection(getErrorContainerHtml("This repository got popular too recently! It will be included in the dataset soon."));
                 } else {
-                    container.outerHTML = getErrorContainerHtml(`Error fetching similar repositories. Details:<br><code>${response.message}</code>`);
+                    renderSection(getErrorContainerHtml(`Error fetching similar repositories. Details:<br><code>${response.message}</code>`));
                 }
             } else {
-                container.outerHTML = getErrorContainerHtml("No similar repositories found. Try on older repositories.");
+                renderSection(getErrorContainerHtml("No similar repositories found. Try on older repositories."));
             }
             setupSettingsListener();
         }
     } catch (error) {
         console.error('Error fetching similar repos:', error);
         loading = false;
-        container.outerHTML = getErrorContainerHtml(`Error fetching similar repositories. Details:<br><code> ${error.message}</code>`);
+        renderSection(getErrorContainerHtml(`Error fetching similar repositories. Details:<br><code> ${error.message}</code>`));
         setupSettingsListener();
     }
 }
