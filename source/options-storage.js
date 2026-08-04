@@ -15,6 +15,7 @@ const optionsStorage = new OptionsSync({
         homepagePoolSize: 3.0,
         // homepageShowArchived: true,
         homepageRedirectToFeed: false,
+        homepageHideChangelog: true,
 
         telemetryEnabled: true,
     },
