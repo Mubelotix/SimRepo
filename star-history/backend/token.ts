@@ -20,13 +20,19 @@ const exhaustedUntil = new Map<string, number>();
 
 export const initTokenFromEnv = async () => {
   if (!fs.existsSync(envFilePath)) {
-    logger.error("Token file not found with path ", envFilePath);
-    process.exit(-1);
+    logger.warn(
+      "Token file not found with path ",
+      envFilePath,
+      " — GitHub tokens only needed for OG card metadata; star history is served from repos.sqlite."
+    );
+    return;
   }
   const envTokenString = fs.readFileSync(envFilePath).toString();
   if (!envTokenString) {
-    logger.error("Token not found");
-    process.exit(-1);
+    logger.warn(
+      "Token file is empty — GitHub tokens only needed for OG card metadata."
+    );
+    return;
   }
 
   const tokenList = envTokenString.split(/\r?\n/);
@@ -41,11 +47,12 @@ export const initTokenFromEnv = async () => {
   }
 
   if (savedTokens.length === 0) {
-    logger.error("No usable token");
-    process.exit(-1);
+    logger.warn(
+      "No usable token — GitHub tokens only needed for OG card metadata."
+    );
+  } else {
+    logger.info(`Usable token amount: ${savedTokens.length}`);
   }
-
-  logger.info(`Usable token amount: ${savedTokens.length}`);
 };
 
 // Mark a token as rate-limited so it is skipped for COOLDOWN_MS.
