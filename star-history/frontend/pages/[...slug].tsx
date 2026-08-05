@@ -72,7 +72,7 @@ interface RepoPageProps {
     nextRepo: NavRepo | null
 }
 
-const Toolbar = ({ onDownload, downloading, tweetUrl }: { onDownload: () => void; downloading: boolean; tweetUrl: string }) => (
+const Toolbar = ({ onDownload, downloading, lemmyUrl, mastodonUrl }: { onDownload: () => void; downloading: boolean; lemmyUrl: string; mastodonUrl: string }) => (
     <div className="flex items-center mb-2 w-full max-w-5xl" style={{ fontFamily: '"xkcd", cursive' }}>
         <div className="flex-1">
             <Link href="/" className="inline-flex items-center gap-1.5 text-lg text-neutral-400 hover:text-neutral-600 transition-colors">
@@ -102,12 +102,20 @@ const Toolbar = ({ onDownload, downloading, tweetUrl }: { onDownload: () => void
                 </svg>
             </button>
             <a
-                href={tweetUrl}
+                href={lemmyUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-secondary"
             >
-                <i className="fab fa-x-twitter"></i> Share
+                <img src="/assets/lemmy.svg" className="h-4 w-4 inline-block" alt="Lemmy" /> Share
+            </a>
+            <a
+                href={mastodonUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-secondary"
+            >
+                <i className="fa-brands fa-mastodon"></i> Toot
             </a>
         </div>
     </div>
@@ -130,8 +138,9 @@ const RepoPage: NextPage<RepoPageProps> = ({ repo, minStars, prevRepo, nextRepo 
     const description = weeklyParts.length ? `This week: ${weeklyParts.join(", ")}` : `Star history and stats for ${repo.name}`
     const canonicalUrl = `${SITE_URL}/${repo.name.toLowerCase()}`
     const ogImage = `${API_URL}/svg?repos=${repo.name}&style=landscape1`
-    const tweetText = `${repo.name} - ${formatNumber(repo.stars_total)} stars on GitHub`
-    const tweetUrl = `https://x.com/intent/tweet?url=${encodeURIComponent(canonicalUrl)}&text=${encodeURIComponent(tweetText)}`
+    const shareTitle = `${repo.name} - ${formatNumber(repo.stars_total)} stars on GitHub`
+    const lemmyUrl = `https://lemmy.ml/create_post?url=${encodeURIComponent(canonicalUrl)}&title=${encodeURIComponent(shareTitle)}`
+    const mastodonUrl = `https://mastodon.social/share?text=${encodeURIComponent(`${shareTitle} ${canonicalUrl}`)}`
 
     const hasAttributes = repo.attributes && Object.values(repo.attributes).some(v => v > 0)
 
@@ -354,7 +363,7 @@ const RepoPage: NextPage<RepoPageProps> = ({ repo, minStars, prevRepo, nextRepo 
                     <img src="/assets/logo-full.svg" alt="Star History" className="h-8 mb-4" />
                 </Link>
             }>
-                <Toolbar onDownload={handleDownload} downloading={downloading} tweetUrl={tweetUrl} />
+                <Toolbar onDownload={handleDownload} downloading={downloading} lemmyUrl={lemmyUrl} mastodonUrl={mastodonUrl} />
 
                 <div
                     ref={wrapperRef}

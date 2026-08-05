@@ -1,5 +1,4 @@
 import { FaEnvelope } from "react-icons/fa"
-import { FaXTwitter } from "react-icons/fa6"
 
 const Footer = () => {
     return (
@@ -10,9 +9,6 @@ const Footer = () => {
                     <a className="h-full flex flex-row justify-center items-center ml-2 text-lg hover:opacity-80" href="mailto:mubelotix@gmail.com" target="_blank" rel="noopener noreferrer">
                         <FaEnvelope />
                     </a>
-                    <a className="h-full flex flex-row justify-center items-center ml-2 text-lg hover:opacity-80" href="https://x.com/StarHistoryHQ" target="_blank" rel="noopener noreferrer">
-                        <FaXTwitter />
-                    </a>
                 </div>
                 <div className="text-xs leading-8 flex flex-row flex-nowrap justify-end items-center">
                     <span className="text-gray-600">
@@ -21,7 +17,7 @@ const Footer = () => {
                             @mubelotix
                         </a>
                         , originally built by{" "}
-                        <a className="link" href="https://x.com/tim_qian" target="_blank" rel="noopener noreferrer">
+                        <a className="link" href="https://github.com/timqian" target="_blank" rel="noopener noreferrer">
                             @tim_qian
                         </a>
                         {" "}and Bytebase
