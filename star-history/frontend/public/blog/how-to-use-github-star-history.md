@@ -29,7 +29,6 @@ It's just a simple search box, how hard could it be? Simplicity is indeed Star H
 -   How to add multiple repos.
 -   How to align the timeline to compare multiple repos.
 -   How to temporality show/hide a repo in the chart.
--   How to add your GitHub personal access token to remove GitHub API limits.
 -   How to embed a live star history chart inside your GitHub project [README.md](http://README.md).
 -   And don't forget we also have a [chrome extension](https://chrome.google.com/webstore/detail/star-history/iijibbcdddbhokfepbblglfgdglnccfn).
 
@@ -65,43 +64,13 @@ Instead of removing a repo from the chart, you can switch visibility of it by cl
 
 ![hide-show](/assets/blog/how-to-use-github-star-history/hide-show.webp)
 
-### How to add your GitHub personal access token to remove GitHub API limits
-
-Star History is free to use, but it uses GitHub API to retrieve repository metadata, which means you need to add your personal access token from GitHub to start using Star History. Rest assured, no personal data is needed in this process.
-![home-add-access-token](/assets/blog/how-to-use-github-star-history/add-access-token.webp)
-
-1. Login to your GitHub account, go to Personal Access Tokens: [https://github.com/settings/tokens](https://github.com/settings/tokens).
-2. Click **Generate new token**.
-   ![generate-new-token](/assets/blog/how-to-use-github-star-history/generate-new-token.webp)
-
-3. Click **Generate new** **token** **(classic)**.
-   ![new-token-classic](/assets/blog/how-to-use-github-star-history/new-token-classic.webp)
-
-4. Fill in the form on the token details page,
-
--   Note: give it a name for identification.
--   Expiration: how long should it be valid for?
--   Select scopes: access boundary for this token, for Star History, **repo** access will do.
-
-When you are done, click **Generate token** at the bottom of the page.
-
-![classic-form](/assets/blog/how-to-use-github-star-history/classic-form.webp)
-
-5. MAKE SURE to copy your personal access token NOW. You WON’T be able to see it again!
-
-![personal-token-copy](/assets/blog/how-to-use-github-star-history/personal-token-copy.webp)
-
-6. Go back to [star-history.com](/), and click **Edit Access Token**. Paste the token. (It's also where you edit in the future, when it expires and you'll need to generate a new one.) Hit **Save**, et voilà, the star history of all GitHub repos are at your fingertips. Simple as that.
-
-![edit-gh-access-token](/assets/blog/how-to-use-github-star-history/edit-gh-access-token.webp)
-
 ### How to embed a live star history chart inside your GitHub project README.md
 
 1. Click **Embed** below the chart.
 
 ![embed](/assets/blog/how-to-use-github-star-history/embed.webp)
 
-2. You need to add your personal access token first. Copy the iframe snippet and paste it into your [README.md](http://README.md)
+2. Copy the iframe snippet and paste it into your [README.md](http://README.md)
 
 ![copy-iframe-readme](/assets/blog/how-to-use-github-star-history/copy-iframe-readme.webp)
 

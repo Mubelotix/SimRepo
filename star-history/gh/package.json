@@ -4,13 +4,11 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "star:fetch": "tsx star-fetch.ts",
     "star:generate": "tsx star-generate.ts",
     "test": "tsx --test test.ts",
     "event": "tsx event.ts"
   },
   "dependencies": {
-    "@google-cloud/bigquery": "^7.9.0",
     "better-sqlite3": "^11.7.0"
   },
   "devDependencies": {

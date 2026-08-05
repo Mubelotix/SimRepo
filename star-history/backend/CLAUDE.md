@@ -8,29 +8,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `pnpm dev` - Start development server with hot reload using tsx
 - `pnpm build` - Build TypeScript project
 
-### Requirements
-- Requires `token.env` file with GitHub tokens (one per line) for API access
-- For local dev: Set `ENVPATH` environment variable to token file location
-- Production: Uses `./token.env` file
-
 ## Architecture
 
-This is a Hono backend server that generates SVG charts of GitHub repository star history.
+This is a Hono backend server that generates SVG charts of GitHub repository star history, served entirely from `repos.sqlite`. The server never calls the GitHub API.
 
 ### Core Flow
-1. **Token Management** (`token.ts`): Validates and rotates GitHub API tokens from environment file
-2. **API Requests** (`../shared/common/api.tsx`): Fetches star history data from GitHub API
-3. **Caching** (`cache.ts`): LRU cache (10K repos, 1GB max, 24h TTL) for star records and logo URLs
-4. **Chart Generation** (`../shared/packages/xy-chart.tsx`): D3-based SVG chart rendering via JSDOM
-5. **SVG Optimization**: Uses SVGO to minimize bandwidth
+1. **Data Source** (`repos.ts`): Reads star history + logo URLs from `repos.sqlite`
+2. **Caching** (`cache.ts`): LRU cache (10K repos, 1GB max, 24h TTL) for star records and rendered chart SVGs
+3. **Chart Generation** (`../shared/packages/xy-chart.tsx`): D3-based SVG chart rendering via JSDOM
+4. **SVG Optimization**: Uses SVGO to minimize bandwidth
 
 ### Key Components
-- **Main Server** (`main.ts`): Single `/svg` endpoint that accepts query params (repos, type, size, theme, transparent)
-- **Data Processing** (`../shared/common/chart.tsx`): Converts API data to chart format, handles Date vs Timeline modes
+- **Main Server** (`main.ts`): Endpoints `/svg` (chart), `/repo-data` (star data + logo URLs), `/healthz`. `/svg` accepts query params (repos, type, size, theme, transparent). `style=landscape1` (OG cards) is disabled and returns 503 because it required the GitHub API.
+- **Data Processing** (`../shared/common/chart.tsx`): Converts data to chart format, handles Date vs Timeline modes
 - **Utilities** (`utils.ts`): Image conversion, SVG manipulation, size calculations
+- **Repo data** (`../shared/common/repo-data.ts`): Loads repo metadata (attributes/rank) from `gh/data/repos.json`
 
 ### Shared Code
-Chart code, API client, and types live in root `shared/` (shared with frontend). Backend imports via `../shared/` relative paths. See root CLAUDE.md for the full shared directory listing.
+Chart code and types live in root `shared/` (shared with frontend). Backend imports via `../shared/` relative paths. See root CLAUDE.md for the full shared directory listing.
 
 ### Chart Types
 - **Date Mode**: X-axis shows actual dates
