@@ -10,7 +10,7 @@ export const drawWatermark = (selection: D3Selection, chartWidth: number, chartH
         .style("fill", "#666666")
         .attr("transform", `translate(${chartWidth - 50},${chartHeight + 40})`)
         .attr("text-anchor", "middle")
-        .text("star-history.com")
+        .text("star-history.dera.page")
 
     selection
         .append("image")

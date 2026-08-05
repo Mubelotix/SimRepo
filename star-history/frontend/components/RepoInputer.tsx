@@ -105,7 +105,7 @@ export default function RepoInputer({ setChartVisibility }: RepoInputerProps) {
         }
         let rawRepos = state.repo
         if (rawRepos === "" && state.repos.length === 0) {
-            rawRepos = "star-history/star-history"
+            rawRepos = "Mubelotix/star-history"
         }
 
         if (rawRepos === "") {
@@ -260,7 +260,7 @@ export default function RepoInputer({ setChartVisibility }: RepoInputerProps) {
                     onChange={(e) => setState((prev) => ({ ...prev, repo: e.target.value }))}
                     className="w-auto h-9 px-2 grow shrink text-dark outline-none rounded rounded-r-none placeholder:text-gray-300 focus:shadow-focus"
                     type="text"
-                    placeholder={state.repos.length > 0 ? "...add next repository" : "star-history or star-history/star-history or https://github.com/star-history/star-history"}
+                    placeholder={state.repos.length > 0 ? "...add next repository" : "star-history or Mubelotix/star-history or https://github.com/Mubelotix/star-history"}
                     onPaste={handleInputerPasted}
                     onKeyDown={handleInputerKeyDown}
                 />

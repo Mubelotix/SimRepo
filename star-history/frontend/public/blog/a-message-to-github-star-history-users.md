@@ -15,7 +15,7 @@ We enable users to embed a live GitHub star history chart directly into their re
 
 Under the hood, it calls the Star History API, which in turn calls the GitHub API to fetch star history data.
 
-This feature has been well received and has grown tremendously. The problem is that calling the GitHub API requires a token, and each token has an API rate limit per account. Previously, we relied on our team and [external contributors](https://github.com/star-history/star-history?tab=readme-ov-file#-token-contributor) for tokens, but this approach still can’t keep up with the increasing usage.
+This feature has been well received and has grown tremendously. The problem is that calling the GitHub API requires a token, and each token has an API rate limit per account. Previously, we relied on our team and [external contributors](https://github.com/Mubelotix/star-history?tab=readme-ov-file#-token-contributor) for tokens, but this approach still can’t keep up with the increasing usage.
 
 Below is a typical log entry from a single second:
 

@@ -7,7 +7,7 @@ publishedDate: "2024-11-01T00:00:00.000Z"
 description: "Langfuse is a LLM engineering platform that helps understand LLM applications and offers ways to improve them."
 ---
 
-*This is the twenty-seventh issue of The Starlet List. If you want to prompt your open source project on star-history.com for free, please check out our [announcement](/blog/list-your-open-source-project).*
+*This is the twenty-seventh issue of The Starlet List. If you want to prompt your open source project on star-history.dera.page for free, please check out our [announcement](/blog/list-your-open-source-project).*
 
 ---
 

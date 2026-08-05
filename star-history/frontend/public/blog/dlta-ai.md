@@ -7,7 +7,7 @@ publishedDate: "2023-07-20T00:00:00.000Z"
 description: "DLTA-AI is the next generation of annotation tools, integrating the Computer Vision SOTA models to Labelme in a seamless expirence and intuitive workflow to make creating image datasets easier than ever before."
 ---
 
-_This is the second issue of The Starlet List. If you want to prompt your open source project on star-history.com for free, please check out our [announcement](/blog/list-your-open-source-project)._
+_This is the second issue of The Starlet List. If you want to prompt your open source project on star-history.dera.page for free, please check out our [announcement](/blog/list-your-open-source-project)._
 
 ---
 
@@ -77,4 +77,4 @@ In the figure above, we opened a video showing a street, sampled it by taking a 
 
 DLTA-AI is still very young, but looks like it's been growing steadily since its open-source (April, 2023, which was only a few months ago!). Good luck, folks!
 
-[![Star History Chart](https://api.star-history.com/svg?repos=0ssamaak0/DLTA-AI&type=Date)](https://star-history.com/#0ssamaak0/DLTA-AI&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=0ssamaak0/DLTA-AI&type=Date)](https://star-history.dera.page/#0ssamaak0/DLTA-AI&Date)

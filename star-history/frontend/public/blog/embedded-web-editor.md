@@ -31,7 +31,7 @@ By 2026, embedded web editors fall into three camps:
 
 🔗 [https://github.com/panphora/overtype](https://github.com/panphora/overtype)
 
-[![Star History Chart](https://api.star-history.com/svg?repos=panphora/overtype&type=Date)](https://star-history.com/#panphora/overtype&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=panphora/overtype&type=Date)](https://star-history.dera.page/#panphora/overtype&Date)
 
 OverType takes a deliberately **anti-framework** approach to editing. Rather than introducing an editor engine, it uses a **native, invisible `<textarea>`** as the single source of truth for text, cursor position, selection, and IME behavior. A lightweight rendering layer then mirrors the content visually.
 
@@ -57,7 +57,7 @@ Text-engine editors treat content as **text with syntax**, not DOM nodes. They s
 
 🔗 [https://github.com/laobubu/HyperMD](https://github.com/laobubu/HyperMD)
 
-[![Star History Chart](https://api.star-history.com/svg?repos=laobubu/HyperMD&type=Date)](https://star-history.com/#laobubu/HyperMD&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=laobubu/HyperMD&type=Date)](https://star-history.dera.page/#laobubu/HyperMD&Date)
 
 HyperMD pushes CodeMirror toward a **WYSIWYG-like Markdown experience**. It renders Markdown elements inline, hides syntax markers, and allows interactive manipulation of content — while still preserving a text-based foundation.
 
@@ -79,7 +79,7 @@ It represents one of the most ambitious attempts to stretch CodeMirror toward do
 
 🔗 [https://github.com/Ionaru/easy-markdown-editor](https://github.com/Ionaru/easy-markdown-editor)
 
-[![Star History Chart](https://api.star-history.com/svg?repos=Ionaru/easy-markdown-editor&type=Date)](https://star-history.com/#Ionaru/easy-markdown-editor&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=Ionaru/easy-markdown-editor&type=Date)](https://star-history.dera.page/#Ionaru/easy-markdown-editor&Date)
 
 EasyMDE is the actively maintained successor to SimpleMDE. It embraces the **classic Markdown editor pattern**: toolbar actions, preview mode, and predictable behavior.
 
@@ -101,7 +101,7 @@ Unlike newer editors, EasyMDE intentionally avoids deep abstractions.
 
 🔗 [https://github.com/sparksuite/simplemde-markdown-editor](https://github.com/sparksuite/simplemde-markdown-editor)
 
-[![Star History Chart](https://api.star-history.com/svg?repos=sparksuite/simplemde-markdown-editor&type=Date)](https://star-history.com/#sparksuite/simplemde-markdown-editor&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=sparksuite/simplemde-markdown-editor&type=Date)](https://star-history.dera.page/#sparksuite/simplemde-markdown-editor&Date)
 
 SimpleMDE helped define the **embeddable Markdown editor era**. Many later projects — including EasyMDE — trace their lineage to it.
 
@@ -122,7 +122,7 @@ Today, it serves mainly as **historical context**.
 
 🔗 [https://github.com/benweet/stackedit](https://github.com/benweet/stackedit)
 
-[![Star History Chart](https://api.star-history.com/svg?repos=benweet/stackedit&type=Date)](https://star-history.com/#benweet/stackedit&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=benweet/stackedit&type=Date)](https://star-history.dera.page/#benweet/stackedit&Date)
 
 StackEdit is closer to a **full Markdown application** than an editor component. Built on CodeMirror, it includes preview, offline support, and synchronization with external storage.
 
@@ -147,7 +147,7 @@ Document-model editors treat content as a **structured tree**, enabling rich lay
 
 🔗 [https://github.com/Milkdown/milkdown](https://github.com/Milkdown/milkdown)
 
-[![Star History Chart](https://api.star-history.com/svg?repos=Milkdown/milkdown&type=Date)](https://star-history.com/#Milkdown/milkdown&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=Milkdown/milkdown&type=Date)](https://star-history.dera.page/#Milkdown/milkdown&Date)
 
 Milkdown builds on ProseMirror to offer a **framework-friendly Markdown editor**. Markdown is treated as a serialized form of a structured document, rather than the editing primitive itself.
 
@@ -167,7 +167,7 @@ Milkdown builds on ProseMirror to offer a **framework-friendly Markdown editor**
 
 🔗 [https://github.com/nhn/tui.editor](https://github.com/nhn/tui.editor)
 
-[![Star History Chart](https://api.star-history.com/svg?repos=nhn/tui.editor&type=Date)](https://star-history.com/#nhn/tui.editor&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=nhn/tui.editor&type=Date)](https://star-history.dera.page/#nhn/tui.editor&Date)
 
 TUI Editor targets **enterprise-grade editing needs**, supporting both Markdown and WYSIWYG modes, plugins, and integrations.
 

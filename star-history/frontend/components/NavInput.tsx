@@ -106,7 +106,7 @@ export default function NavInput() {
                     onFocus={() => {
                         if (results.length > 0) setShowDropdown(true)
                     }}
-                    placeholder="star-history or star-history/star-history or https://github.com/star-history/star-history"
+                    placeholder="star-history or Mubelotix/star-history or https://github.com/Mubelotix/star-history"
                     className="flex-1 h-10 px-4 text-sm outline-none placeholder:text-neutral-400"
                 />
                 <button

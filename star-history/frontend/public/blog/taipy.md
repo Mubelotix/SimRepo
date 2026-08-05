@@ -7,7 +7,7 @@ publishedDate: "2024-09-09T00:00:00.000Z"
 description: "Taipy is a two-in-One tool for UI generation and Scenario/Data Management that helps develop and deploy Data & AI web application."
 ---
 
-*This is the twenty-fifth issue of The Starlet List. If you want to prompt your open source project on star-history.com for free, please check out our [announcement](/blog/list-your-open-source-project).*
+*This is the twenty-fifth issue of The Starlet List. If you want to prompt your open source project on star-history.dera.page for free, please check out our [announcement](/blog/list-your-open-source-project).*
 
 ---
 

@@ -1,5 +1,5 @@
 module.exports = {
-    siteUrl: 'https://www.star-history.com',
+    siteUrl: 'https://star-history.dera.page',
     outDir: 'out',
     generateRobotsTxt: true,
     robotsTxtOptions: {

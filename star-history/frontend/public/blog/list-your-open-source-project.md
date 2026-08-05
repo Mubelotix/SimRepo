@@ -27,4 +27,4 @@ source practitioners and the open source investors are the two largest groups.
 
 To better connect the open source project maintainers with the Star History Audience, we are piloting a new program called **Starlet List** to accept open source project nomination. Once accepted, we will list it on Star History website for an extended period of time.
 
-This program is totally free during the pilot period. Just shoot us an email at [star@bytebase.com](mailto:star@bytebase.com) and tell us how your open source project wants to be presented to the audience.
+This program is totally free during the pilot period. Just shoot us an email at [mubelotix@gmail.com](mailto:mubelotix@gmail.com) and tell us how your open source project wants to be presented to the audience.

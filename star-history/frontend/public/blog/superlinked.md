@@ -7,7 +7,7 @@ publishedDate: "2024-09-04T00:00:00.000Z"
 description: "Superlinked is a compute framework for building Search, RAG, Recommendations and Analytics over complex data, with ultra-modal vector embeddings."
 ---
 
-*This is the twenty-fourth issue of The Starlet List. If you want to prompt your open source project on star-history.com for free, please check out our [announcement](/blog/list-your-open-source-project).*
+*This is the twenty-fourth issue of The Starlet List. If you want to prompt your open source project on star-history.dera.page for free, please check out our [announcement](/blog/list-your-open-source-project).*
 
 ---
 

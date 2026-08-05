@@ -40,7 +40,7 @@ If you don't have fancy ML workloads (because not all of us are AI giants) in yo
 
 _Side note #1: They got another open-source project under the organization: [PgCat](https://github.com/postgresml/pgcat), a Postgres pooler, which was first released back in February, 2022. Interesting to see them pivot to the more sexy topic of AI._
 
-_Side note #2: PostgresML was actually_ [_featured on the starlet issue_](https://star-history.com/blog/postgresml) _a while back, and that kinda gave me the inspo for this issue._
+_Side note #2: PostgresML was actually_ [_featured on the starlet issue_](https://star-history.dera.page/blog/postgresml) _a while back, and that kinda gave me the inspo for this issue._
 
 ## MADlib
 

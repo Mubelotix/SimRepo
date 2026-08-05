@@ -1,76 +1,46 @@
 <div align="center">
 
-🧩 [**Also available as a Chrome extension**](https://chrome.google.com/webstore/detail/star-history/iijibbcdddbhokfepbblglfgdglnccfn)
-
-<a href="https://www.star-history.com/star-history/star-history">
+<a href="https://star-history.dera.page/Mubelotix/star-history">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/badge?repo=star-history/star-history&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/badge?repo=star-history/star-history" />
-   <img alt="Star History Rank" src="https://api.star-history.com/badge?repo=star-history/star-history" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/badge?repo=Mubelotix/star-history&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/badge?repo=Mubelotix/star-history" />
+   <img alt="Star History Rank" src="https://api.star-history.com/badge?repo=Mubelotix/star-history" />
  </picture>
 </a>
 
 # :sparkles: Star History :sparkles:
  
-[**star-history.com**](https://star-history.com), **the de facto GitHub star history graph.**
-
-<img src="https://raw.githubusercontent.com/star-history/star-history/main/assets/nvidia-gtc-2026.webp" />
+[**star-history.dera.page**](https://star-history.dera.page), **the de facto GitHub star history graph.**
 
 </div>
 
 ---
 
-👇 **THIS** is a **`live`** chart. Follow [instruction](https://www.star-history.com/blog/how-to-use-github-star-history#how-to-embed-the-chart-in-your-readme) to embed yours.
+👇 **THIS** is a **`live`** chart. Follow [instruction](https://star-history.dera.page/Mubelotix/star-history) to embed yours.
 
-<a href="https://www.star-history.com/?repos=star-history%2Fstar-history&type=date&legend=top-left">
+<a href="https://star-history.dera.page/?repos=Mubelotix%2Fstar-history&type=date&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=star-history/star-history&type=date&theme=dark&legend=top-left&sealed_token=DYeTWCAopiiE2umbQNPumg8YbPnyodS4lGzIhhCvVVvIuGqF2y_EHByyowTpVnmds-frpmYYKc_awzVeAxZ7O3gT7Mu6l8V7DlZ8BaIkBoGcWPhLwZrdWA" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=star-history/star-history&type=date&legend=top-left&sealed_token=DYeTWCAopiiE2umbQNPumg8YbPnyodS4lGzIhhCvVVvIuGqF2y_EHByyowTpVnmds-frpmYYKc_awzVeAxZ7O3gT7Mu6l8V7DlZ8BaIkBoGcWPhLwZrdWA" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=star-history/star-history&type=date&legend=top-left&sealed_token=DYeTWCAopiiE2umbQNPumg8YbPnyodS4lGzIhhCvVVvIuGqF2y_EHByyowTpVnmds-frpmYYKc_awzVeAxZ7O3gT7Mu6l8V7DlZ8BaIkBoGcWPhLwZrdWA" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=Mubelotix/star-history&type=date&theme=dark&legend=top-left&sealed_token=DYeTWCAopiiE2umbQNPumg8YbPnyodS4lGzIhhCvVVvIuGqF2y_EHByyowTpVnmds-frpmYYKc_awzVeAxZ7O3gT7Mu6l8V7DlZ8BaIkBoGcWPhLwZrdWA" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=Mubelotix/star-history&type=date&legend=top-left&sealed_token=DYeTWCAopiiE2umbQNPumg8YbPnyodS4lGzIhhCvVVvIuGqF2y_EHByyowTpVnmds-frpmYYKc_awzVeAxZ7O3gT7Mu6l8V7DlZ8BaIkBoGcWPhLwZrdWA" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=Mubelotix/star-history&type=date&legend=top-left&sealed_token=DYeTWCAopiiE2umbQNPumg8YbPnyodS4lGzIhhCvVVvIuGqF2y_EHByyowTpVnmds-frpmYYKc_awzVeAxZ7O3gT7Mu6l8V7DlZ8BaIkBoGcWPhLwZrdWA" />
  </picture>
 </a>
 
 <div align="left">
   
-👇 **THIS** is also a **`live`** badge with global rank. Follow [instruction](https://www.star-history.com/star-history/star-history#badges) to embed yours.
+👇 **THIS** is also a **`live`** badge with global rank. Follow [instruction](https://star-history.dera.page/Mubelotix/star-history#badges) to embed yours.
 
 <p align="left">
- <a href="https://www.star-history.com/star-history/star-history">
+ <a href="https://star-history.dera.page/Mubelotix/star-history">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/badge?repo=star-history/star-history&theme=dark" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/badge?repo=star-history/star-history" />
-    <img alt="Star History Rank" src="https://api.star-history.com/badge?repo=star-history/star-history" />
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/badge?repo=Mubelotix/star-history&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/badge?repo=Mubelotix/star-history" />
+    <img alt="Star History Rank" src="https://api.star-history.com/badge?repo=Mubelotix/star-history" />
   </picture>
  </a>
 </p>
 
 </div>
-
-## 🎁 Sponsors
-
-### Bytebase
-
-[Bytebase](https://bytebase.com?source=star-history) is an open source, web-based database schema change and version control tool for teams. Supporting MySQL, PostgreSQL, Oracle, MongoDB, Redis, Snowflake, ClickHouse, TiDB, Google Spanner.
-
-<a href="https://bytebase.com?source=star-history"><img src="https://raw.githubusercontent.com/star-history/star-history/main/frontend/public/assets/ft/bytebase/landing.webp" /></a>
-
-### Dify
-
-[Dify](https://dify.ai/?utm_source=star-history) is an open source LLMOps platform that helps developers build AI applications more simply and quickly. Its core idea is to define various aspects of AI applications, including Prompts, Contexts, and Plugins, through declarative YAML files.
-
-<a href="https://dify.ai/?utm_source=star-history"><img src="https://raw.githubusercontent.com/star-history/star-history/main/frontend/public/assets/ft/dify/landing.webp" /></a>
-
-### SerpApi
-
-[SerpApi](https://serpapi.com/?utm_source=starhistory) scrapes search engine results easily using a simple API, including Google, Google Maps, Amazon, and more
-
-<a href="https://serpapi.com/?utm_source=starhistory"><img src="https://raw.githubusercontent.com/star-history/star-history/main/frontend/public/assets/ft/serpapi/landing.webp" /></a>
-
-### pgplex
-
-[pgplex](https://www.pgplex.com/?utm_source=starhistory) is the Postgres toolchain for humans and agents
-
-<a href="https://www.pgplex.com/?utm_source=starhistory"><img src="https://raw.githubusercontent.com/star-history/star-history/main/frontend/public/assets/ft/pgplex/landing.webp" /></a>
 
 ## ✨ Features
 
@@ -87,12 +57,8 @@
 
 ## 🌠 Screenshots
 
-<a href="https://star-history.com"><img width="800px" src="https://user-images.githubusercontent.com/24653555/154391264-312b448b-f851-41bf-bb8d-4c21ec6795b6.gif" />
+<a href="https://star-history.dera.page"><img width="800px" src="https://user-images.githubusercontent.com/24653555/154391264-312b448b-f851-41bf-bb8d-4c21ec6795b6.gif" />
 </a>
-
-### 🧩 [Free chrome extension](https://chrome.google.com/webstore/detail/star-history/iijibbcdddbhokfepbblglfgdglnccfn)
-
-<a href="https://chrome.google.com/webstore/detail/star-history/iijibbcdddbhokfepbblglfgdglnccfn"><img width="800px" src="https://user-images.githubusercontent.com/24653555/154391326-61b65d8f-3f9f-4432-b773-5988be75b0ea.png" /></a>
 
 ## 🏗 Development
 
@@ -114,16 +80,6 @@ cd frontend && pnpm i && pnpm dev
 ```
 
 The website will be served at http://localhost:3000.
-
-### Chrome Extension
-
-**Chrome extension** supports the **basic chart viewer** as a **free** additional product.
-
-```shell
-cd frontend && pnpm build:ext
-```
-
-Load the built `./dist` folder as **unpacked project** to chrome extensions page.
 
 ### API Server
 

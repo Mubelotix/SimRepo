@@ -7,7 +7,7 @@ publishedDate: "2023-07-03T00:00:00.000Z"
 description: "Sniffnet is an open-source network monitoring tool to help everyone analyze their Internet traffic with ease."
 ---
 
-_This is the first issue of The Starlet List. If you want to prompt your open source project on star-history.com for free, please check out our [announcement](/blog/list-your-open-source-project)._
+_This is the first issue of The Starlet List. If you want to prompt your open source project on star-history.dera.page for free, please check out our [announcement](/blog/list-your-open-source-project)._
 
 ---
 
@@ -56,7 +56,7 @@ On the [official website](https://www.sniffnet.net/download) you can find more i
 
 Sniffnet is a very young application, but as shown by the Star History chart it had a stunning growth during the past months.
 
-[![Star History Chart](https://api.star-history.com/svg?repos=gyulyvgc/sniffnet&type=Date)](https://star-history.com/#gyulyvgc/sniffnet&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=gyulyvgc/sniffnet&type=Date)](https://star-history.dera.page/#gyulyvgc/sniffnet&Date)
 
 The main events that caused this astonishing growth are reported in the following:
 
@@ -66,7 +66,7 @@ The main events that caused this astonishing growth are reported in the followin
 
 Sniffnet's growth is particularly impressive when compared with the other popular network analyzers, including Wireshark:
 
-[![Star History Chart](https://api.star-history.com/svg?repos=gyulyvgc/sniffnet,wireshark/wireshark,the-tcpdump-group/tcpdump,ntop/ntopng&type=Date)](https://star-history.com/#gyulyvgc/sniffnet&wireshark/wireshark&the-tcpdump-group/tcpdump&ntop/ntopng&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=gyulyvgc/sniffnet,wireshark/wireshark,the-tcpdump-group/tcpdump,ntop/ntopng&type=Date)](https://star-history.dera.page/#gyulyvgc/sniffnet&wireshark/wireshark&the-tcpdump-group/tcpdump&ntop/ntopng&Date)
 
 ## Future development
 

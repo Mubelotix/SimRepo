@@ -1,15 +1,15 @@
 ---
-title: "star-history.com in 2025"
+title: "star-history.dera.page in 2025"
 author: "Tianzhou"
 featured: true
 featureImage: "/assets/blog/star-history-2025/banner.webp"
 publishedDate: "2026-01-01T09:00:00.000Z"
-description: "A look back at star-history.com in 2025"
+description: "A look back at star-history.dera.page in 2025"
 ---
 
 ## Traffic Growth
 
-2025 has been a more eventful year for star-history.com. Our website visitors grew 45% compared to 2024.
+2025 has been a more eventful year for star-history.dera.page. Our website visitors grew 45% compared to 2024.
 
 ![traffic](/assets/blog/star-history-2025/traffic.webp)
 
@@ -66,7 +66,7 @@ This year, we also decided to pause the Starlet program, which we launched in 20
 
 ## Acknowledgements
 
-Finally, we'd like to highlight our annual sponsor [Dify](https://dify.ai/) and our very own editorial team from [Bytebase](https://bytebase.com/). Maintaining star-history.com gives us a platform to stay connected with the open source community, even when that means firefighting scaling issues through the end of 2025.
+Finally, thanks to everyone who starred, embedded, and shared the charts. Maintaining star-history.dera.page gives us a platform to stay connected with the open source community, even when that means firefighting scaling issues through the end of 2025.
 
 ![outage2](/assets/blog/star-history-2025/outage2.webp)
 

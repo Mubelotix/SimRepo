@@ -1,28 +1,26 @@
 ---
-title: "Introducing the new star-history.com"
+title: "Introducing the new star-history.dera.page"
 author: "Steven"
 featured: true
 featureImage: "/assets/blog/star-history.png"
 publishedDate: "2022-01-21T09:13:05.000Z"
-description: "After a month of hard work, we are happy to introduce you to the new star-history.com. It has been rebuilt using a modern tech stack while keeping the original sketching / xkcd feel. Besides, we have added several highly requested features..."
+description: "After a month of hard work, we are happy to introduce you to the new star-history.dera.page. It has been rebuilt using a modern tech stack while keeping the original sketching / xkcd feel. Besides, we have added several highly requested features..."
 ---
 
-After a month of hard work, we are happy to introduce you to the new [star-history.com](https://star-history.com/). It has been rebuilt using a modern tech stack while keeping the original sketching / xkcd feel. Besides, we have added several highly requested features.
+After a month of hard work, we are happy to introduce you to the new [star-history.dera.page](https://star-history.dera.page/). It has been rebuilt using a modern tech stack while keeping the original sketching / xkcd feel. Besides, we have added several highly requested features.
 
 ## ⭐️ What is star-history
 
 > The missing GitHub star history graph.
 
-If you ever see a GitHub star chart before, it's likely from [star-history.com](https://star-history.com).
+If you ever see a GitHub star chart before, it's likely from [star-history.dera.page](https://star-history.dera.page).
 ![star-history-image](/assets/blog/star-history-image.png)
-[The star-history project](https://github.com/star-history/star-history)started around 2016 as an open source project on GitHub, it has gained momentum over the years and accumulated over 2.5K GitHub stars. Today, it ranks No.1 on various GitHub Star related search keywords.
+[The star-history project](https://github.com/Mubelotix/star-history)started around 2016 as an open source project on GitHub, it has gained momentum over the years and accumulated over 2.5K GitHub stars. Today, it ranks No.1 on various GitHub Star related search keywords.
 ![star-history-google-result](/assets/blog/star-history-google-result.png)
-star-history also has a [chrome extension](https://chrome.google.com/webstore/detail/star-history/iijibbcdddbhokfepbblglfgdglnccfn).
-![star-history-chrome-extension](/assets/blog/star-history-chrome-extension.png)
 
 ## 🧵 The rewrite no one noticed
 
-As [star-history](https://star-history.com) gains popularity, we have accumulated a decent backlog of good ideas suggested by our users. Recently, we finally got the resource to give an overhaul. The original app was written in plain javascript. To ease future development, we decide to choose a modern tech stack. Meanwhile, we want to keep its simplicity and the original sketching / xkcd feel. Because we believe that's the most important ingredient making it the top among 10+ other similar websites. So the first thing we do is to rewrite the entire app using a modern tech stack: Vue.js + Vite + TailwindCSS while keeping the UI look the same. Only after that, we begin to add those long-awaited features.
+As [star-history](https://star-history.dera.page) gains popularity, we have accumulated a decent backlog of good ideas suggested by our users. Recently, we finally got the resource to give an overhaul. The original app was written in plain javascript. To ease future development, we decide to choose a modern tech stack. Meanwhile, we want to keep its simplicity and the original sketching / xkcd feel. Because we believe that's the most important ingredient making it the top among 10+ other similar websites. So the first thing we do is to rewrite the entire app using a modern tech stack: Vue.js + Vite + TailwindCSS while keeping the UI look the same. Only after that, we begin to add those long-awaited features.
 
 ## 🚀 The enhancements
 
@@ -35,7 +33,7 @@ Previously, users could only screenshot the website to get the chart image. So w
 
 This one also comes from our user's ask - “It would be nice to be able to compare projects in the sense how the number of stars have grown since it got launched.”
 
-It's quite common that there are multiple open source projects targeting similar segments. And very often, these projects start at different times. To implement this, we rewrite the underlying chart library to give the power of comparing repos in the same timeline. Below lists the comparison among [Vue, React, Angular, Svelte w/o timeline view](https://star-history.com/#vuejs/vue&facebook/react&angular/angular&sveltejs/svelte&Timeline):
+It's quite common that there are multiple open source projects targeting similar segments. And very often, these projects start at different times. To implement this, we rewrite the underlying chart library to give the power of comparing repos in the same timeline. Below lists the comparison among [Vue, React, Angular, Svelte w/o timeline view](https://star-history.dera.page/#vuejs/vue&facebook/react&angular/angular&sveltejs/svelte&Timeline):
 ![star-history-date-mode](/assets/blog/star-history-date-mode.png)![star-history-timeline-mode](/assets/blog/star-history-timeline-mode.png)
 
 ### Embed chart into other websites

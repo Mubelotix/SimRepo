@@ -7,7 +7,7 @@ publishedDate: "2024-03-28T00:00:00.000Z"
 description: "Skyvern is an open-source tool that uses LLMs and computer vision to help companies automate and scale browser-based workflows."
 ---
 
-*This is the nineteenth issue of The Starlet List. If you want to prompt your open source project on star-history.com for free, please check out our [announcement](/blog/list-your-open-source-project).*
+*This is the nineteenth issue of The Starlet List. If you want to prompt your open source project on star-history.dera.page for free, please check out our [announcement](/blog/list-your-open-source-project).*
 
 ---
 
@@ -48,7 +48,7 @@ Our project has seen exciting use cases, such as:
 
 We had a great [open source launch on Hacker News](https://news.ycombinator.com/item?id=39706004) and following that, the Skyvern repository reached 2.7K ⭐ in less than a week.
 
-[![Star History Chart](https://api.star-history.com/svg?repos=Skyvern-AI/skyvern&type=Date)](https://star-history.com/#Skyvern-AI/skyvern&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=Skyvern-AI/skyvern&type=Date)](https://star-history.dera.page/#Skyvern-AI/skyvern&Date)
 
 If you’d like to try out Skyvern and see how it works yourself, visit our [GitHub](https://github.com/Skyvern-AI/skyvern). Contributions and feedback in any form are much appreciated.
 

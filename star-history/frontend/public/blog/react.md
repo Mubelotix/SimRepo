@@ -24,7 +24,7 @@ This month, we highlight four standout React projects shaping how teams build in
 
 #### → Real-Time React Performance Insights
 
-[![Star History Chart](https://api.star-history.com/svg?repos=aidenybai/react-scan&type=Date)](https://star-history.com/#aidenybai/react-scan&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=aidenybai/react-scan&type=Date)](https://star-history.dera.page/#aidenybai/react-scan&Date)
 
 React Scan is an innovative runtime profiler that overlays component rendering behavior directly in your UI. With a single import, developers can see precisely which components re-render — and why.
 
@@ -40,7 +40,7 @@ React Scan is an innovative runtime profiler that overlays component rendering b
 
 #### → Building Node-Based Editors & Graph Interfaces
 
-[![Star History Chart](https://api.star-history.com/svg?repos=xyflow/xyflow&type=Date)](https://star-history.com/#xyflow/xyflow&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=xyflow/xyflow&type=Date)](https://star-history.dera.page/#xyflow/xyflow&Date)
 
 Xyflow is the engine behind some of today’s most polished workflow editors — including Cloudflare Workers’ visual editor. From node-based diagrams to no-code builders, it provides a flexible canvas for interactive graph-based UIs.
 
@@ -56,7 +56,7 @@ Xyflow is the engine behind some of today’s most polished workflow editors —
 
 #### → Server-State Management Done Right
 
-[![Star History Chart](https://api.star-history.com/svg?repos=TanStack/query&type=Date)](https://star-history.com/#TanStack/query&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=TanStack/query&type=Date)](https://star-history.dera.page/#TanStack/query&Date)
 
 TanStack Query (formerly React Query) remains one of the most essential libraries in modern React apps. It simplifies fetching, caching, mutations, retries, pagination — everything related to "server state".
 
@@ -71,7 +71,7 @@ TanStack Query (formerly React Query) remains one of the most essential librarie
 
 #### → Full-Stack React Framework for Internal Tools
 
-[![Star History Chart](https://api.star-history.com/svg?repos=refinedev/refine&type=Date)](https://star-history.com/#refinedev/refine&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=refinedev/refine&type=Date)](https://star-history.dera.page/#refinedev/refine&Date)
 
 Refine is a full-stack React framework designed for building dashboards, admin panels, and CRUD-heavy apps. It integrates cleanly with UI kits (Ant Design, Mui, Chakra), authentication providers, and backend services from Supabase to NestJS.
 

@@ -7,7 +7,7 @@ publishedDate: "2026-03-31T12:00:00.000Z"
 description: "A look at the projects defining what 'skills' mean for AI coding agents — from YC's CEO shipping 20K lines a day, to a Gumroad founder who'd rather you didn't write code at all."
 ---
 
-Last month we covered [the OpenClaw ecosystem](/blog/clawflare). This month the spotlight shifts to **skills** — reusable instruction packs that turn a general-purpose agent into something opinionated.
+This month the spotlight shifts to **skills** — reusable instruction packs that turn a general-purpose agent into something opinionated.
 
 A coding agent out of the box is a brilliant new hire on day one. It can do anything, but it doesn't know how you do things. Skills are the onboarding docs, except they're executable.
 
@@ -21,7 +21,7 @@ Both target founders. They disagree on what a founder's bottleneck actually is.
 
 🔗 [https://github.com/garrytan/gstack](https://github.com/garrytan/gstack)
 
-[![Star History Chart](https://api.star-history.com/svg?repos=garrytan/gstack&type=Date)](https://star-history.com/#garrytan/gstack&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=garrytan/gstack&type=Date)](https://star-history.dera.page/#garrytan/gstack&Date)
 
 Garry Tan (YC's CEO) built `gstack` to turn Claude Code into an entire engineering org. 23 slash commands, each a specialist role: `/plan-ceo-review` for product direction, `/review` for staff-level code review, `/qa` for real Playwright browser testing, `/ship` for PR creation, `/cso` for security audits. You run a structured sprint — think, plan, build, review, test, ship, reflect — and the agent handles each phase.
 
@@ -33,7 +33,7 @@ Think of it as a movie set. You're the producer. Each slash command is a crew me
 
 🔗 [https://github.com/slavingia/skills](https://github.com/slavingia/skills)
 
-[![Star History Chart](https://api.star-history.com/svg?repos=slavingia/skills&type=Date)](https://star-history.com/#slavingia/skills&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=slavingia/skills&type=Date)](https://star-history.dera.page/#slavingia/skills&Date)
 
 Sahil Lavingia (Gumroad CEO) took the opposite approach. 10 commands, none of them write code. Based on his book The Minimalist Entrepreneur, they walk you through building a business: `/find-community`, `/validate-idea`, `/mvp`, `/pricing`, `/marketing-plan`, `/grow-sustainably`.
 
@@ -49,7 +49,7 @@ The second pair competes over how agents should organize development work. Same 
 
 🔗 [https://github.com/obra/superpowers](https://github.com/obra/superpowers)
 
-[![Star History Chart](https://api.star-history.com/svg?repos=obra/superpowers&type=Date)](https://star-history.com/#obra/superpowers&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=obra/superpowers&type=Date)](https://star-history.dera.page/#obra/superpowers&Date)
 
 Jesse Vincent's `superpowers` is the most opinionated project here. Its skills fire automatically based on context — no manual invocation. Write code without a test? Superpowers deletes it and tells you to write the test first. It enforces strict TDD, dispatches subagents per task with two-stage code review, and runs everything in git worktrees.
 
@@ -61,7 +61,7 @@ If gstack is a movie set where you call each crew member by name, superpowers is
 
 🔗 [https://github.com/rebelice/starmap](https://github.com/rebelice/starmap)
 
-[![Star History Chart](https://api.star-history.com/svg?repos=rebelice/starmap&type=Date)](https://star-history.com/#rebelice/starmap&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=rebelice/starmap&type=Date)](https://star-history.dera.page/#rebelice/starmap&Date)
 
 `starmap` exists because some problems have 500 scenarios, not 5. Think database migration compatibility matrices, cross-platform test suites, API coverage checklists.
 
@@ -89,7 +89,7 @@ It's a single skill, not a suite. But the real significance is strategic: Anthro
 
 🔗 [https://github.com/zarazhangrui/frontend-slides](https://github.com/zarazhangrui/frontend-slides)
 
-[![Star History Chart](https://api.star-history.com/svg?repos=zarazhangrui/frontend-slides&type=Date)](https://star-history.com/#zarazhangrui/frontend-slides&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=zarazhangrui/frontend-slides&type=Date)](https://star-history.dera.page/#zarazhangrui/frontend-slides&Date)
 
 A Claude Code skill for making animation-rich HTML presentations — zero dependencies, single file output. Start from scratch or feed it a PowerPoint.
 
@@ -101,7 +101,7 @@ The best part is style discovery. Instead of describing what you want in words, 
 
 🔗 [https://github.com/remotion-dev/remotion](https://github.com/remotion-dev/remotion)
 
-[![Star History Chart](https://api.star-history.com/svg?repos=remotion-dev/remotion&type=Date)](https://star-history.com/#remotion-dev/remotion&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=remotion-dev/remotion&type=Date)](https://star-history.dera.page/#remotion-dev/remotion&Date)
 
 Remotion lets you make videos using React. Write components, use CSS and Canvas and WebGL, and it renders them to MP4. Fireship's "This video was made with code" and GitHub's "GitHub Unwrapped" were both built with it.
 

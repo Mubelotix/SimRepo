@@ -1,7 +1,6 @@
 import Head from "next/head"
 import Header from "../../components/header"
 import Footer from "../../components/footer"
-import BytebaseBanner from "../../components/SponsorView"
 import RightSidebar from "../../components/RightSidebar"
 import Link from "next/link"
 import blogData from "helpers/blog.json"
@@ -79,7 +78,6 @@ const BlogPage: NextPageWithLayout = () => {
                                 </div>
                             )}
                         </section>
-                        <BytebaseBanner className="mb-8 hidden lg:block" />
                         </div>
                         <div className="hidden lg:block">
                             <RightSidebar />

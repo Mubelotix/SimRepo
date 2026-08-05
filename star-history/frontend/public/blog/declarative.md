@@ -23,7 +23,7 @@ This month, we highlight five projects that exemplify the power and versatility 
 
 #### → Declarative Diagramming
 
-[![Star History Chart](https://api.star-history.com/svg?repos=terrastruct/d2&type=Date)](https://star-history.com/#terrastruct/d2&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=terrastruct/d2&type=Date)](https://star-history.dera.page/#terrastruct/d2&Date)
 
 D2 is a modern diagram scripting language that turns text into diagrams. It allows you to create complex, high-quality diagrams using a simple, declarative syntax. Instead of manually drawing boxes and lines, you describe the components of your system and their relationships, and D2 handles the layout and rendering.
 
@@ -38,7 +38,7 @@ D2 is a modern diagram scripting language that turns text into diagrams. It allo
 
 #### → Declarative Schema Migration
 
-[![Star History Chart](https://api.star-history.com/svg?repos=pgschema/pgschema&type=Date)](https://star-history.com/#pgschema/pgschema&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=pgschema/pgschema&type=Date)](https://star-history.dera.page/#pgschema/pgschema&Date)
 
 pgschema brings the popular Terraform-style declarative workflow to PostgreSQL schema management. Instead of writing imperative migration scripts (e.g., `ALTER TABLE ...`), you declare the desired state of your schema in a file. pgschema then generates and applies the necessary changes to get your database to that state.
 
@@ -53,7 +53,7 @@ pgschema brings the popular Terraform-style declarative workflow to PostgreSQL s
 
 #### → The Original Declarative Infra
 
-[![Star History Chart](https://api.star-history.com/svg?repos=hashicorp/terraform&type=Date)](https://star-history.com/#hashicorp/terraform&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=hashicorp/terraform&type=Date)](https://star-history.dera.page/#hashicorp/terraform&Date)
 
 ![Terraform](/assets/blog/declarative/terraform.webp)
 
@@ -68,7 +68,7 @@ Terraform is the tool that popularized the concept of declarative infrastructure
 
 #### → The Community's Terraform
 
-[![Star History Chart](https://api.star-history.com/svg?repos=opentofu/opentofu&type=Date)](https://star-history.com/#opentofu/opentofu&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=opentofu/opentofu&type=Date)](https://star-history.dera.page/#opentofu/opentofu&Date)
 
 OpenTofu is a community-driven, open-source fork of Terraform created in response to HashiCorp's license change. Hosted by the Linux Foundation, it aims to keep Terraform truly open source (under the MPL-2.0 license) and is managed by a community of developers and organizations. It serves as a drop-in replacement for Terraform.
 
@@ -83,7 +83,7 @@ OpenTofu is a community-driven, open-source fork of Terraform created in respons
 
 #### → Infrastructure as Real Code
 
-[![Star History Chart](https://api.star-history.com/svg?repos=pulumi/pulumi&type=Date)](https://star-history.com/#pulumi/pulumi&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=pulumi/pulumi&type=Date)](https://star-history.dera.page/#pulumi/pulumi&Date)
 
 Pulumi offers a unique take on declarative infrastructure by allowing you to use general-purpose programming languages like Python, TypeScript, Go, and C# to define your infrastructure. This means you can leverage familiar tools, concepts, and libraries—like loops, functions, and classes—to build and manage your cloud resources.
 

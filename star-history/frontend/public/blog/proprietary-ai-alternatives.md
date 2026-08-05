@@ -27,7 +27,7 @@ This month, we highlight six outstanding projects shaping the "open vs proprieta
 ## [LocalAI](https://github.com/mudler/LocalAI) 
 #### → OpenAI GPT API / Anthropic Claude
 
-[![Star History Chart](https://api.star-history.com/svg?repos=mudler/LocalAI\&type=Date)](https://star-history.com/#mudler/LocalAI&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=mudler/LocalAI\&type=Date)](https://star-history.dera.page/#mudler/LocalAI&Date)
 
 LocalAI is not a model, but an **inference layer** that wraps open models (LLaMA, Mistral, Gemma, Mixtral, Qwen) behind an OpenAI-compatible API. Developers can swap out OpenAI’s endpoint for LocalAI with minimal code changes.
 
@@ -41,7 +41,7 @@ LocalAI is not a model, but an **inference layer** that wraps open models (LLaMA
 ## [ComfyUI](https://github.com/comfyanonymous/ComfyUI)
 #### → Midjourney / Runway
 
-[![Star History Chart](https://api.star-history.com/svg?repos=comfyanonymous/ComfyUI\&type=Date)](https://star-history.com/#comfyanonymous/ComfyUI&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=comfyanonymous/ComfyUI\&type=Date)](https://star-history.dera.page/#comfyanonymous/ComfyUI&Date)
 
 ComfyUI is a **node-based workflow editor** for diffusion models. Artists can wire together samplers, ControlNet modules, LoRA models, and video nodes like Lego blocks.
 
@@ -55,7 +55,7 @@ ComfyUI is a **node-based workflow editor** for diffusion models. Artists can wi
 ## [Wan2.2](https://github.com/Wan-Video/Wan2.2)
 #### → Google DeepMind VEO 3
 
-[![Star History Chart](https://api.star-history.com/svg?repos=Wan-Video/Wan2.2\&type=Date)](https://star-history.com/#Wan-Video/Wan2.2&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=Wan-Video/Wan2.2\&type=Date)](https://star-history.dera.page/#Wan-Video/Wan2.2&Date)
 
 Developed by **Alibaba**, Wan2.2 is an ambitious open video generation model. It supports text-to-video, image-to-video, and speech-to-video.
 
@@ -70,7 +70,7 @@ Developed by **Alibaba**, Wan2.2 is an ambitious open video generation model. It
 ## [OpenHands](https://github.com/All-Hands-AI/OpenHands) 
 #### → Devin
 
-[![Star History Chart](https://api.star-history.com/svg?repos=All-Hands-AI/OpenHands\&type=Date)](https://star-history.com/#All-Hands-AI/OpenHands&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=All-Hands-AI/OpenHands\&type=Date)](https://star-history.dera.page/#All-Hands-AI/OpenHands&Date)
 
 Devin sparked huge buzz as the “AI software engineer,” but it’s closed. **OpenHands** is the community’s open alternative.
 
@@ -85,7 +85,7 @@ Devin sparked huge buzz as the “AI software engineer,” but it’s closed. **
 ## [Perplexica](https://github.com/ItzCrazyKns/Perplexica)
 #### → Perplexity AI
 
-[![Star History Chart](https://api.star-history.com/svg?repos=ItzCrazyKns/Perplexica\&type=Date)](https://star-history.com/#ItzCrazyKns/Perplexica&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=ItzCrazyKns/Perplexica\&type=Date)](https://star-history.dera.page/#ItzCrazyKns/Perplexica&Date)
 
 Perplexica is an **AI-powered search engine** that serves as an open-source alternative to Perplexity AI. It combines web search with AI reasoning to provide comprehensive answers with sources.
 
@@ -100,7 +100,7 @@ Perplexica is an **AI-powered search engine** that serves as an open-source alte
 ## [Firecrawl](https://github.com/firecrawl/firecrawl)
 #### (with Open-Lovable demo) → Lovable
 
-[![Star History Chart](https://api.star-history.com/svg?repos=firecrawl/firecrawl\&type=Date)](https://star-history.com/#firecrawl/firecrawl&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=firecrawl/firecrawl\&type=Date)](https://star-history.dera.page/#firecrawl/firecrawl&Date)
 
 Firecrawl is an open-source crawler that turns websites into **clean Markdown or JSON**, perfect for LLMs. To demonstrate its power, the community built **Open-Lovable**, a clone of Lovable’s instant app builder.
 
