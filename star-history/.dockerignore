@@ -1,0 +1,16 @@
+node_modules
+**/node_modules
+**/.next
+**/out
+backend/dist
+.git
+plans
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.tsbuildinfo
+.next
+sitemap*.xml
+robots.txt
+next-env.d.ts
+frontend/.next
