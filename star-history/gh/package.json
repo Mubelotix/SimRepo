@@ -4,8 +4,6 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "star:generate": "tsx star-generate.ts",
-    "test": "tsx --test test.ts",
     "event": "tsx event.ts"
   },
   "dependencies": {

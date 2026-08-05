@@ -117,21 +117,11 @@ The `backend/` directory is a Hono server (deployed as `api.star-history.com`) t
 
 ## GH (Data Pipelines)
 
-The `gh/` directory contains two pipelines: **star** (repo rankings for the frontend) and **event** (raw GitHub event archive for analytics).
+The `gh/` directory contains the **event** pipeline (raw GitHub event archive for analytics).
 
-### Star Pipeline
+### Star / Leaderboard Data
 
-Generates JSON files consumed by the frontend from the committed `star.db`.
-
-- **Generate**: `cd gh && pnpm run star:generate` — reads `star.db` (no network) and exports JSON files (useful after code changes)
-- **Note**: The previous `star:fetch` pipeline (which called the GitHub API to rebuild `star.db`) has been removed. The server and frontend no longer call the GitHub API; `star.db` is committed and re-exported on deploy.
-- **Exported JSON files** (written to `gh/data/`, imported by frontend via `@gh-data/*` alias): `leaderboard.json`, `weekly-ranking.json`, `repos.json`, `star-count.json`
-
-| File | Purpose |
-|------|---------|
-| `star-generate.ts` | Generates JSON files from existing `star.db` |
-| `bigquery.ts` | ISO-week → day helper (`weekToDays`, used by tests) |
-| `db.ts` | JSON export functions, date formatting |
+The frontend consumes a static `gh/data/repos.json` (repo metadata: name, stars, rank, percentiles) imported via the `@gh-data/*` alias. It is **committed** to the repo and updated manually from time to time. The old `star.db` / `star:generate` pipeline has been removed. The leaderboard sidebar currently shows a WIP disclaimer.
 
 ### Event Pipeline
 
@@ -151,10 +141,9 @@ Three GitHub Actions workflows in `.github/workflows/`:
 
 | Workflow | Trigger | What it does |
 |----------|---------|-------------|
-| `deploy-frontend.yml` | Push to `frontend/**`, `shared/**`, workflow file; PR preview; `workflow_dispatch` | Runs `pnpm run star:generate` in `gh/`, builds frontend, deploys to Cloudflare Pages |
-| `deploy-backend.yml` | Push to `backend/**`, `shared/**`, workflow file; `workflow_dispatch` | Runs `pnpm run star:generate` in `gh/`, builds Docker image, deploys to GKE |
+| `deploy-frontend.yml` | Push to `frontend/**`, `shared/**`, workflow file; PR preview; `workflow_dispatch` | Builds frontend, deploys to Cloudflare Pages |
+| `deploy-backend.yml` | Push to `backend/**`, `shared/**`, workflow file; `workflow_dispatch` | Builds Docker image, deploys to GKE |
 
 **Key design decisions:**
-- `gh/data/` is gitignored — JSON files are generated on the fly by deploy workflows via `pnpm run star:generate`, not committed
-- `gh/star.db` is committed and re-exported by the deploy workflows
-- There is no longer a GitHub API fetch pipeline; data is updated by re-committing `star.db`
+- `gh/data/repos.json` is committed and updated manually; the `star:generate` pipeline has been removed
+- There is no longer a GitHub API fetch pipeline; repo data is committed directly
