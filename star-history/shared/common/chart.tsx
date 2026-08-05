@@ -1,147 +1,36 @@
+import axios from "axios"
 import { XYChartData, XYData } from "../packages/xy-chart"
 import { ChartMode, RepoStarData, RepoData } from "../types/chart"
-import api from "./api"
+import { REPO_DATA_API_URL } from "./config"
 import utils from "./utils"
 
 export interface ChartDataOptions {
     insertZeroPoint?: boolean
 }
 
-export const DEFAULT_MAX_REQUEST_AMOUNT = 15
-
-const STAR_HISTORY_LOGO_URL = "https://avatars.githubusercontent.com/u/124480067"
-
-export const getReposStarData = async (repos: string[], token = "", maxRequestAmount = DEFAULT_MAX_REQUEST_AMOUNT): Promise<RepoStarData[]> => {
-    const repoStarDataCacheMap = new Map()
-
-    for (const repo of repos) {
-        try {
-            const starRecords = await api.getRepoStarRecords(repo, token, maxRequestAmount)
-            repoStarDataCacheMap.set(repo, starRecords)
-        } catch (error: any) {
-            let message = ""
-            let status = 500
-
-            if (error?.response?.status === 404) {
-                message = `Repo ${repo} not found`
-                status = 404
-            } else if (error?.response?.status === 403) {
-                message = "GitHub API rate limit exceeded"
-                status = 403
-            } else if (error?.response?.status === 401) {
-                message = "Access Token Unauthorized"
-                status = 401
-            } else if (Array.isArray(error?.data) && error.data?.length === 0) {
-                message = `Repo ${repo} has no star history`
-                status = 501
-            } else {
-                message = "Some unexpected error happened, try again later"
-            }
-
-            return Promise.reject({
-                message,
-                status,
-                repo
-            })
-        }
-    }
-
-    const reposStarData: RepoStarData[] = []
-    for (const repo of repos) {
-        const records = repoStarDataCacheMap.get(repo)
-        if (records) {
-            reposStarData.push({
-                repo,
-                starRecords: records
-            })
-        }
-    }
-
-    return reposStarData.sort((d1, d2) => {
-        return Math.max(...d2.starRecords.map((s) => s.count)) - Math.max(...d1.starRecords.map((s) => s.count))
-    })
+export interface RepoDataResult {
+    data: RepoData[]
+    missing: string[]
 }
 
-export const getRepoData = async (repos: string[], token = "", maxRequestAmount = DEFAULT_MAX_REQUEST_AMOUNT): Promise<RepoData[]> => {
-    const repoDataCacheMap: Map<
-        string,
-        {
-            star: {
-                date: string
-                count: number
-            }[]
-            logo: string
-        }
-    > = new Map()
-
-    for (const repo of repos) {
-        try {
-            const [starRecords, logo] = await Promise.all([
-                api.getRepoStarRecords(repo, token, maxRequestAmount),
-                api.getRepoLogoUrl(repo, token),
-            ])
-            repoDataCacheMap.set(repo, { star: starRecords, logo })
-        } catch (error: any) {
-            let message = ""
-            let status = 500
-
-            if (error?.response?.status === 404) {
-                message = `Repo ${repo} not found`
-                status = 404
-            } else if (error?.response?.status === 403) {
-                message = "GitHub API rate limit exceeded"
-                status = 403
-            } else if (error?.response?.status === 401) {
-                message = "Access Token Unauthorized"
-                status = 401
-            } else if (Array.isArray(error?.data) && error.data?.length === 0) {
-                message = `Repo ${repo} has no star history`
-                status = 501
-            } else {
-                message = "Some unexpected error happened, try again later"
-            }
-
-            console.error("Failed to request data:", status, message)
-
-            // If encountering not found or no star error, we will return an empty image so that cache can be set.
-            if (status === 404 || status === 501) {
-                return [
-                    {
-                        repo,
-                        starRecords: [
-                            {
-                                date: utils.getDateString(Date.now(), "yyyy/MM/dd"),
-                                count: 0
-                            }
-                        ],
-                        logoUrl: STAR_HISTORY_LOGO_URL
-                    }
-                ]
-            }
-
-            return Promise.reject({
-                message,
-                status,
-                repo
-            })
-        }
+export const getRepoData = async (repos: string[]): Promise<RepoDataResult> => {
+    if (repos.length === 0) {
+        return { data: [], missing: [] }
     }
 
-    const reposStarData: RepoData[] = []
-    for (const repo of repos) {
-        const records = repoDataCacheMap.get(repo)
-        if (records) {
-            reposStarData.push({
-                repo,
-                starRecords: records.star,
-                logoUrl: records.logo
-            })
-        }
-    }
+    const { data } = await axios.get(`${REPO_DATA_API_URL}/repo-data`, {
+        params: { repos: repos.join(",") },
+        timeout: 15000,
+    })
 
-    return reposStarData.sort((d1, d2) => {
+    const found: RepoData[] = data?.data ?? []
+    const missing: string[] = data?.missing ?? []
+
+    found.sort((d1, d2) => {
         return Math.max(...d2.starRecords.map((s) => s.count)) - Math.max(...d1.starRecords.map((s) => s.count))
     })
+
+    return { data: found, missing }
 }
 
 export const convertStarDataToChartData = (reposStarData: RepoStarData[], chartMode: ChartMode, options?: ChartDataOptions): XYChartData => {

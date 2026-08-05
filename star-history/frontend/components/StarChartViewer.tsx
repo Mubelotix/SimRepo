@@ -15,7 +15,6 @@ import { ChartMode, RepoData, LegendPosition } from "@shared/types/chart"
 const VALID_LEGEND_POSITIONS: LegendPosition[] = ["top-left", "bottom-right"]
 import BytebaseBanner from "./SponsorView"
 import utils from "@shared/common/utils"
-import api from "@shared/common/api"
 
 interface State {
     chartMode: "Date" | "Timeline"
@@ -73,7 +72,10 @@ function StarChartViewer({ compact = false }: StarChartViewerProps) {
             }
 
             try {
-                const data = await getRepoData(notCachedRepos, store.token)
+                const { data, missing } = await getRepoData(notCachedRepos)
+                for (const repo of missing) {
+                    store.actions.delRepo(repo)
+                }
                 for (const { repo, starRecords, logoUrl } of data) {
                     state.repoCacheMap.set(repo, {
                         starData: starRecords,
@@ -82,12 +84,6 @@ function StarChartViewer({ compact = false }: StarChartViewerProps) {
                 }
             } catch (error: any) {
                 toast.warn(error.message)
-
-                if (error.status === 401 || error.status === 403) {
-                    setState((prevState) => ({ ...prevState, showSetTokenDialog: true }))
-                } else if (error.status === 404 || error.status === 501) {
-                    store.actions.delRepo(error.repo)
-                }
             }
             store.actions.setIsFetching(false)
 
@@ -256,13 +252,9 @@ function StarChartViewer({ compact = false }: StarChartViewerProps) {
 
         if (repos.length === 1) {
             const repo = repos[0]
-            let starCount = 0
-
-            try {
-                starCount = await api.getRepoStargazersCount(repo, store.token)
-            } catch (error) {
-                // handle error
-            }
+            const cached = state.repoCacheMap.get(repo)
+            const records = cached?.starData ?? []
+            const starCount = records.length > 0 ? records[records.length - 1].count : 0
 
             let starText = ""
             if (starCount > 0) {

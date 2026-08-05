@@ -5,7 +5,7 @@ import { serve } from "@hono/node-server";
 import { optimize } from 'svgo';
 import { JSDOM } from "jsdom";
 import XYChart from "../shared/packages/xy-chart.js";
-import { convertDataToChartData, getRepoData } from "../shared/common/chart.js";
+import { convertDataToChartData } from "../shared/common/chart.js";
 import { ChartMode } from "../shared/types/chart.js";
 import logger from "./logger.js";
 import cache, { ogCardCache, svgCache, recordCacheHit, recordCacheMiss, getAllCacheStats } from "./cache.js";
@@ -15,9 +15,10 @@ import {
   getBase64Image,
 } from "./utils.js";
 import { getNextToken, markTokenExhausted, initTokenFromEnv } from "./token.js";
-import { CHART_SIZES, MAX_REQUEST_AMOUNT, MAX_REPOS_PER_REQUEST } from "./const.js";
+import { CHART_SIZES, MAX_REPOS_PER_REQUEST } from "./const.js";
 import { initOgAssets, renderOgCard } from "./og-card.js";
 import { loadRepos } from "../shared/common/repo-data.js";
+import { fetchRepoData } from "./repos.js";
 
 const SVG_HEADERS = {
   "Content-Type": "image/svg+xml;charset=utf-8",
@@ -53,6 +54,26 @@ const startServer = async () => {
       commit: process.env.GIT_COMMIT || "unknown",
       cache: getAllCacheStats(),
     }, 200);
+  });
+
+  // Serve star history + logo data sourced from repos.sqlite.
+  // `/svg?repos=a,b,c` returns { data: RepoData[], missing: string[] }.
+  app.get("/repo-data", (c) => {
+    const reposParam = c.req.query("repos");
+    const repos = (reposParam ?? "")
+      .split(",")
+      .map((r) => r.trim())
+      .filter(Boolean);
+
+    if (repos.length === 0) {
+      return c.json({ data: [], missing: [] });
+    }
+    if (repos.length > MAX_REPOS_PER_REQUEST) {
+      return c.text(`Too many repos: max ${MAX_REPOS_PER_REQUEST} per request`, 400);
+    }
+
+    const { found, missing } = fetchRepoData(repos);
+    return c.json({ data: found, missing });
   });
 
   // Normalize /svg query params for CDN cache efficiency.
@@ -202,35 +223,22 @@ const startServer = async () => {
     }
 
     if (nodataRepos.length > 0) {
-      const token = getNextToken();
-      if (!token) {
-        return c.text("All GitHub API tokens are rate-limited, try again later", 503);
+      const { found, missing } = fetchRepoData(nodataRepos);
+
+      if (missing.length > 0) {
+        return c.text(`Repo not found in dataset: ${missing[0]}`, 404);
       }
 
-      try {
-        const data = await getRepoData(nodataRepos, token, MAX_REQUEST_AMOUNT);
-
-        // Fetch all logos in parallel (bounded by MAX_REPOS_PER_REQUEST)
-        await Promise.all(data.map(async (d) => {
-          d.logoUrl = await getBase64Image(`${d.logoUrl}&size=22`);
-          cache.set(d.repo, {
-            starRecords: d.starRecords,
-            starAmount: d.starRecords[d.starRecords.length - 1].count,
-            logoUrl: d.logoUrl,
-          });
-          repoData.push(d);
-        }));
-      } catch (error: any) {
-        const status = error.status || 400;
-        const message =
-          error.message || "Some unexpected error happened, try again later";
-
-        if (status === 403) {
-          markTokenExhausted(token);
-        }
-
-        return c.text(message, status);
-      }
+      // Embed all logos in parallel (bounded by MAX_REPOS_PER_REQUEST)
+      await Promise.all(found.map(async (d) => {
+        d.logoUrl = await getBase64Image(`${d.logoUrl}&size=22`);
+        cache.set(d.repo, {
+          starRecords: d.starRecords,
+          starAmount: d.starRecords[d.starRecords.length - 1].count,
+          logoUrl: d.logoUrl,
+        });
+        repoData.push(d);
+      }));
     }
 
     const dom = new JSDOM(`<!DOCTYPE html><body></body>`);

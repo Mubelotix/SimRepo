@@ -54,3 +54,5 @@ gh/data/
 # gh event pipeline
 gh/event.db
 gh/archive-data/
+
+*.sqlite*
