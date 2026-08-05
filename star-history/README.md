@@ -10,9 +10,15 @@
 
 # :sparkles: Star History :sparkles:
  
-[**star-history.dera.page**](https://star-history.dera.page), **the de facto GitHub star history graph.**
-
+[**star-history.dera.page**](https://star-history.dera.page), **GitHub star history, revived.**
 </div>
+
+> [!IMPORTANT]
+> **This is a fork.** It is not affiliated with the original developers. Star History was originally built by [@tim_qian](https://github.com/timqian) and [Bytebase](https://github.com/bytebase). The original [star-history.com](https://www.star-history.com) project is being killed off by GitHub's decision to sunset the GitHub API it relied on ([GitHub Stargazer API restriction](https://www.star-history.com/blog/github-stargazer-api-restriction)). This fork fills that gap by serving star history from a different data source.
+
+> 💖 Star History is maintained by [@Mubelotix](https://github.com/Mubelotix). If you find it useful, please consider contributing to the projects via GitHub Sponsors: **[sponsor Mubelotix](https://github.com/sponsors/Mubelotix)**.
+
+> 👉 Consider checking out **[SimRepo](https://github.com/Mubelotix/SimRepo)**: a browser extension that embeds a recommendation engine into GitHub to help you discover related projects and alternative libraries.
 
 ---
 
