@@ -22,9 +22,6 @@ RUN cd backend && pnpm i
 COPY shared/ ./shared/
 COPY backend/ ./backend/
 
-# Copy gh data
-COPY gh/data/repos.json ./gh/data/repos.json
-
 # Expose port
 EXPOSE 8080
 
