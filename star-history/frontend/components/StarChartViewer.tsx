@@ -237,15 +237,16 @@ function StarChartViewer({ compact = false }: StarChartViewerProps) {
         svgElement.remove()
     }
 
-    const handleShareBtnClick = async () => {
+    const getShareContent = () => {
         const repos = store.repos
 
         if (repos.length === 0) {
             toast.error("No repo found")
-            return
+            return null
         }
 
-        const starhistoryLink = encodeURIComponent(window.location.href)
+        const starhistoryLink = window.location.href
+        let title = ""
         let text = ""
 
         if (repos.length === 1) {
@@ -259,17 +260,35 @@ function StarChartViewer({ compact = false }: StarChartViewerProps) {
                 starText = `${starCount < 1000 ? starCount : (starCount / 1000).toFixed(1) + "K"} ⭐️`
             }
 
-            text = `${starText} Thank you! 🙏%0A${starhistoryLink}%0A%0A`
+            title = `${starText} ${repo} star history`
+            text = `${starText} Thank you! 🙏%0A${encodeURIComponent(starhistoryLink)}%0A%0A`
         } else {
-            text = `Check out my GitHub star history across multiple repos: ${starhistoryLink}%0A%0A`
+            title = "GitHub star history across multiple repos"
+            text = `Check out my GitHub star history across multiple repos: ${encodeURIComponent(starhistoryLink)}%0A%0A`
         }
 
-        const addtionLink = repos.length === 1 ? `github.com/${repos[0]}` : starhistoryLink
+        const addtionLink = repos.length === 1 ? `github.com/${repos[0]}` : encodeURIComponent(starhistoryLink)
         text += `${addtionLink}%0A%0A`
         text += `${encodeURIComponent("#starhistory #GitHub #OpenSource ")} via @StarHistoryHQ`
 
-        const tweetShareLink = `https://x.com/intent/tweet?text=${text}`
-        window.open(tweetShareLink, "_blank")
+        return { title, url: starhistoryLink, text }
+    }
+
+    const handleLemmyShareBtnClick = () => {
+        const content = getShareContent()
+        if (!content) return
+
+        window.open(
+            `https://lemmy.ml/create_post?url=${encodeURIComponent(content.url)}&title=${encodeURIComponent(content.title)}`,
+            "_blank"
+        )
+    }
+
+    const handleMastodonShareBtnClick = () => {
+        const content = getShareContent()
+        if (!content) return
+
+        window.open(`https://mastodon.social/share?text=${content.text}`, "_blank")
     }
 
     const handleGenerateCSVBtnClick = () => {
@@ -427,9 +446,17 @@ function StarChartViewer({ compact = false }: StarChartViewerProps) {
                                 </button>
                                 <button
                                     className="ml-2 mb-2 btn-secondary"
-                                    onClick={handleShareBtnClick}
+                                    onClick={handleLemmyShareBtnClick}
                                 >
-                                    <i className="fab fa-x-twitter"></i> Share{" "}
+                                    <img src="/assets/lemmy.svg" className="h-4 w-4 inline-block" alt="Lemmy" />{" "}
+                                    Share{" "}
+                                </button>
+                                <button
+                                    className="ml-2 mb-2 btn-secondary"
+                                    onClick={handleMastodonShareBtnClick}
+                                >
+                                    <i className="fa-brands fa-mastodon"></i>{" "}
+                                    Toot{" "}
                                 </button>
                             </div>
                         </div>
