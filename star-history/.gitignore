@@ -48,7 +48,8 @@ next-env.d.ts
 token.env
 
 # generated files
-gh/data/
+gh/data/*
+!gh/data/repos.json
 
 # gh event pipeline
 gh/event.db
