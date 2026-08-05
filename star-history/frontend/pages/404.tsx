@@ -15,8 +15,7 @@ const NotFound: NextPage<NotFoundProps> = ({ minStars }) => {
     const segments = pathname.split("/").filter(Boolean)
 
     // Detect owner/repo pattern
-    const isRepoPath = segments.length === 2 && !segments[0].startsWith("_") && segments[0] !== "blog"
-    const isBlogPath = segments.length === 2 && segments[0] === "blog"
+    const isRepoPath = segments.length === 2 && !segments[0].startsWith("_")
 
     if (isRepoPath) {
         const repoName = segments.join("/")
@@ -34,19 +33,6 @@ const NotFound: NextPage<NotFoundProps> = ({ minStars }) => {
                     </div>
                 </div>
             </PageShell>
-        )
-    }
-
-    if (isBlogPath) {
-        return (
-            <div className="relative w-full min-h-screen flex flex-col justify-center items-center">
-                <p className="text-center leading-8 text-lg text-dark font-medium">Oops! Article not found.</p>
-                <p className="text-center mt-2">
-                    <Link href="/blog" className="link-action">
-                        Back to blog list
-                    </Link>
-                </p>
-            </div>
         )
     }
 
