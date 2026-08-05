@@ -30,6 +30,12 @@ const Header: React.FC = () => {
               <a href="https://blog.dera.page" target="_blank" rel="noopener noreferrer" className="header-link text-base">
                 <span className="text-white -2">Blog</span>
               </a>
+              <a href="https://github.com/Mubelotix/SimRepo" target="_blank" rel="noopener noreferrer" className="header-link text-base">
+                <span className="text-white -2">Extension</span>
+              </a>
+              <a href="https://github.com/sponsors/Mubelotix" target="_blank" rel="noopener noreferrer" className="header-link text-base">
+                <span className="text-white -2">Sponsor</span>
+              </a>
               <span
                 className="header-link cursor-pointer text-white text-base"
                 onClick={() => setShowSetTokenDialog(true)}
