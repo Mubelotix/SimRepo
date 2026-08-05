@@ -6,4 +6,3 @@ export const MIN_CHART_WIDTH = 600
 
 export const SITE_URL = "https://star-history.dera.page"
 export const API_URL = "https://api.star-history.com"
-export const NEWSLETTER_URL = "https://newsletter.star-history.com/subscribe"

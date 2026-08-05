@@ -48,7 +48,6 @@ next-env.d.ts
 token.env
 
 # generated files
-frontend/helpers/blog.json
 gh/data/
 
 # gh event pipeline

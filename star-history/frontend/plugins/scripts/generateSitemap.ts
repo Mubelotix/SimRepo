@@ -1,7 +1,5 @@
 import { readFileSync, writeFileSync } from "fs";
 import { resolve } from "path";
-import { Blog } from "helpers/types/blog"
-import blogs from "helpers/blog.json"
 import { SITE_URL } from "../../helpers/consts"
 
 interface Route {
@@ -18,29 +16,10 @@ const staticRoutes: Route[] = [
     url: "/embed",
     name: "Star History",
   },
-  {
-    url: "/blog",
-    name: "Blog List",
-  },
 ];
-
-const getBlogsRoutes = async (): Promise<Route[]> => {
-  const blogRoutes: Route[] = [];
-
-  for (const blog of blogs as Blog[]) {
-    blogRoutes.push({
-      url: `/blog/${blog.slug}`,
-      name: blog.title,
-    });
-  }
-
-  return blogRoutes;
-};
 
 const generateSitemap = async () => {
   const routes = [...staticRoutes];
-  const blogRoutes = await getBlogsRoutes();
-  routes.push(...blogRoutes);
   const baseUrl = SITE_URL;
   const routeXMLTags: string[] = [];
 

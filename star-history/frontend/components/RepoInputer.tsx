@@ -1,13 +1,9 @@
 import React, { useEffect, useRef, useState } from "react"
 import { head } from "lodash"
-import { GITHUB_REPO_URL_REG, NEWSLETTER_URL } from "../helpers/consts"
+import { GITHUB_REPO_URL_REG } from "../helpers/consts"
 import toast from "../helpers/toast"
 import { useAppStore } from "../store"
 import { SketchExternalLinkIcon } from "./SketchIcons"
-import Link from "next/link"
-import { Blog } from "helpers/types/blog"
-import blogs from "helpers/blog.json"
-import { SketchMailboxIcon } from "./SketchIcons"
 
 interface State {
     repo: string
@@ -15,7 +11,6 @@ interface State {
         name: string
         visible: boolean
     }[]
-    latestBlog?: Blog
 }
 
 interface RepoInputerProps {
@@ -31,14 +26,6 @@ export default function RepoInputer({ setChartVisibility }: RepoInputerProps) {
     })
 
     const inputElRef = useRef<HTMLInputElement | null>(null)
-
-    useEffect(() => {
-        const latest = (blogs as Blog[]).find(blog => blog.featured);
-        if (latest) {
-            setState(prev => ({ ...prev, latestBlog: latest }));
-        }
-    }, []);
-    
 
     useEffect(() => {
         setChartVisibility(true)
@@ -232,27 +219,6 @@ export default function RepoInputer({ setChartVisibility }: RepoInputerProps) {
 
     return (
         <div className="w-full px-3 shrink-0 flex flex-col justify-start items-center">
-            <div className={`w-auto mx-auto mt-6 mb-2 flex flex-row justify-center items-center flex-wrap ${state.latestBlog ? "" : "invisible"}`}>
-                <span className="px-2 -mt-px leading-7 rounded mr-2 text-sm accent-badge font-medium">
-                    {state.latestBlog?.publishedDate ? (() => {
-                        const dateStr = state.latestBlog.publishedDate;
-                        return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-                    })() : "What's new"}
-                </span>
-                <div className="flex items-center">
-                    <Link className="text-gray-700 hover:underline" href={`/blog/${state.latestBlog?.slug}`}>
-                        {state.latestBlog?.title}
-                    </Link>
-                </div>
-                <a
-                    href={NEWSLETTER_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="ml-3 text-gray-700 hover:underline flex items-center gap-1"
-                >
-                   <SketchMailboxIcon /> Subscribe
-                </a>
-            </div>
             <div className="w-auto sm:w-full grow max-w-3xl 2xl:max-w-4xl mt-4 flex flex-row justify-center items-center shadow-inner border border-solid border-black rounded">
                 <input
                     ref={inputElRef}

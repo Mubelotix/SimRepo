@@ -27,9 +27,9 @@ const Header: React.FC = () => {
               <Link href="/" className="header-link px-3">
                 <img className="w-7 h-auto logo-spin" src="/assets/logo-icon.png" alt="Logo" />
               </Link>
-              <Link href="/blog" className="header-link text-base">
+              <a href="https://blog.dera.page" target="_blank" rel="noopener noreferrer" className="header-link text-base">
                 <span className="text-white -2">Blog</span>
-              </Link>
+              </a>
               <span
                 className="header-link cursor-pointer text-white text-base"
                 onClick={() => setShowSetTokenDialog(true)}
@@ -38,9 +38,9 @@ const Header: React.FC = () => {
               </span>
             </div>
             <div className="hidden md:flex flex-row justify-center items-center">
-              <Link href="/blog/how-to-use-github-star-history" className="flex flex-row items-center text-base px-2 hover:underline">
+              <a href="https://blog.dera.page" target="_blank" rel="noopener noreferrer" className="flex flex-row items-center text-base px-2 hover:underline">
                 <span className="text-white flex items-center gap-1"><SketchLightBulbIcon /> How to use this site</span>
-              </Link>
+              </a>
             </div>
             <div className="h-full hidden md:flex flex-row justify-end items-center px-3">
               <GitHubStarButton />
