@@ -1,4 +1,4 @@
-# CLAUDE.md
+# AGENTS.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -25,7 +25,7 @@ This is a Hono backend server that generates SVG charts of GitHub repository sta
 - **Repo data** (`../shared/common/repo-data.ts`): Loads repo metadata (attributes/rank) from `gh/data/repos.json`
 
 ### Shared Code
-Chart code and types live in root `shared/` (shared with frontend). Backend imports via `../shared/` relative paths. See root CLAUDE.md for the full shared directory listing.
+Chart code and types live in root `shared/` (shared with frontend). Backend imports via `../shared/` relative paths. See root AGENTS.md for the full shared directory listing.
 
 ### Chart Types
 - **Date Mode**: X-axis shows actual dates

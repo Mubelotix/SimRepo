@@ -1,4 +1,4 @@
-# CLAUDE.md
+# AGENTS.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -48,7 +48,7 @@ This is a **Next.js 14 + TypeScript** application for visualizing GitHub reposit
 - `components/` - React UI components (charts, dialogs, etc.)
 - `store/` - React Context state management
 - `helpers/` - Utilities (storage, toast, constants)
-- Chart code, API client, and types live in root `shared/` (see root CLAUDE.md)
+- Chart code, API client, and types live in root `shared/` (see root AGENTS.md)
 
 ### Chart Features
 - SVG export to PNG functionality
