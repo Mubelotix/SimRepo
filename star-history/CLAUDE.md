@@ -20,7 +20,7 @@ The following files are auto-generated and gitignored. Never `git add -f` them:
 
 **Frontend:** Next.js ^14.1.0 (Pages Router, static export) · React ^18.2.0 · TypeScript ^4.9.5 · Tailwind CSS ^3.4.0 · D3.js (axis, scale, selection, shape) · Axios ^1.8.2 · FontAwesome ^6.5.1 · Lodash ^4.17.21 · Dayjs ^1.11.10 · Gray-matter ^4.0.3 · Marked ^9.1.6
 
-**Backend:** Hono ^4.7.4 · @hono/node-server · TypeScript ^5.7.0 · D3.js (server-side SVG) · JSDOM 20.0.2 · SVGO ^3.2.0 · Satori ^0.12.0 · LRU cache 7.14.1
+**Backend:** Hono ^4.7.4 · @hono/node-server · TypeScript ^5.7.0 · D3.js (server-side SVG) · JSDOM 20.0.2 · SVGO ^3.2.0 · LRU cache 7.14.1
 
 ## Project Structure
 
@@ -33,10 +33,9 @@ Code shared between frontend and backend. Both import from here: frontend via `@
 | Directory | Purpose |
 |-----------|---------|
 | `common/utils.tsx` | Cross-platform utilities (date formatting, clipboard, etc.) |
-| `common/api.tsx` | GitHub API client (star history fetching, pagination, token auth) |
 | `common/chart.tsx` | Chart data transformation (supports `insertZeroPoint` option) |
 | `packages/xy-chart.tsx` | D3 XY chart renderer (lobster emoji gated on `envType: "browser"`) |
-| `packages/radar-svg.ts` | Pure-math radar SVG string generator (no D3, for satori/OG cards) |
+| `packages/radar-svg.ts` | Pure-math radar SVG string generator (no D3, for OG cards) |
 | `packages/card-landscape1.tsx` | OG card layout builder |
 | `packages/types.tsx` | D3 chart types, color palettes (`colors`, `darkColors`, `colorsCompact`) |
 | `packages/components/` | ToolTip component |
@@ -77,7 +76,7 @@ Layout wrappers: `_app.tsx` (per-page `getLayout` pattern), `_document.tsx`.
 
 1. **URL hash** (`#repo1&repo2&type=date&logscale`) → parsed in `store/index.tsx`
 2. `RepoInputer` manages repo list → triggers `StarChartViewer`
-3. `@shared/common/api.tsx` fetches star history from GitHub API (with pagination & token auth)
+3. Backend serves star history and repo metadata from `repos.sqlite` (via `/repo-data`); frontend fetches it through `@shared/common/chart.tsx`. The server no longer calls the GitHub API.
 4. `@shared/common/chart.tsx` transforms data to D3-compatible format (frontend passes `{ insertZeroPoint: true }`)
 5. `@shared/packages/xy-chart.tsx` renders the SVG chart via D3
 
@@ -101,7 +100,7 @@ The project uses an **xkcd / hand-drawn aesthetic**. All interactive overlays an
 ## Key Files for Common Changes
 
 - **Chart rendering**: `@shared/packages/xy-chart.tsx`, `components/StarChartViewer.tsx`, `components/Charts/StarXYChart.tsx`
-- **GitHub API**: `@shared/common/api.tsx`
+- **Repo metadata / star data**: `@shared/common/repo-data.ts` (frontend) and `backend/repos.ts` (reads `repos.sqlite`)
 - **State management**: `store/index.tsx`
 - **Repo detail page**: `pages/[...slug].tsx`, `components/PageShell.tsx`
 - **Blog system**: `pages/blog/[slug].tsx`, `scripts/generateBlogJson.mts`
@@ -110,20 +109,17 @@ The project uses an **xkcd / hand-drawn aesthetic**. All interactive overlays an
 
 ## Backend (API Server)
 
-The `backend/` directory is a Hono server (deployed as `api.star-history.com`) that generates star history SVG charts and OG card images.
+The `backend/` directory is a Hono server (deployed as `api.star-history.com`) that generates star history SVG charts served from `repos.sqlite`.
 
 - **Dev**: `cd backend && pnpm dev`
 - **Build**: `cd backend && pnpm build`
-- Requires `token.env` with GitHub tokens (one per line)
 
 | File | Purpose |
 |------|---------|
-| `main.ts` | Hono server with `/svg` endpoint (query params: `repos`, `type`, `style`, `size`, `theme`) |
-| `og-card.ts` | Satori-based OG card image renderer (`style=card` → 1200×630 PNG) |
-| `cache.ts` | LRU cache (10K repos, 1GB, 24h TTL) for star records |
-| `token.ts` | GitHub token rotation |
+| `main.ts` | Hono server with `/svg`, `/repo-data`, `/healthz` endpoints (query params: `repos`, `type`, `style`, `size`, `theme`) |
+| `cache.ts` | LRU cache (10K repos, 1GB, 24h TTL) for star records and rendered chart SVGs |
+| `repos.ts` | Reads star history + logo URLs from `repos.sqlite` |
 | `utils.ts` | SVG manipulation, image conversion helpers |
-| `assets/` | Fonts (xkcd.ttf, Inter.ttf) and logo for OG card rendering |
 
 ## GH (Data Pipelines)
 
@@ -131,22 +127,17 @@ The `gh/` directory contains two pipelines: **star** (repo rankings for the fron
 
 ### Star Pipeline
 
-Fetches repo stats and exports JSON files consumed by the frontend.
+Generates JSON files consumed by the frontend from the committed `star.db`.
 
-- **Full run**: `cd gh && pnpm run star:fetch` — fetches from GitHub API + BigQuery, writes to SQLite (`star.db`), exports JSON files, and fetches star counts
-- **Generate only**: `cd gh && pnpm run star:generate` — generates JSON files from existing `star.db` without fetching (useful after code changes)
-- **DB is ephemeral**: `createDatabase()` deletes and recreates `star.db` on every run. The SQLite DB can always be regenerated from source APIs.
+- **Generate**: `cd gh && pnpm run star:generate` — reads `star.db` (no network) and exports JSON files (useful after code changes)
+- **Note**: The previous `star:fetch` pipeline (which called the GitHub API to rebuild `star.db`) has been removed. The server and frontend no longer call the GitHub API; `star.db` is committed and re-exported on deploy.
 - **Exported JSON files** (written to `gh/data/`, imported by frontend via `@gh-data/*` alias): `leaderboard.json`, `weekly-ranking.json`, `repos.json`, `star-count.json`
 
 | File | Purpose |
 |------|---------|
-| `star-fetch.ts` | Main entry point — orchestrates the full pipeline |
 | `star-generate.ts` | Generates JSON files from existing `star.db` |
-| `github.ts` | GitHub API client to find qualifying repos, token rotation |
-| `bigquery.ts` | BigQuery client to fetch weekly activity stats |
-| `db.ts` | SQLite schema, inserts, JSON export functions, date formatting |
-| `star-count.ts` | Fetches repo counts per star threshold from GitHub Search API |
-| `types.ts` | Shared TypeScript types |
+| `bigquery.ts` | ISO-week → day helper (`weekToDays`, used by tests) |
+| `db.ts` | JSON export functions, date formatting |
 
 ### Event Pipeline
 
@@ -166,11 +157,10 @@ Three GitHub Actions workflows in `.github/workflows/`:
 
 | Workflow | Trigger | What it does |
 |----------|---------|-------------|
-| `gh-fetch.yml` | Monday 18:00 UTC cron + manual | Runs `gh/` pipeline (fetch → SQLite → JSON), commits `star.db`, triggers both deploy workflows |
 | `deploy-frontend.yml` | Push to `frontend/**`, `shared/**`, workflow file; PR preview; `workflow_dispatch` | Runs `pnpm run star:generate` in `gh/`, builds frontend, deploys to Cloudflare Pages |
 | `deploy-backend.yml` | Push to `backend/**`, `shared/**`, workflow file; `workflow_dispatch` | Runs `pnpm run star:generate` in `gh/`, builds Docker image, deploys to GKE |
 
 **Key design decisions:**
 - `gh/data/` is gitignored — JSON files are generated on the fly by deploy workflows via `pnpm run star:generate`, not committed
-- Only `gh/star.db` is committed (by `gh-fetch.yml`)
-- Deploy workflows don't trigger on `star.db` changes — `gh-fetch.yml` explicitly triggers them via `workflow_dispatch` to avoid double deploys
+- `gh/star.db` is committed and re-exported by the deploy workflows
+- There is no longer a GitHub API fetch pipeline; data is updated by re-committing `star.db`

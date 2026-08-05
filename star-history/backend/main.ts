@@ -8,16 +8,13 @@ import XYChart from "../shared/packages/xy-chart.js";
 import { convertDataToChartData } from "../shared/common/chart.js";
 import { ChartMode } from "../shared/types/chart.js";
 import logger from "./logger.js";
-import cache, { ogCardCache, svgCache, recordCacheHit, recordCacheMiss, getAllCacheStats } from "./cache.js";
+import cache, { svgCache, recordCacheHit, recordCacheMiss, getAllCacheStats } from "./cache.js";
 import {
   getChartWidthWithSize,
   fixJsdomSvgCasing,
   getBase64Image,
 } from "./utils.js";
-import { getNextToken, markTokenExhausted, initTokenFromEnv } from "./token.js";
 import { CHART_SIZES, MAX_REPOS_PER_REQUEST } from "./const.js";
-import { initOgAssets, renderOgCard } from "./og-card.js";
-import { loadRepos } from "../shared/common/repo-data.js";
 import { fetchRepoData } from "./repos.js";
 
 const SVG_HEADERS = {
@@ -26,10 +23,6 @@ const SVG_HEADERS = {
 } as const;
 
 const startServer = async () => {
-  await initTokenFromEnv();
-  initOgAssets();
-  const repoStore = loadRepos();
-
   const app = new Hono();
   app.use(cors());
   app.use(compress());
@@ -108,57 +101,12 @@ const startServer = async () => {
       return c.text(`Too many repos: max ${MAX_REPOS_PER_REQUEST} per request`, 400);
     }
 
-    // Landscape1 card: returns a 1200x630 SVG with radar chart and attributes
+    // Landscape1 card: previously returned a 1200x630 SVG with radar chart and
+    // attributes, but it required live GitHub API metadata. That call has been
+    // removed, so the feature is no longer available.
     const style = c.req.query("style") ?? "";
     if (style === "landscape1") {
-      const repo = repos[0];
-      const cardData = repoStore.getRepo(repo);
-      if (!cardData) {
-        return c.text(`Repo not found in gh dataset: ${repo}`, 404);
-      }
-
-      const cachedCard = ogCardCache.get(repo);
-      if (cachedCard) {
-        recordCacheHit("ogCard");
-        return c.body(cachedCard, 200, SVG_HEADERS);
-      }
-      recordCacheMiss("ogCard");
-
-      const token = getNextToken();
-      if (!token) {
-        return c.text("All GitHub API tokens are rate-limited, try again later", 503);
-      }
-      try {
-        const res = await fetch(`https://api.github.com/repos/${repo}`, {
-          headers: { Authorization: `token ${token}`, Accept: "application/json" },
-          signal: AbortSignal.timeout(15000),
-        });
-        if (res.status === 403) {
-          markTokenExhausted(token);
-        }
-        if (!res.ok) {
-          return c.text(`GitHub API: ${res.statusText}`, res.status as any);
-        }
-        const gh = (await res.json()) as any;
-        const avatarBase64 = await getBase64Image(`${gh.owner.avatar_url}&s=200`);
-        const svg = await renderOgCard({
-          name: gh.full_name,
-          description: gh.description,
-          stars: gh.stargazers_count,
-          forks: gh.forks_count,
-          language: gh.language,
-          license: gh.license?.spdx_id || null,
-          created_at: gh.created_at,
-          avatarBase64,
-          attributes: cardData.attributes,
-          rank: cardData.rank,
-        });
-        ogCardCache.set(repo, svg);
-        return c.body(svg, 200, SVG_HEADERS);
-      } catch (error: any) {
-        const status = error.status || 500;
-        return c.text(`Failed to generate card: ${error.message}`, status);
-      }
+      return c.text("OG cards are unavailable: GitHub API access has been disabled", 503);
     }
 
     // --- Star history chart params (only relevant when style is not set) ---

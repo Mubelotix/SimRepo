@@ -14,12 +14,11 @@ interface RepoData {
 
 // --- Hit/miss counters ---
 
-type CacheName = "starData" | "svgChart" | "ogCard";
+type CacheName = "starData" | "svgChart";
 
 const counters: Record<CacheName, { hits: number; misses: number }> = {
   starData: { hits: 0, misses: 0 },
   svgChart: { hits: 0, misses: 0 },
-  ogCard: { hits: 0, misses: 0 },
 };
 
 export function recordCacheHit(name: CacheName) {
@@ -56,7 +55,6 @@ export function getAllCacheStats() {
   return {
     starData: cacheStats("starData", cache as LRUCache<string, unknown>),
     svgChart: cacheStats("svgChart", svgCache as LRUCache<string, unknown>),
-    ogCard: cacheStats("ogCard", ogCardCache as LRUCache<string, unknown>),
   };
 }
 
@@ -68,15 +66,6 @@ const cache = new LRUCache<string, RepoData>({
   max: 10000,
   maxSize: 1024 * 1024 * 1024,
   sizeCalculation: (value: RepoData) => utils.calcBytes(value),
-  ttl: TTL_24H,
-  updateAgeOnGet: false,
-});
-
-// Cache for rendered OG card SVGs, keyed by repo name.
-export const ogCardCache = new LRUCache<string, string>({
-  max: 1000,
-  maxSize: 200 * 1024 * 1024,
-  sizeCalculation: (value: string) => Buffer.byteLength(value),
   ttl: TTL_24H,
   updateAgeOnGet: false,
 });
