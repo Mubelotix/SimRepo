@@ -284,39 +284,28 @@ export async function loadMoreRepos(resetOffset = false) {
 
     // Don't fetch if less than 100 stars
     try {
-        // Build the current repository path for the star-count link.
-        const repoPath = '/' + window.location.pathname
-            .split('/')
-            .filter(Boolean)
-            .slice(0, 2)
-            .join('/');
-
-        // Support both githubs' previous and current star-count markup.
         const starElement =
-            document.querySelector('#repo-stars-counter-star') ||
-            document.querySelector(
-                `a[href="${repoPath}/stargazers"] strong`
-            );
+            document.querySelector('[data-testid="star-button"] [data-component="CounterLabel"]') ||
+            document.querySelector('[data-testid="star-button"]');
 
-        // Read the old numeric title or the new visible abbreviated count.
-        const starsCount = parseCount(
-            starElement?.getAttribute('title') ||
-            starElement?.textContent ||
-            ''
-        );
+        let starsCount = parseCount(starElement?.textContent || '');
 
         if (starsCount === null) {
-            console.warn('💈 SimRepo: repository star count not found');
-            // Avoid leaving the panel stuck on "Loading".
-            renderSection(getErrorContainerHtml(
-                "Unable to determine repository star count."
-            ));
-            setupSettingsListener();
-            return;
+            console.warn('💈 SimRepo: star button element not found, falling back to innerText');
+            const line = document.body.innerText
+                .split('\n')
+                .map(l => l.trim())
+                .find(l => /^Star\s*[\d.]+[kKmM]?/.test(l));
+            if (line) {
+                starsCount = parseCount(line.replace(/^Star\s*/, ''));
+            }
         }
 
+        if (starsCount === null) {
+            console.warn('💈 SimRepo: unable to determine stars count, proceeding with fetch anyway');
+        }
 
-        if (starsCount < 100) {
+        if (starsCount !== null && starsCount < 100) {
             if (options.similarShowUnavailable) {
                 renderSection(getErrorContainerHtml("Unavailable for repositories with less than 100 stars."));
                 setupSettingsListener();
