@@ -9,7 +9,7 @@ import { loadRepos } from "@shared/common/repo-data"
 import type { RepoCardData } from "@shared/types/gh"
 import PageShell from "../components/PageShell"
 import toast from "../helpers/toast"
-import { SITE_URL, API_URL, EASTER_EGG_REPOS } from "../helpers/consts"
+import { SITE_URL, API_URL } from "../helpers/consts"
 import InteractiveRadar from "../components/InteractiveRadar"
 import { buildLandscape1 } from "@shared/packages/card-landscape1"
 import { renderRadarSvg } from "@shared/packages/radar-svg"
@@ -420,18 +420,6 @@ const RepoPage: NextPage<RepoPageProps> = ({ repo, minStars, prevRepo, nextRepo 
                         )}
                     </div>
                 </div>
-
-                {EASTER_EGG_REPOS.has(repo.name.toLowerCase()) && (
-                    <div className="relative w-full max-w-5xl h-16 mt-4">
-                        <img
-                            src="/assets/lobster-animated.gif"
-                            alt="Lobster"
-                            width={64}
-                            height={64}
-                            className="absolute top-0 left-0 lobster-walk"
-                        />
-                    </div>
-                )}
 
                 <div className="flex items-center justify-between w-full max-w-5xl mt-3 text-sm text-neutral-400" style={{ fontFamily: '"xkcd", cursive' }}>
                     <div className="w-1/3">

@@ -7,7 +7,7 @@ publishedDate: "2024-02-23T00:00:00.000Z"
 description: "SpiceDB is an open source, Google Zanzibar-inspired database for creating and managing security-critical application permissions."
 ---
 
-*This is the seventeenth issue of The Starlet List. If you want to prompt your open source project on star-history.com for free, please check out our [announcement](/blog/list-your-open-source-project).*
+*This is the seventeenth issue of The Starlet List. If you want to prompt your open source project on star-history.dera.page for free, please check out our [announcement](/blog/list-your-open-source-project).*
 
 ---
 
@@ -34,7 +34,7 @@ SpiceDB helps companies looking to break into the enterprise segment and/or adop
 
 SpiceDB was created and is maintained by the team behind AuthZed, and it also has a network of contributors and community members.
 
-[![Star History Chart](https://api.star-history.com/svg?repos=authzed/spicedb&type=Date)](https://star-history.com/#authzed/spicedb&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=authzed/spicedb&type=Date)](https://star-history.dera.page/#authzed/spicedb&Date)
 
 ## What is Google Zanzibar?
 

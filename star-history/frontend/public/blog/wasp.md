@@ -7,7 +7,7 @@ publishedDate: "2023-11-13T00:00:00.000Z"
 description: "Wasp is a fully open-source, full-stack web framework for React, Node.js, and Prisma"
 ---
 
-_This is the twelfth issue of The Starlet List. If you want to prompt your open source project on star-history.com for free, please check out our [announcement](/blog/list-your-open-source-project)._
+_This is the twelfth issue of The Starlet List. If you want to prompt your open source project on star-history.dera.page for free, please check out our [announcement](/blog/list-your-open-source-project)._
 
 ---
 
@@ -73,7 +73,7 @@ For more details, check out the docs: [https://wasp-lang.dev/docs/quick-start](h
 
 Wasp has had a pretty solid Year 2023, and in October alone we doubled our stars, growing from 4k to 8k🚀.
 
-[![Star History Chart](https://api.star-history.com/svg?repos=wasp-lang/wasp&type=Date)](https://star-history.com/#wasp-lang/wasp&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=wasp-lang/wasp&type=Date)](https://star-history.dera.page/#wasp-lang/wasp&Date)
 
 If you'd like to learn more and try out Wasp for yourself, visit our site!
 

@@ -7,7 +7,7 @@ publishedDate: "2024-09-25T00:00:00.000Z"
 description: "thepi.pe is an open-source package for intelligent document scraping at scale using vision-language models (VLMs)."
 ---
 
-*This is the twenty-sixth issue of The Starlet List. If you want to prompt your open source project on star-history.com for free, please check out our [announcement](/blog/list-your-open-source-project).*
+*This is the twenty-sixth issue of The Starlet List. If you want to prompt your open source project on star-history.dera.page for free, please check out our [announcement](/blog/list-your-open-source-project).*
 
 ---
 

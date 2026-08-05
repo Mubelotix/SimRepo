@@ -30,7 +30,7 @@ And apparently, the GitHub folks don’t have enough capacity to clean up the we
 
 ## Star History
 
-star-history.com runs a Twitter account [@StartHistoryHQ](https://twitter.com/starhistoryhq) posting interesting GitHub repos every day.
+star-history.dera.page runs a Twitter account [@StartHistoryHQ](https://twitter.com/starhistoryhq) posting interesting GitHub repos every day.
 
 ![star-history](/assets/blog/github-trending-tab/star-history.webp)
 

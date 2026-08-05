@@ -22,7 +22,7 @@ This month, we highlight four standout projects shaping how intelligent applicat
 
 #### → Building Agent Interfaces
 
-[![Star History Chart](https://api.star-history.com/svg?repos=assistant-ui/assistant-ui\&type=Date)](https://star-history.com/#assistant-ui/assistant-ui&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=assistant-ui/assistant-ui\&type=Date)](https://star-history.dera.page/#assistant-ui/assistant-ui&Date)
 
 Assistant UI is an open-source toolkit for creating chat-style interfaces. It provides React components and APIs to embed conversational agents directly into your product - with modern design, beautiful defaults, and full TypeScript support.
 
@@ -37,7 +37,7 @@ Assistant UI is an open-source toolkit for creating chat-style interfaces. It pr
 
 #### → Full-Stack TypeScript Agent Framework
 
-[![Star History Chart](https://api.star-history.com/svg?repos=mastra-ai/mastra\&type=Date)](https://star-history.com/#mastra-ai/mastra&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=mastra-ai/mastra\&type=Date)](https://star-history.dera.page/#mastra-ai/mastra&Date)
 
 Mastra is a rapidly maturing, full-stack framework for building AI agents with TypeScript. It unifies model orchestration, retrieval workflows, and observability - enabling developers to ship scalable, production-grade AI systems.
 
@@ -52,7 +52,7 @@ Mastra is a rapidly maturing, full-stack framework for building AI agents with T
 
 #### → Building Agents with Claude
 
-[![Star History Chart](https://api.star-history.com/svg?repos=anthropics/claude-agent-sdk-python\&type=Date)](https://star-history.com/#anthropics/claude-agent-sdk-python&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=anthropics/claude-agent-sdk-python\&type=Date)](https://star-history.dera.page/#anthropics/claude-agent-sdk-python&Date)
 
 Anthropic’s **Claude Agent SDKs**, available for multiple languages, including [Python](https://docs.claude.com/en/docs/agent-sdk/python) and [TypeScript](https://docs.claude.com/en/docs/agent-sdk/typescript), provide structured abstractions for building Claude-powered agents. They include components for tool use, Model Context Protocol (MCP) integration, and persistent multi-step workflows - enabling developers to design reliable, autonomous systems.
 

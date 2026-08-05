@@ -7,7 +7,7 @@ publishedDate: "2023-08-28T00:00:00.000Z"
 description: "MetisFL is an open-source federated learning framework that makes it easy for developers and enterprises to train their models on distributed data sources."
 ---
 
-_This is the fifth issue of The Starlet List. If you want to prompt your open source project on star-history.com for free, please check out our [announcement](/blog/list-your-open-source-project)._
+_This is the fifth issue of The Starlet List. If you want to prompt your open source project on star-history.dera.page for free, please check out our [announcement](/blog/list-your-open-source-project)._
 
 ---
 

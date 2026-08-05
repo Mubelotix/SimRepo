@@ -7,7 +7,7 @@ publishedDate: "2024-01-05T00:00:00.000Z"
 description: "Infinity is an AI-native database specifically designed to cater to large models and is primarily used for Retrieval Augmented Generation (RAG)."
 ---
 
-_This is the fifteenth issue of The Starlet List. If you want to prompt your open source project on star-history.com for free, please check out our [announcement](/blog/list-your-open-source-project)._
+_This is the fifteenth issue of The Starlet List. If you want to prompt your open source project on star-history.dera.page for free, please check out our [announcement](/blog/list-your-open-source-project)._
 
 ---
 

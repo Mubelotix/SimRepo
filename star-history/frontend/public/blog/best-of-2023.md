@@ -22,7 +22,7 @@ AI is the keyword of 2023, but there is so much more to this past year in the re
 
 [LangChain](https://github.com/langchain-ai/langchain) was first released in October 2022 as an open-source side project, a framework that makes developing AI applications more flexible. It got so popular that it was promptly turned into a startup.
 
-In 2023, LangChain managed to gain ~70k stargazers, scoring a [$10M seed round](https://blog.langchain.dev/announcing-our-10m-seed-round-led-by-benchmark/), grew exponentially product-wise: the framework now consists of several parts, integrations with 20+ different LLM providers, 10+ different vector databases, and more, lowering AI's threshold for the people. For example, they have this [SQL Agent](https://star-history.com/blog/text2sql#langchain) so that you can build a Q&A chain and agent over an SQL database.
+In 2023, LangChain managed to gain ~70k stargazers, scoring a [$10M seed round](https://blog.langchain.dev/announcing-our-10m-seed-round-led-by-benchmark/), grew exponentially product-wise: the framework now consists of several parts, integrations with 20+ different LLM providers, 10+ different vector databases, and more, lowering AI's threshold for the people. For example, they have this [SQL Agent](https://star-history.dera.page/blog/text2sql#langchain) so that you can build a Q&A chain and agent over an SQL database.
 
 ![langchain](/assets/blog/best-of-2023/langchain.webp)
 

@@ -3,7 +3,6 @@ import React, { useState, useEffect, useRef } from "react"
 import StarXYChart from "./Charts/StarXYChart"
 import TokenSettingDialog from "./TokenSettingDialog"
 import GenerateEmbedCodeDialog from "./GenerateEmbedCodeDialog"
-import { SketchPuzzleIcon } from "./SketchIcons"
 import EmbedMarkdownSection from "./EmbedMarkdownSection"
 import { useAppStore } from "store"
 import { FaSpinner } from "react-icons/fa"
@@ -13,7 +12,6 @@ import toast from "helpers/toast"
 import { ChartMode, RepoData, LegendPosition } from "@shared/types/chart"
 
 const VALID_LEGEND_POSITIONS: LegendPosition[] = ["top-left", "bottom-right"]
-import BytebaseBanner from "./SponsorView"
 import utils from "@shared/common/utils"
 
 interface State {
@@ -412,16 +410,6 @@ function StarChartViewer({ compact = false }: StarChartViewerProps) {
                 <>
                     <div>
                         <div className="relative mt-4 mb-4 w-full px-3 mx-auto max-w-4xl flex flex-row flex-wrap justify-between items-center">
-                            <div className="flex flex-row justify-start items-center mb-2">
-                                <a
-                                    className="h-full flex flex-row justify-center items-center leading-8 hover:opacity-80 underline underline-offset-2 mb-2 decoration-dark"
-                                    href="https://chrome.google.com/webstore/detail/iijibbcdddbhokfepbblglfgdglnccfn"
-                                    target="_blank"
-                                >
-                                    <SketchPuzzleIcon size={20} />
-                                    <span className="text-dark ml-1">Get Chrome Extension</span>
-                                </a>
-                            </div>
                             <div className="flex flex-row flex-wrap justify-end items-center mb-2">
                                 <button className="ml-2 mb-2 btn-secondary" onClick={handleGenerateImageBtnClick}>
                                     <i className="fas fa-download"></i> Image
@@ -448,7 +436,6 @@ function StarChartViewer({ compact = false }: StarChartViewerProps) {
 
                         <EmbedMarkdownSection />
                     </div>
-                    <BytebaseBanner v-if="state.chartData" />
                 </>
             )}
         </>

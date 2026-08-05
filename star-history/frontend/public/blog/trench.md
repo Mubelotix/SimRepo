@@ -7,7 +7,7 @@ publishedDate: "2024-11-20T00:00:00.000Z"
 description: "Trench is an open source analytics infrastructure for tracking events, identifying users, and querying data in real time."
 ---
 
-*This is the twenty-eighth issue of The Starlet List. If you want to prompt your open source project on star-history.com for free, please check out our [announcement](/blog/list-your-open-source-project).*
+*This is the twenty-eighth issue of The Starlet List. If you want to prompt your open source project on star-history.dera.page for free, please check out our [announcement](/blog/list-your-open-source-project).*
 
 ---
 

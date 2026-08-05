@@ -52,7 +52,7 @@ It's [open-sourced by Bytebase](https://www.bytebase.com/blog/sql-chat/), a data
 
 You can use Vanna as is, or build your own custom UI with an existing tool (e.g. Streamlit, Slack).
 
-It was open-sourced in July 2023 and [got really popular](https://star-history.com/#vanna-ai/vanna&Date) this past January.
+It was open-sourced in July 2023 and [got really popular](https://star-history.dera.page/#vanna-ai/vanna&Date) this past January.
 
 ## DuckDB-NSQL
 

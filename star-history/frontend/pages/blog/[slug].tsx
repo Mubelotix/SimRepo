@@ -4,7 +4,6 @@ import matter from "gray-matter"
 import Link from "next/link"
 import Footer from "../../components/footer"
 import Header from "../../components/header"
-import SponsorFooterBanner from "../../components/SponsorView"
 import RightSidebar from "../../components/RightSidebar"
 import TableOfContents, { TocItem } from "../../components/TableOfContents"
 import { GetStaticPropsContext, GetStaticPaths } from "next"
@@ -130,7 +129,6 @@ const BlogPost: React.FC<State> = ({ blog, prevBlog, nextBlog, parsedBlogHTML, t
                                     </nav>
                                 )}
 
-                                <SponsorFooterBanner className="mt-16 mb-8 hidden lg:block" />
                             </div>
                         )
                         }

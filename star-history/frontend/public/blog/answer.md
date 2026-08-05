@@ -7,13 +7,13 @@ publishedDate: "2024-01-26T00:00:00.000Z"
 description: "Apache Answer is an open-source Q&A platform software for teams at any scale, now incubating in Apache Software Foundation."
 ---
 
-_This is the sixteenth issue of The Starlet List. If you want to prompt your open source project on star-history.com for free, please check out our [announcement](/blog/list-your-open-source-project)._
+_This is the sixteenth issue of The Starlet List. If you want to prompt your open source project on star-history.dera.page for free, please check out our [announcement](/blog/list-your-open-source-project)._
 
 ---
 
 [Apache Answer](https://answer.apache.org/) is an open-source Q&A platform software for teams at any scale, now incubating in Apache Software Foundation. Whether it’s a developer hub, support center, or knowledge base, you can always count on Apache Answer.
 
-[![Star History Chart](https://api.star-history.com/svg?repos=apache/incubator-answer&type=Date)](https://star-history.com/#apache/incubator-answer&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=apache/incubator-answer&type=Date)](https://star-history.dera.page/#apache/incubator-answer&Date)
 
 Answer is built with Go and ReactJS. It supports various databases, including SQLite, MySQL, and PostgreSQL, making it a flexible and scalable solution that can be deployed in any environment.
 

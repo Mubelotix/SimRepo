@@ -81,7 +81,7 @@ But of course, there are many other ways to start using Llama 2, via Homebrew, P
 
 ## AND: the Starlet Issues
 
-Another piece of news for the month of July: we started a new column "[Starlet List](/blog/list-your-open-source-project)". If you are an open-source maintainer and would like to promote your project (for free!), shoot us an Email at [star@bytebase.com](mailto:star@bytebase.com), and tell us how your project wants to be presented to the audience.
+Another piece of news for the month of July: we started a new column "[Starlet List](/blog/list-your-open-source-project)". If you are an open-source maintainer and would like to promote your project (for free!), shoot us an Email at [mubelotix@gmail.com](mailto:mubelotix@gmail.com), and tell us how your project wants to be presented to the audience.
 
 In the meantime, check out the July starlets:
 

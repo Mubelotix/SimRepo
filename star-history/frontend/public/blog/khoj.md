@@ -7,7 +7,7 @@ publishedDate: "2024-06-06T00:00:00.000Z"
 description: "Khoj is a thinking tool that helps you reason, aggregate information, and create content in a transparent way."
 ---
 
-*This is the twenty-first issue of The Starlet List. If you want to prompt your open source project on star-history.com for free, please check out our [announcement](/blog/list-your-open-source-project).*
+*This is the twenty-first issue of The Starlet List. If you want to prompt your open source project on star-history.dera.page for free, please check out our [announcement](/blog/list-your-open-source-project).*
 
 ---
 

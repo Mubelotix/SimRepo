@@ -60,7 +60,7 @@ Another cool thing is that you can start a prompt simply with a capital letter. 
 
 ## Lastly
 
-[![Star History Chart](https://api.star-history.com/svg?repos=KillianLucas/open-interpreter,simonw/llm,Pythagora-io/gpt-pilot,paul-gauthier/aider,bakks/butterfish&type=Date)](https://star-history.com/#KillianLucas/open-interpreter&simonw/llm&Pythagora-io/gpt-pilot&paul-gauthier/aider&bakks/butterfish&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=KillianLucas/open-interpreter,simonw/llm,Pythagora-io/gpt-pilot,paul-gauthier/aider,bakks/butterfish&type=Date)](https://star-history.dera.page/#KillianLucas/open-interpreter&simonw/llm&Pythagora-io/gpt-pilot&paul-gauthier/aider&bakks/butterfish&Date)
 
 All these aforementioned tools emerged somewhere this year - and have all undoubtedly gained momentum thanks to the rapid growth of LLMs. These have taken a "mere GUI for LLM" to the next level, accomplishing all sorts of tasks from tweaking a computer setting to building simple apps. Are developers going to be out of jobs? Is coding soon no longer required? Obviously, these tools can change the game for the software industry, but you still need to be good at coding: an unskilled person powered by such a tool can slowly construct a codebase that's unmaintainable.
 

@@ -7,7 +7,7 @@ publishedDate: "2023-10-11T00:00:00.000Z"
 description: "Use ElectricSQL to build super fast, collaborative, offline-capable apps directly on Postgres by syncing to a local SQLite database."
 ---
 
-_This is the ninth issue of The Starlet List. If you want to prompt your open source project on star-history.com for free, please check out our [announcement](/blog/list-your-open-source-project)._
+_This is the ninth issue of The Starlet List. If you want to prompt your open source project on star-history.dera.page for free, please check out our [announcement](/blog/list-your-open-source-project)._
 
 ---
 
@@ -62,4 +62,4 @@ Some demo applications:
 -   Realtime demo: https://electric-sql.com/docs/intro/multi-user
 -   Conflict-free offline: https://electric-sql.com/docs/intro/offline
 
-[![Star History Chart](https://api.star-history.com/svg?repos=electric-sql/electric&type=Date)](https://star-history.com/#electric-sql/electric&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=electric-sql/electric&type=Date)](https://star-history.dera.page/#electric-sql/electric&Date)

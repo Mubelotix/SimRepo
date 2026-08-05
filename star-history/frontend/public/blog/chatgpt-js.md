@@ -7,7 +7,7 @@ publishedDate: "2023-08-10T00:00:00.000Z"
 description: "chatgpt.js is a JavaScript library that supports this ecosystem by allowing for super-easy interaction with the ChatGPT DOM."
 ---
 
-_This is the fourth issue of The Starlet List. If you want to prompt your open source project on star-history.com for free, please check out our [announcement](/blog/list-your-open-source-project)._
+_This is the fourth issue of The Starlet List. If you want to prompt your open source project on star-history.dera.page for free, please check out our [announcement](/blog/list-your-open-source-project)._
 
 ---
 
@@ -76,7 +76,7 @@ Some popular & award-winning apps made w/ **chatgpt.js** include:
 
 **chatgpt.js** is still a very young lib, but as shown by the Star History chart, it had a stunning growth period during a span of mere weeks:
 
-[![Star History Chart](https://api.star-history.com/svg?repos=kudoai/chatgpt.js&type=Date)](https://star-history.com/#kudoai/chatgpt.js&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=kudoai/chatgpt.js&type=Date)](https://star-history.dera.page/#kudoai/chatgpt.js&Date)
 
 Two main events can be attributed with causing this astonishing growth spurt:
 
