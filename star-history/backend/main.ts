@@ -1,4 +1,4 @@
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
 import { cors } from "hono/cors";
 import { compress } from "hono/compress";
 import { serve } from "@hono/node-server";
@@ -16,11 +16,25 @@ import {
 } from "./utils.js";
 import { CHART_SIZES, MAX_REPOS_PER_REQUEST } from "./const.js";
 import { fetchRepoData } from "./repos.js";
+import { isWhitelisted, tryFetchRepos, RATE_LIMIT_MESSAGE } from "./rate-limiter.js";
 
 const SVG_HEADERS = {
   "Content-Type": "image/svg+xml;charset=utf-8",
   "Cache-Control": "public, s-maxage=86400, max-age=86400",
 } as const;
+
+// Applies per-IP rate limiting based on the number of repos being fetched.
+// The IP is read from the X-Real-IP header (set by the reverse proxy). Whitelisted
+// IPs (e.g. GitHub's CDN proxies) are never limited. Returns a 429 Response when
+// the limit is exceeded, otherwise null. Note: the numeric limits are deliberately
+// not advertised in the response (no X-RateLimit-* headers, no exact numbers).
+function checkRateLimit(c: Context, count: number): Response | null {
+  const ip = c.req.header("X-Real-IP") ?? "";
+  // Without an IP we can't attribute the request to a client; allow it through.
+  if (!ip || isWhitelisted(ip)) return null;
+  if (tryFetchRepos(ip, count)) return null;
+  return c.text(RATE_LIMIT_MESSAGE, 429);
+}
 
 const startServer = async () => {
   const app = new Hono();
@@ -65,6 +79,9 @@ const startServer = async () => {
       return c.text(`Too many repos: max ${MAX_REPOS_PER_REQUEST} per request`, 400);
     }
 
+    const limited = checkRateLimit(c, repos.length);
+    if (limited) return limited;
+
     const { found, missing } = fetchRepoData(repos);
     return c.json({ data: found, missing });
   });
@@ -100,6 +117,9 @@ const startServer = async () => {
     if (repos.length > MAX_REPOS_PER_REQUEST) {
       return c.text(`Too many repos: max ${MAX_REPOS_PER_REQUEST} per request`, 400);
     }
+
+    const limited = checkRateLimit(c, repos.length);
+    if (limited) return limited;
 
     // Landscape1 card: previously returned a 1200x630 SVG with radar chart and
     // attributes, but it required live GitHub API metadata. That call has been

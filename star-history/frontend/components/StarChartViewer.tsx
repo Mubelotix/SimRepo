@@ -81,7 +81,11 @@ function StarChartViewer({ compact = false }: StarChartViewerProps) {
                     })
                 }
             } catch (error: any) {
-                toast.warn(error.message)
+                const message =
+                    error?.response?.status === 429 && error?.response?.data
+                        ? error.response.data
+                        : error.message
+                toast.warn(message)
             }
             store.actions.setIsFetching(false)
 
