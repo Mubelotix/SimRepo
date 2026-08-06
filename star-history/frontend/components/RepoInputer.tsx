@@ -1,9 +1,17 @@
 import React, { useEffect, useMemo, useRef, useState } from "react"
 import { head } from "lodash"
+import axios from "axios"
 import { GITHUB_REPO_URL_REG } from "../helpers/consts"
+import { REPO_DATA_API_URL } from "@shared/common/config"
+import { formatNumber } from "../helpers/format"
 import toast from "../helpers/toast"
 import { useAppStore } from "../store"
 import { SketchExternalLinkIcon } from "./SketchIcons"
+
+interface Suggestion {
+    name: string
+    stars_total: number
+}
 
 interface State {
     repo: string
@@ -26,6 +34,11 @@ export default function RepoInputer({ setChartVisibility }: RepoInputerProps) {
     })
 
     const inputElRef = useRef<HTMLInputElement | null>(null)
+    const containerRef = useRef<HTMLDivElement | null>(null)
+    const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const [suggestions, setSuggestions] = useState<Suggestion[]>([])
+    const [showSuggestions, setShowSuggestions] = useState(false)
+    const [highlightIndex, setHighlightIndex] = useState(-1)
 
     const randomPlaceholder = useMemo(() => {
         const examples = ["torvalds/linux", "jellyfin/jellyfin", "immich-app/immich", "bitcoin/bitcoin", "home-assistant/core", "nextcloud/server", "qbittorrent/qBittorrent", "aria2/aria2"]
@@ -91,20 +104,7 @@ export default function RepoInputer({ setChartVisibility }: RepoInputerProps) {
         handleWatch()
     }, [store.state.repos, store.state.chartMode, store.state.useLogScale, store.state.legendPosition, state.repos])
 
-    const handleAddRepoBtnClick = () => {
-        if (store.isFetching) {
-            return
-        }
-        let rawRepos = state.repo
-        if (rawRepos === "" && state.repos.length === 0) {
-            rawRepos = "Mubelotix/star-history"
-        }
-
-        if (rawRepos === "") {
-            toast.warn("Please input the repo name")
-            return
-        }
-
+    const addRepos = (rawRepos: string) => {
         for (const rawRepo of rawRepos.split(",")) {
             let repo = ""
 
@@ -157,6 +157,23 @@ export default function RepoInputer({ setChartVisibility }: RepoInputerProps) {
             setChartVisibility(true)
         }
         setState((prev) => ({ ...prev, repo: "" }))
+    }
+
+    const handleAddRepoBtnClick = () => {
+        if (store.isFetching) {
+            return
+        }
+        let rawRepos = state.repo
+        if (rawRepos === "" && state.repos.length === 0) {
+            rawRepos = "Mubelotix/star-history"
+        }
+
+        if (rawRepos === "") {
+            toast.warn("Please input the repo name")
+            return
+        }
+
+        addRepos(rawRepos)
     }
 
     const handleToggleRepoItemVisible = React.useCallback(
@@ -218,29 +235,139 @@ export default function RepoInputer({ setChartVisibility }: RepoInputerProps) {
     const handleInputerKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === "Enter") {
             event.preventDefault()
-            handleAddRepoBtnClick()
+            if (showSuggestions && highlightIndex >= 0) {
+                selectSuggestion(suggestions[highlightIndex].name)
+            } else {
+                handleAddRepoBtnClick()
+            }
+        } else if (showSuggestions) {
+            switch (event.key) {
+                case "ArrowDown":
+                    event.preventDefault()
+                    setHighlightIndex((prev) => (prev < suggestions.length - 1 ? prev + 1 : prev))
+                    break
+                case "ArrowUp":
+                    event.preventDefault()
+                    setHighlightIndex((prev) => (prev > 0 ? prev - 1 : prev))
+                    break
+                case "Escape":
+                    event.preventDefault()
+                    setShowSuggestions(false)
+                    setHighlightIndex(-1)
+                    break
+            }
         }
     }
 
+    const closeSuggestions = () => {
+        setShowSuggestions(false)
+        setHighlightIndex(-1)
+    }
+
+    const selectSuggestion = (repoName: string) => {
+        closeSuggestions()
+        if (store.isFetching) {
+            return
+        }
+        addRepos(repoName)
+    }
+
+    const handleInputerChange = (value: string) => {
+        setState((prev) => ({ ...prev, repo: value }))
+
+        const query = value.trim()
+        if (!query) {
+            closeSuggestions()
+            return
+        }
+
+        if (searchTimerRef.current) {
+            clearTimeout(searchTimerRef.current)
+        }
+        searchTimerRef.current = setTimeout(async () => {
+            try {
+                const { data } = await axios.get(`${REPO_DATA_API_URL}/repo-search`, {
+                    params: { q: query, limit: 8 },
+                    timeout: 5000,
+                })
+                const list = (data?.repos ?? []) as Suggestion[]
+                setSuggestions(list)
+                setShowSuggestions(list.length > 0)
+                setHighlightIndex(-1)
+            } catch {
+                closeSuggestions()
+            }
+        }, 200)
+    }
+
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+                closeSuggestions()
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside)
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside)
+            if (searchTimerRef.current) {
+                clearTimeout(searchTimerRef.current)
+            }
+        }
+    }, [])
+
     return (
-        <div className="w-full px-3 shrink-0 flex flex-col justify-start items-center">
-            <div className="w-auto sm:w-full grow max-w-3xl 2xl:max-w-4xl mt-4 flex flex-row justify-center items-center shadow-inner border border-solid border-black rounded">
-                <input
-                    ref={inputElRef}
-                    value={state.repo}
-                    onChange={(e) => setState((prev) => ({ ...prev, repo: e.target.value }))}
-                    className="w-auto h-9 px-2 grow shrink text-dark outline-none rounded rounded-r-none placeholder:text-gray-300 focus:shadow-focus"
-                    type="text"
-                    placeholder={state.repos.length > 0 ? "...add next repository" : randomPlaceholder}
-                    onPaste={handleInputerPasted}
-                    onKeyDown={handleInputerKeyDown}
-                />
-                <button
-                    className={`h-9 pl-4 pr-4 whitespace-nowrap w-auto text-black border-l border-black hover:bg-zinc-700 hover:text-white ${store.isFetching ? "cursor-wait" : ""}`}
-                    onClick={handleAddRepoBtnClick}
-                >
-                    View star history
-                </button>
+        <div ref={containerRef} className="w-full px-3 shrink-0 flex flex-col justify-start items-center">
+            <div className="w-auto sm:w-full grow max-w-3xl 2xl:max-w-4xl mt-4 relative">
+                <div className="flex flex-row justify-center items-center shadow-inner border border-solid border-black rounded">
+                    <input
+                        ref={inputElRef}
+                        value={state.repo}
+                        onChange={(e) => handleInputerChange(e.target.value)}
+                        onFocus={() => {
+                            if (suggestions.length > 0) setShowSuggestions(true)
+                        }}
+                        className="w-auto h-9 px-2 grow shrink text-dark outline-none rounded rounded-r-none placeholder:text-gray-300 focus:shadow-focus"
+                        type="text"
+                        placeholder={state.repos.length > 0 ? "...add next repository" : randomPlaceholder}
+                        onPaste={handleInputerPasted}
+                        onKeyDown={handleInputerKeyDown}
+                    />
+                    <button
+                        className={`h-9 pl-4 pr-4 whitespace-nowrap w-auto text-black border-l border-black hover:bg-zinc-700 hover:text-white ${store.isFetching ? "cursor-wait" : ""}`}
+                        onClick={handleAddRepoBtnClick}
+                    >
+                        View star history
+                    </button>
+                </div>
+                {showSuggestions && suggestions.length > 0 && (
+                    <ul
+                        role="listbox"
+                        className="absolute z-20 w-full mt-1 bg-white border border-neutral-200 rounded-lg shadow-lg overflow-hidden"
+                    >
+                        {suggestions.map((suggestion, i) => (
+                            <li
+                                role="option"
+                                aria-selected={i === highlightIndex}
+                                key={suggestion.name}
+                                onMouseDown={(e) => {
+                                    e.preventDefault()
+                                    selectSuggestion(suggestion.name)
+                                }}
+                                onMouseEnter={() => setHighlightIndex(i)}
+                                className={`flex items-center justify-between px-4 py-2 text-sm cursor-pointer ${
+                                    i === highlightIndex ? "bg-neutral-100" : "hover:bg-neutral-50"
+                                }`}
+                            >
+                                <span className="text-neutral-800 truncate">{suggestion.name}</span>
+                                {suggestion.stars_total > 0 && (
+                                    <span className="text-neutral-400 text-xs ml-2 shrink-0">
+                                        &#9733; {formatNumber(suggestion.stars_total)}
+                                    </span>
+                                )}
+                            </li>
+                        ))}
+                    </ul>
+                )}
             </div>
             <div className={`w-full mt-8 mb-2 flex flex-row justify-center items-center ${state.repos.length > 0 ? "invisible" : ""}`}>
                 <span className="text-sm text-gray-400">☝️ Enter a GitHub repo name to get started</span>

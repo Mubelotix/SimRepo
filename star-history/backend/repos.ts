@@ -72,3 +72,46 @@ export function fetchRepoData(repos: string[]): RepoStarResult {
 
   return { found, missing };
 }
+
+export interface RepoSearchEntry {
+  name: string;
+  stars_total: number;
+}
+
+/**
+ * Search repos by a (case-insensitive) prefix of their name, returning up to
+ * `limit` matches ordered by the repo with the most stars first. Uses the
+ * existing lower(repo) index for the prefix lookup.
+ */
+export function searchRepos(query: string, limit = 8): RepoSearchEntry[] {
+  const q = query.trim();
+  if (!q) return [];
+
+  const d = getDb();
+  const stmt = d.prepare(
+    "SELECT repo, points FROM repos WHERE lower(repo) LIKE ? ORDER BY length(repo) LIMIT ?"
+  );
+  const rows = stmt.all(`${q.toLowerCase()}%`, limit + 50) as {
+    repo: string;
+    points: Buffer | null;
+  }[];
+
+  return rows
+    .map((row) => {
+      // star count = last cumulative point in the gzip blob (if present)
+      let stars_total = 0;
+      if (row.points) {
+        try {
+          const data = gunzipSync(row.points as unknown as Uint8Array);
+          if (data.length >= 8) {
+            stars_total = data.readUInt32LE(data.length - 4);
+          }
+        } catch {
+          // skip malformed points
+        }
+      }
+      return { name: row.repo, stars_total };
+    })
+    .sort((a, b) => b.stars_total - a.stars_total)
+    .slice(0, limit);
+}
