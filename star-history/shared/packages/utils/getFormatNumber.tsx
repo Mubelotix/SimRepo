@@ -24,9 +24,9 @@ const getFormatNumber = (n: number, type: NumberUnitType = 1) => {
     }
 
     if (n >= 1000 && n % 1000 === 0) {
-        return `${n / 1000}K`
+        return `${n / 1000}k`
     }
-    return `${(n / 1000).toFixed(1)}K`
+    return `${(n / 1000).toFixed(1)}k`
 }
 
 export default getFormatNumber
