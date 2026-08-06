@@ -42,6 +42,11 @@ function decodePoints(buf: Buffer): StarRecord[] {
   return records;
 }
 
+// Minimum number of star-history datapoints required for a repo to be considered
+// valuable enough to plot. Repos with fewer points are treated as missing so they
+// are reported to the client and never counted against a rate limit.
+export const MIN_DATAPOINTS = 5;
+
 export interface RepoStarResult {
   found: RepoData[];
   missing: string[];
@@ -49,7 +54,8 @@ export interface RepoStarResult {
 
 /**
  * Retrieve star history + logo URL for repos from repos.sqlite.
- * Repos that don't exist in the DB are reported in `missing`.
+ * Repos that don't exist in the DB, or that have fewer than MIN_DATAPOINTS
+ * records (i.e. insufficient data to plot), are reported in `missing`.
  */
 export function fetchRepoData(repos: string[]): RepoStarResult {
   const d = getDb();
@@ -63,9 +69,14 @@ export function fetchRepoData(repos: string[]): RepoStarResult {
       missing.push(repo);
       continue;
     }
+    const starRecords = decodePoints(row.points);
+    if (starRecords.length < MIN_DATAPOINTS) {
+      missing.push(repo);
+      continue;
+    }
     found.push({
       repo,
-      starRecords: decodePoints(row.points),
+      starRecords,
       logoUrl: row.logo_url ?? "",
     });
   }
