@@ -11,10 +11,17 @@ let db: Database.Database | null = null;
 function getDb(): Database.Database {
   if (!db) {
     db = new Database(DB_PATH);
-    db.pragma("journal_mode = WAL");
-    db.pragma("busy_timeout = 5000");
-    // Case-insensitive lookup index (idempotent; safe if the DB is regenerated).
-    db.exec("CREATE INDEX IF NOT EXISTS idx_repos_lower_repo ON repos(lower(repo))");
+    // The DB may be bind-mounted read-only, so only apply these write
+    // optimizations when the file is actually writable. They are not
+    // required for reads.
+    try {
+      db.pragma("journal_mode = WAL");
+      db.pragma("busy_timeout = 5000");
+      // Case-insensitive lookup index (idempotent; safe if the DB is regenerated).
+      db.exec("CREATE INDEX IF NOT EXISTS idx_repos_lower_repo ON repos(lower(repo))");
+    } catch {
+      // Read-only database: skip optimizations.
+    }
   }
   return db;
 }
