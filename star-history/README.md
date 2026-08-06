@@ -1,13 +1,5 @@
 <div align="center">
 
-<a href="https://star-history.dera.page/Mubelotix/star-history">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/badge?repo=Mubelotix/star-history&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/badge?repo=Mubelotix/star-history" />
-   <img alt="Star History Rank" src="https://api.star-history.com/badge?repo=Mubelotix/star-history" />
- </picture>
-</a>
-
 # :sparkles: Star History :sparkles:
  
 [**star-history.dera.page**](https://star-history.dera.page), **GitHub star history, revived.**
@@ -22,31 +14,15 @@
 
 ---
 
-👇 **THIS** is a **`live`** chart. Follow [instruction](https://star-history.dera.page/Mubelotix/star-history) to embed yours.
+👇 **THIS** is a **`live`** chart. Follow [instruction](https://star-history.dera.page/torvalds/linux) to embed yours.
 
-<a href="https://star-history.dera.page/?repos=Mubelotix%2Fstar-history&type=date&legend=top-left">
+<a href="https://star-history.dera.page/?repos=torvalds%2Flinux&type=date&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=Mubelotix/star-history&type=date&theme=dark&legend=top-left&sealed_token=DYeTWCAopiiE2umbQNPumg8YbPnyodS4lGzIhhCvVVvIuGqF2y_EHByyowTpVnmds-frpmYYKc_awzVeAxZ7O3gT7Mu6l8V7DlZ8BaIkBoGcWPhLwZrdWA" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=Mubelotix/star-history&type=date&legend=top-left&sealed_token=DYeTWCAopiiE2umbQNPumg8YbPnyodS4lGzIhhCvVVvIuGqF2y_EHByyowTpVnmds-frpmYYKc_awzVeAxZ7O3gT7Mu6l8V7DlZ8BaIkBoGcWPhLwZrdWA" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=Mubelotix/star-history&type=date&legend=top-left&sealed_token=DYeTWCAopiiE2umbQNPumg8YbPnyodS4lGzIhhCvVVvIuGqF2y_EHByyowTpVnmds-frpmYYKc_awzVeAxZ7O3gT7Mu6l8V7DlZ8BaIkBoGcWPhLwZrdWA" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://star-history.dera.page/svg?repos=torvalds%2Flinux&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://star-history.dera.page/svg?repos=torvalds%2Flinux&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://star-history.dera.page/svg?repos=torvalds%2Flinux&type=date&legend=top-left" />
  </picture>
 </a>
-
-<div align="left">
-  
-👇 **THIS** is also a **`live`** badge with global rank. Follow [instruction](https://star-history.dera.page/Mubelotix/star-history#badges) to embed yours.
-
-<p align="left">
- <a href="https://star-history.dera.page/Mubelotix/star-history">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/badge?repo=Mubelotix/star-history&theme=dark" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/badge?repo=Mubelotix/star-history" />
-    <img alt="Star History Rank" src="https://api.star-history.com/badge?repo=Mubelotix/star-history" />
-  </picture>
- </a>
-</p>
-
-</div>
 
 ## ✨ Features
 
