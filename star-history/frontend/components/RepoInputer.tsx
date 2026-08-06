@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react"
+import React, { useEffect, useMemo, useRef, useState } from "react"
 import { head } from "lodash"
 import { GITHUB_REPO_URL_REG } from "../helpers/consts"
 import toast from "../helpers/toast"
@@ -26,6 +26,11 @@ export default function RepoInputer({ setChartVisibility }: RepoInputerProps) {
     })
 
     const inputElRef = useRef<HTMLInputElement | null>(null)
+
+    const randomPlaceholder = useMemo(() => {
+        const examples = ["torvalds/linux", "jellyfin/jellyfin", "immich-app/immich", "bitcoin/bitcoin", "home-assistant/core", "nextcloud/server", "qbittorrent/qBittorrent", "aria2/aria2"]
+        return examples[Math.floor(Math.random() * examples.length)]
+    }, [])
 
     useEffect(() => {
         setChartVisibility(true)
@@ -226,7 +231,7 @@ export default function RepoInputer({ setChartVisibility }: RepoInputerProps) {
                     onChange={(e) => setState((prev) => ({ ...prev, repo: e.target.value }))}
                     className="w-auto h-9 px-2 grow shrink text-dark outline-none rounded rounded-r-none placeholder:text-gray-300 focus:shadow-focus"
                     type="text"
-                    placeholder={state.repos.length > 0 ? "...add next repository" : "star-history or Mubelotix/star-history or https://github.com/Mubelotix/star-history"}
+                    placeholder={state.repos.length > 0 ? "...add next repository" : randomPlaceholder}
                     onPaste={handleInputerPasted}
                     onKeyDown={handleInputerKeyDown}
                 />
