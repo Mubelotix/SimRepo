@@ -9,7 +9,7 @@ import { loadRepos } from "@shared/common/repo-data"
 import type { RepoCardData } from "@shared/types/gh"
 import PageShell from "../components/PageShell"
 import toast from "../helpers/toast"
-import { SITE_URL, API_URL } from "../helpers/consts"
+import { SITE_URL } from "../helpers/consts"
 import InteractiveRadar from "../components/InteractiveRadar"
 import { buildLandscape1 } from "@shared/packages/card-landscape1"
 import { renderRadarSvg } from "@shared/packages/radar-svg"
@@ -137,7 +137,7 @@ const RepoPage: NextPage<RepoPageProps> = ({ repo, minStars, prevRepo, nextRepo 
     ].filter(Boolean)
     const description = weeklyParts.length ? `This week: ${weeklyParts.join(", ")}` : `Star history and stats for ${repo.name}`
     const canonicalUrl = `${SITE_URL}/${repo.name.toLowerCase()}`
-    const ogImage = `${API_URL}/svg?repos=${repo.name}&style=landscape1`
+    const ogImage = `${SITE_URL}/svg?repos=${repo.name}&style=landscape1`
     const shareTitle = `${repo.name} - ${formatNumber(repo.stars_total)} stars on GitHub`
     const lemmyUrl = `https://lemmy.ml/create_post?url=${encodeURIComponent(canonicalUrl)}&title=${encodeURIComponent(shareTitle)}`
     const mastodonUrl = `https://mastodon.social/share?text=${encodeURIComponent(`${shareTitle} ${canonicalUrl}`)}`
