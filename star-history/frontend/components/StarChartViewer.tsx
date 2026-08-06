@@ -9,7 +9,7 @@ import { FaSpinner } from "react-icons/fa"
 import { XYChartData } from "@shared/packages/xy-chart"
 import { convertDataToChartData, getRepoData } from "@shared/common/chart"
 import toast from "helpers/toast"
-import { ChartMode, RepoData, LegendPosition } from "@shared/types/chart"
+import { RepoData, LegendPosition } from "@shared/types/chart"
 
 const VALID_LEGEND_POSITIONS: LegendPosition[] = ["top-left", "bottom-right"]
 import utils from "@shared/common/utils"
@@ -57,29 +57,22 @@ function StarChartViewer({ compact = false }: StarChartViewerProps) {
     const containerElRef = useRef<HTMLDivElement>(null)
 
     const fetchReposData = React.useCallback(
-        async (repos: string[], chartMode?: ChartMode) => {
+        async (repos: string[]) => {
             store.actions.setIsFetching(true)
-            const notCachedRepos: string[] = []
-
-            for (const repo of store.repos) {
-                const cachedRepo = state.repoCacheMap.get(repo)
-
-                if (!cachedRepo) {
-                    notCachedRepos.push(repo)
-                }
-            }
+            const notCachedRepos = repos.filter((repo) => !state.repoCacheMap.get(repo))
 
             try {
                 const { data, missing } = await getRepoData(notCachedRepos)
                 for (const repo of missing) {
                     store.actions.delRepo(repo)
                 }
-                for (const { repo, starRecords, logoUrl } of data) {
-                    state.repoCacheMap.set(repo, {
-                        starData: starRecords,
-                        logoUrl
-                    })
-                }
+                setState((prevState) => {
+                    const repoCacheMap = new Map(prevState.repoCacheMap)
+                    for (const { repo, starRecords, logoUrl } of data) {
+                        repoCacheMap.set(repo, { starData: starRecords, logoUrl })
+                    }
+                    return { ...prevState, repoCacheMap }
+                })
             } catch (error: any) {
                 const message =
                     error?.response?.status === 429 && error?.response?.data
@@ -88,76 +81,75 @@ function StarChartViewer({ compact = false }: StarChartViewerProps) {
                 toast.warn(message)
             }
             store.actions.setIsFetching(false)
-
-            const repoData: RepoData[] = []
-            for (const repo of store.repos) {
-                const cachedRepo = state.repoCacheMap.get(repo)
-                if (cachedRepo) {
-                    repoData.push({
-                        repo,
-                        starRecords: cachedRepo.starData,
-                        logoUrl: cachedRepo.logoUrl
-                    })
-                }
-            }
-
-            if (repoData.length === 0) {
-                setState((prevState) => ({ ...prevState, chartData: undefined }))
-            } else {
-                setState((prevState) => ({
-                    ...prevState,
-                    chartData: convertDataToChartData(repoData, chartMode ?? state.chartMode, { insertZeroPoint: true })
-                }))
-            }
         },
-        [state.chartMode, state.repoCacheMap, store]
+        [state.repoCacheMap, store]
     )
-    
+
+    // Recompute the chart from the cached repo data whenever the repo list, display
+    // mode, or cache changes. No network request here.
     useEffect(() => {
-        const handleHashChange = () => {
-            const hash = window.location.hash;
-            const alignTimeline = hash.includes("timeline") || hash.includes("Timeline");
-            const useLogScale = hash.includes("logscale") || hash.includes("LogScale");
-
-            // Parse legend position from hash
-            let legendPosition: LegendPosition = "top-left";
-            const legendRegex = new RegExp(`legend=(${VALID_LEGEND_POSITIONS.join("|")})`);
-            const legendMatch = hash.match(legendRegex);
-            if (legendMatch) {
-                const position = legendMatch[1] as LegendPosition;
-                if (VALID_LEGEND_POSITIONS.includes(position)) {
-                    legendPosition = position;
-                }
+        const repoData: RepoData[] = []
+        for (const repo of store.repos) {
+            const cachedRepo = state.repoCacheMap.get(repo)
+            if (cachedRepo) {
+                repoData.push({
+                    repo,
+                    starRecords: cachedRepo.starData,
+                    logoUrl: cachedRepo.logoUrl,
+                })
             }
+        }
+        setState((prevState) => ({
+            ...prevState,
+            chartData:
+                repoData.length === 0
+                    ? undefined
+                    : convertDataToChartData(repoData, state.chartMode, { insertZeroPoint: true }),
+        }))
+    }, [store.repos, state.chartMode, state.repoCacheMap])
 
-            if (alignTimeline) {
-                const newChartMode = "Timeline";
-                setState(prevState => ({ ...prevState, chartMode: newChartMode, useLogScale, legendPosition }));
-                fetchReposData(store.repos, newChartMode);
-            } else {
-                setState(prevState => ({ ...prevState, useLogScale, legendPosition }));
-            }
-        };
-
-        handleHashChange();
-
-        window.addEventListener("hashchange", handleHashChange);
-
-        fetchReposData(store.repos, state.chartMode);
-
-        return () => {
-            window.removeEventListener("hashchange", handleHashChange);
-        };
-    }, [store.repos, state.chartMode]);
-    
-    
-    
+    // Fetch repo data when the repo list changes (and on mount). The store already
+    // parses the URL hash into store.repos, so this is the single source of fetches;
+    // fetchReposData skips the network for already-cached repos.
     useEffect(() => {
         if (store.repos.length > 0) {
             fetchReposData(store.repos)
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [store.repos])
+
+    // Keep local display options (chartMode/legend/logscale) in sync with the URL
+    // hash without triggering a refetch. Switching modes re-transforms cached data
+    // (fetchReposData only hits the network for repos not yet in the cache).
+    useEffect(() => {
+        const syncFromHash = () => {
+            const hash = window.location.hash
+            const alignTimeline = hash.includes("timeline") || hash.includes("Timeline")
+            const useLogScale = hash.includes("logscale") || hash.includes("LogScale")
+
+            let legendPosition: LegendPosition = "top-left"
+            const legendRegex = new RegExp(`legend=(${VALID_LEGEND_POSITIONS.join("|")})`)
+            const legendMatch = hash.match(legendRegex)
+            if (legendMatch) {
+                const position = legendMatch[1] as LegendPosition
+                if (VALID_LEGEND_POSITIONS.includes(position)) {
+                    legendPosition = position
+                }
+            }
+
+            setState(prev => ({
+                ...prev,
+                chartMode: alignTimeline ? "Timeline" : "Date",
+                useLogScale,
+                legendPosition,
+            }))
+        }
+
+        syncFromHash()
+
+        window.addEventListener("hashchange", syncFromHash)
+        return () => window.removeEventListener("hashchange", syncFromHash)
+    }, [])
 
     const handleCopyLinkBtnClick = async () => {
         try {
@@ -334,31 +326,25 @@ function StarChartViewer({ compact = false }: StarChartViewerProps) {
     const handleToggleChartBtnClick = React.useCallback(() => {
         const newChartMode = state.chartMode === "Date" ? "Timeline" : "Date"
         store.actions.setChartMode(newChartMode)
-
         setState((prevState) => {
             return { ...prevState, chartMode: newChartMode }
         })
-        fetchReposData(store.repos, newChartMode)
-    }, [state.chartMode, store.actions, store.repos, fetchReposData])
+    }, [state.chartMode, store.actions])
 
     const handleToggleLogScaleBtnClick = React.useCallback(() => {
         const newUseLogScale = !state.useLogScale
         store.actions.setUseLogScale(newUseLogScale)
-
         setState((prevState) => {
             return { ...prevState, useLogScale: newUseLogScale }
         })
-        fetchReposData(store.repos, state.chartMode)
-    }, [state.useLogScale, state.chartMode, store.actions, store.repos, fetchReposData])
+    }, [state.useLogScale, store.actions])
 
     const handleLegendPositionChange = React.useCallback((position: LegendPosition) => {
         store.actions.setLegendPosition(position)
-
         setState((prevState) => {
             return { ...prevState, legendPosition: position }
         })
-        fetchReposData(store.repos, state.chartMode)
-    }, [state.chartMode, store.actions, store.repos, fetchReposData])
+    }, [store.actions])
 
     const handleSetTokenDialogClose = () => {
         setState((prevState) => ({ ...prevState, showSetTokenDialog: false }))
