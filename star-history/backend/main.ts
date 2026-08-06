@@ -2,6 +2,7 @@ import { Hono, type Context } from "hono";
 import { cors } from "hono/cors";
 import { compress } from "hono/compress";
 import { serve } from "@hono/node-server";
+import { serveStatic } from "@hono/node-server/serve-static";
 import { optimize } from 'svgo';
 import { JSDOM } from "jsdom";
 import XYChart from "../shared/packages/xy-chart.js";
@@ -17,6 +18,8 @@ import {
 import { CHART_SIZES, MAX_REPOS_PER_REQUEST } from "./const.js";
 import { fetchRepoData } from "./repos.js";
 import { isWhitelisted, tryFetchRepos, RATE_LIMIT_MESSAGE } from "./rate-limiter.js";
+
+const FRONTEND_DIR = process.env.FRONTEND_DIR || "/app/www";
 
 const SVG_HEADERS = {
   "Content-Type": "image/svg+xml;charset=utf-8",
@@ -252,6 +255,11 @@ const startServer = async () => {
 
     return c.body(optimized, 200, SVG_HEADERS);
   });
+
+  // Serve the static frontend export (Next.js "output: export"). Registered last
+  // so API routes above take precedence. No external nginx / volume sharing needed:
+  // the container ships the files and serves them itself.
+  app.use("*", serveStatic({ root: FRONTEND_DIR }));
 
   const banner = `
      _______.___________.    ___      .______          __    __   __       _______.___________.  ______   .______     ____    ____
