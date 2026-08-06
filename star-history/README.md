@@ -16,7 +16,7 @@
 
 👇 **THIS** is a **`live`** chart. Follow [instruction](https://star-history.dera.page/torvalds/linux) to embed yours.
 
-<a href="https://star-history.dera.page/?repos=torvalds%2Flinux&type=date&legend=top-left">
+<a href="https://star-history.dera.page/#torvalds/linux&type=date&legend=top-left">
  <picture>
    <source media="(prefers-color-scheme: dark)" srcset="https://star-history.dera.page/svg?repos=torvalds%2Flinux&type=date&theme=dark&legend=top-left" />
    <source media="(prefers-color-scheme: light)" srcset="https://star-history.dera.page/svg?repos=torvalds%2Flinux&type=date&legend=top-left" />
