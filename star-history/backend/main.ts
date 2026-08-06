@@ -82,10 +82,14 @@ const startServer = async () => {
       return c.text(`Too many repos: max ${MAX_REPOS_PER_REQUEST} per request`, 400);
     }
 
-    const limited = checkRateLimit(c, repos.length);
+    // Fetch first so we only charge the rate limit for repos that actually yield
+    // valuable data. Repos that don't exist or have too few datapoints are returned
+    // in `missing` and never consume quota.
+    const { found, missing } = fetchRepoData(repos);
+
+    const limited = checkRateLimit(c, found.length);
     if (limited) return limited;
 
-    const { found, missing } = fetchRepoData(repos);
     return c.json({ data: found, missing });
   });
 
@@ -130,9 +134,6 @@ const startServer = async () => {
     if (repos.length > MAX_REPOS_PER_REQUEST) {
       return c.text(`Too many repos: max ${MAX_REPOS_PER_REQUEST} per request`, 400);
     }
-
-    const limited = checkRateLimit(c, repos.length);
-    if (limited) return limited;
 
     // Landscape1 card: previously returned a 1200x630 SVG with radar chart and
     // attributes, but it required live GitHub API metadata. That call has been
@@ -221,6 +222,12 @@ const startServer = async () => {
         repoData.push(d);
       }));
     }
+
+    // Rate-limit only on the number of repos that actually yielded valuable data.
+    // `repoData` contains every found repo (whether freshly fetched or from cache);
+    // missing/insufficient-repo queries never reach here and so never consume quota.
+    const limited = checkRateLimit(c, repoData.length);
+    if (limited) return limited;
 
     const dom = new JSDOM(`<!DOCTYPE html><body></body>`);
     const body = dom.window.document.querySelector("body");

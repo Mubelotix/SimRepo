@@ -10,6 +10,13 @@ import { XYChartData } from "@shared/packages/xy-chart"
 import { convertDataToChartData, getRepoData } from "@shared/common/chart"
 import toast from "helpers/toast"
 import { RepoData, LegendPosition } from "@shared/types/chart"
+import NoticeBanner from "./NoticeBanner"
+
+interface Notice {
+    kind: "warn" | "error"
+    title?: string
+    message: string
+}
 
 const VALID_LEGEND_POSITIONS: LegendPosition[] = ["top-left", "bottom-right"]
 import utils from "@shared/common/utils"
@@ -54,6 +61,8 @@ function StarChartViewer({ compact = false }: StarChartViewerProps) {
         showGenEmbedCodeDialog: false,
     })
 
+    const [notice, setNotice] = useState<Notice | null>(null)
+
     const containerElRef = useRef<HTMLDivElement>(null)
 
     const fetchReposData = React.useCallback(
@@ -73,12 +82,29 @@ function StarChartViewer({ compact = false }: StarChartViewerProps) {
                     }
                     return { ...prevState, repoCacheMap }
                 })
+                if (missing.length > 0) {
+                    setNotice({
+                        kind: "warn",
+                        title: "Some repositories couldn't be displayed",
+                        message:
+                            `Sorry, we don't have enough star-history data for: ${missing.join(", ")}. ` +
+                            "Please double-check that the name is spelled correctly, or that the repo has enough activity.",
+                    })
+                } else if (notCachedRepos.length > 0) {
+                    // A fresh, fully-successful fetch clears any previous persistent notice.
+                    setNotice(null)
+                }
             } catch (error: any) {
+                const isRateLimited = error?.response?.status === 429
                 const message =
-                    error?.response?.status === 429 && error?.response?.data
+                    isRateLimited && error?.response?.data
                         ? error.response.data
-                        : error.message
-                toast.warn(message)
+                        : error?.message ?? "Something went wrong while loading the chart."
+                setNotice({
+                    kind: "error",
+                    title: isRateLimited ? "You've been rate limited" : "Unable to load data",
+                    message,
+                })
             }
             store.actions.setIsFetching(false)
         },
@@ -351,6 +377,9 @@ function StarChartViewer({ compact = false }: StarChartViewerProps) {
     }
     return (
         <>
+            <div className="w-full max-w-3xl 2xl:max-w-4xl mx-auto sm:px-4">
+                {notice && <NoticeBanner kind={notice.kind} title={notice.title} message={notice.message} />}
+            </div>
             <div ref={containerElRef} className="relative w-full h-auto min-h-400px self-center max-w-3xl 2xl:max-w-4xl sm:p-4 pt-0">
                 {store.isFetching && (
                     <div className="absolute w-full h-full flex justify-center items-center z-10 top-0">
