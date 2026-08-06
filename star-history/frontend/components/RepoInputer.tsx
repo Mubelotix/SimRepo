@@ -237,6 +237,9 @@ export default function RepoInputer({ setChartVisibility }: RepoInputerProps) {
                     View star history
                 </button>
             </div>
+            <div className={`w-full mt-8 mb-2 flex flex-row justify-center items-center ${state.repos.length > 0 ? "invisible" : ""}`}>
+                <span className="text-sm text-gray-400">☝️ Enter a GitHub repo name to get started</span>
+            </div>
             <div className="w-full mt-4 flex flex-row justify-center items-center">
                 <div className={`w-full max-w-2xl flex flex-row flex-wrap justify-center items-center ${state.repos.length > 0 ? "" : "invisible"}`}>
                     {state.repos.map((item) => (
