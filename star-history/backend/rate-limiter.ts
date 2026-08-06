@@ -5,8 +5,8 @@ const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 // Per-IP limits expressed in number of repositories fetched.
-const MAX_REPOS_PER_HOUR = 5;
-const MAX_REPOS_PER_DAY = 20;
+const MAX_REPOS_PER_HOUR = 10;
+const MAX_REPOS_PER_DAY = 25;
 
 // Human-readable message sent when a non-whitelisted client is throttled.
 // Deliberately avoids exposing the exact numeric limits.
