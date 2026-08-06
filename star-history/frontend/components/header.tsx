@@ -2,15 +2,18 @@ import React, { useState } from "react";
 import GitHubStarButton from "./GitHubStarButton";
 import TokenSettingDialog from "./TokenSettingDialog";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { useAppStore } from "../store";
-import { SketchLightBulbIcon } from "./SketchIcons";
+import { SketchLightBulbIcon, SketchHomeIcon } from "./SketchIcons";
 
 const Header: React.FC = () => {
   const store = useAppStore()
+  const router = useRouter()
   const [showSetTokenDialog, setShowSetTokenDialog] = useState(false);
   const [showDropMenu, setShowDropMenu] = useState(false);
 
   const headerText = store.token ? "Edit access token" : "Add access token";
+  const isHowToUse = router.pathname === "/how-to-use";
 
   return (
     <>
@@ -22,7 +25,7 @@ const Header: React.FC = () => {
       )}
 
         <header className="w-full h-14 shrink-0 flex flex-row justify-center items-center bg-dark text-light">
-          <div className="w-full h-full flex flex-row justify-between items-center px-4">
+          <div className="relative w-full h-full flex flex-row justify-between items-center px-4">
             <div className="h-full bg-dark flex flex-row justify-start items-center">
               <Link href="/" className="header-link px-3">
                 <img className="w-7 h-auto logo-spin" src="/assets/logo-icon.png" alt="Logo" />
@@ -43,10 +46,16 @@ const Header: React.FC = () => {
                 {headerText}
               </span>
             </div>
-            <div className="hidden md:flex flex-row justify-center items-center">
-              <a href="https://blog.dera.page" target="_blank" rel="noopener noreferrer" className="flex flex-row items-center text-base px-2 hover:underline">
-                <span className="text-white flex items-center gap-1"><SketchLightBulbIcon /> How to use this site</span>
-              </a>
+            <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+              {isHowToUse ? (
+                <Link href="/" className="flex flex-row items-center text-base px-2 hover:underline">
+                  <span className="text-white flex items-center gap-1"><SketchHomeIcon /> Homepage</span>
+                </Link>
+              ) : (
+                <Link href="/how-to-use" className="flex flex-row items-center text-base px-2 hover:underline">
+                  <span className="text-white flex items-center gap-1"><SketchLightBulbIcon /> How to use this site</span>
+                </Link>
+              )}
             </div>
             <div className="h-full hidden md:flex flex-row justify-end items-center px-3">
               <GitHubStarButton />
