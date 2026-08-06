@@ -27,10 +27,10 @@
 ## ✨ Features
 
 - **Doesn't require API tokens;**
-- Unique `sketch xkcd` feeling chart;
-- One-click generation of high-quality image for chart;
-- Support multiple chart view mode based on date or timeline;
-- Embed the real-time chart into GitHub readme or other websites (like the one we embed here on the top);
+- Unique **`sketch xkcd`** feeling chart;
+- One-click generation of **high-quality** image for chart;
+- Support **multiple chart view** mode based on date or timeline;
+- Embed the real-time chart into **`GitHub readme`** or other websites (like the one we embed here on the top);
 - And various useful functions:
   - toggle repo visibility;
   - shortcut to input repo;
