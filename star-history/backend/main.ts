@@ -16,7 +16,7 @@ import {
   getBase64Image,
 } from "./utils.js";
 import { CHART_SIZES, MAX_REPOS_PER_REQUEST } from "./const.js";
-import { fetchRepoData } from "./repos.js";
+import { fetchRepoData, searchRepos } from "./repos.js";
 import { isWhitelisted, tryFetchRepos, RATE_LIMIT_MESSAGE } from "./rate-limiter.js";
 
 const FRONTEND_DIR = process.env.FRONTEND_DIR || "/app/www";
@@ -87,6 +87,16 @@ const startServer = async () => {
 
     const { found, missing } = fetchRepoData(repos);
     return c.json({ data: found, missing });
+  });
+
+  // Autocomplete suggestions for the repo input. Lightweight prefix lookup over
+  // repos.sqlite. Deliberately NOT rate-limited: it is a per-keystroke search,
+  // not a data-heavy chart request, and should never block typing.
+  app.get("/repo-search", (c) => {
+    const q = c.req.query("q") ?? "";
+    const limit = Math.min(Number(c.req.query("limit") ?? 8) || 8, 20);
+    const repos = searchRepos(q, limit);
+    return c.json({ repos });
   });
 
   // Normalize /svg query params for CDN cache efficiency.
