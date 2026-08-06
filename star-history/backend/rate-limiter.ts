@@ -1,4 +1,4 @@
-import { BlockList } from "node:net";
+import { BlockList, isIPv6 } from "node:net";
 import logger from "./logger.js";
 
 const HOUR_MS = 60 * 60 * 1000;
@@ -35,8 +35,8 @@ function addWhitelistEntry(entry: string): void {
 
   const slash = trimmed.indexOf("/");
   if (slash === -1) {
-    // Fully qualified IP (v4 or v6).
-    whitelist.addAddress(trimmed);
+    // Fully qualified IP (v4 or v6). addAddress needs an explicit family for v6.
+    whitelist.addAddress(trimmed, isIPv6(trimmed) ? "ipv6" : "ipv4");
     logger.info(`rate limit: whitelisted IP ${trimmed}`);
     return;
   }
@@ -48,8 +48,9 @@ function addWhitelistEntry(entry: string): void {
     return;
   }
 
-  // net.BlockList requires adding v4 vs v6 subnets separately.
-  whitelist.addSubnet(address, prefix);
+  // net.BlockList requires adding v4 vs v6 subnets separately, and v6 subnets need
+  // an explicit family (otherwise it throws ERR_INVALID_ADDRESS).
+  whitelist.addSubnet(address, prefix, isIPv6(address) ? "ipv6" : "ipv4");
   logger.info(`rate limit: whitelisted subnet ${trimmed}`);
 }
 
