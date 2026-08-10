@@ -1,5 +1,7 @@
 <div align="center">
 
+<img width="80px" src="https://star-history.dera.page/assets/logo-icon.png" alt="Star History logo" />
+
 # :sparkles: Star History :sparkles:
  
 [**star-history.dera.page**](https://star-history.dera.page), **GitHub star history, revived.**
