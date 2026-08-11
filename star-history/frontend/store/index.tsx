@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
-import storage from "../helpers/storage";
 import { ChartMode, LegendPosition } from "@shared/types/chart";
 import { useRouter } from "next/router";
 import axios from "axios";
@@ -13,7 +12,6 @@ export interface TrustedByRepo {
 
 interface AppState {
     isFetching: boolean;
-    token: string;
     repos: string[];
     chartMode: ChartMode;
     useLogScale: boolean;
@@ -28,7 +26,6 @@ interface AppStateContextProps {
     chartMode: ChartMode;
     useLogScale: boolean;
     legendPosition: LegendPosition;
-    token: string;
     trustedBy: TrustedByRepo[];
     trustedByLoaded: boolean;
     state: AppState;
@@ -36,7 +33,6 @@ interface AppStateContextProps {
         addRepo(repo: string): void;
         delRepo(repo: string): void;
         setRepos(repos: string[]): void;
-        setToken(token: string): void;
         setIsFetching(isFetching: boolean): void;
         setChartMode(chartMode: ChartMode): void;
         setUseLogScale(useLogScale: boolean): void;
@@ -51,7 +47,6 @@ export const AppStateProvider: React.FC<{
 }> = ({ children }) => {
     const [state, setState] = useState<AppState>({
         isFetching: false,
-        token: "",
         repos: [],
         chartMode: "Date",
         useLogScale: false,
@@ -84,7 +79,6 @@ export const AppStateProvider: React.FC<{
     const router = useRouter();
     useEffect(() => {
         const fetchData = () => {
-            const { accessTokenCache } = storage.get(["accessTokenCache"]);
             const hash = router.asPath.split("#")[1] || '';
             const params = hash.split("&").filter((i) => Boolean(i));
             const repos: string[] = [];
@@ -124,7 +118,6 @@ export const AppStateProvider: React.FC<{
             setState((prev) => ({
                 ...prev,
                 isFetching: false,
-                token: accessTokenCache || "",
                 repos,
                 chartMode,
                 useLogScale,
@@ -160,9 +153,6 @@ export const AppStateProvider: React.FC<{
         setRepos: (repos: string[]) => {
             setState((prev) => ({ ...prev, repos }));
         },
-        setToken: (token: string) => {
-            setState((prev) => ({ ...prev, token }));
-        },
         setIsFetching: (isFetching: boolean) => {
             setState((prev) => ({ ...prev, isFetching }));
         },
@@ -183,7 +173,6 @@ export const AppStateProvider: React.FC<{
         chartMode: state.chartMode,
         useLogScale: state.useLogScale,
         legendPosition: state.legendPosition,
-        token: state.token,
         trustedBy: state.trustedBy,
         trustedByLoaded: state.trustedByLoaded,
         state,

@@ -1,8 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import React, { useState, useEffect, useRef } from "react"
 import StarXYChart from "./Charts/StarXYChart"
-import TokenSettingDialog from "./TokenSettingDialog"
-import GenerateEmbedCodeDialog from "./GenerateEmbedCodeDialog"
 import EmbedMarkdownSection from "./EmbedMarkdownSection"
 import { useAppStore } from "store"
 import { FaSpinner } from "react-icons/fa"
@@ -37,9 +35,6 @@ interface State {
     >
     chartData: XYChartData | undefined
     isGeneratingImage: boolean
-    showSetTokenDialog: boolean
-    showGenEmbedCodeDialog: boolean
-    showEmbedCodeDialog: boolean
 }
 
 interface StarChartViewerProps {
@@ -56,9 +51,6 @@ function StarChartViewer({ compact = false }: StarChartViewerProps) {
         repoCacheMap: new Map(),
         chartData: undefined,
         isGeneratingImage: false,
-        showEmbedCodeDialog: false,
-        showSetTokenDialog: false,
-        showGenEmbedCodeDialog: false,
     })
 
     const [notice, setNotice] = useState<Notice | null>(null)
@@ -341,14 +333,6 @@ function StarChartViewer({ compact = false }: StarChartViewerProps) {
         }
     }
 
-    const handleGenEmbedCodeDialogBtnClick = () => {
-        setState((prevState) => ({ ...prevState, showEmbedCodeDialog: true }))
-    }
-
-    const handleGenEmbedCodeDialogClose = () => {
-        setState((prevState) => ({ ...prevState, showEmbedCodeDialog: false }))
-    }
-
     const handleToggleChartBtnClick = React.useCallback(() => {
         const newChartMode = state.chartMode === "Date" ? "Timeline" : "Date"
         store.actions.setChartMode(newChartMode)
@@ -372,9 +356,6 @@ function StarChartViewer({ compact = false }: StarChartViewerProps) {
         })
     }, [store.actions])
 
-    const handleSetTokenDialogClose = () => {
-        setState((prevState) => ({ ...prevState, showSetTokenDialog: false }))
-    }
     return (
         <>
             <div className="w-full max-w-3xl 2xl:max-w-4xl mx-auto sm:px-4">
@@ -433,15 +414,6 @@ function StarChartViewer({ compact = false }: StarChartViewerProps) {
                     </>
                 )}
                 <div id="capture">{state.chartData && state.chartData.datasets.length > 0 && <StarXYChart classname={`w-full h-auto ${compact ? "" : "mt-6"}`} data={state.chartData} chartMode={state.chartMode} useLogScale={state.useLogScale} legendPosition={state.legendPosition} />}</div>
-                {/* ... rest of the JSX here */}
-                {state.showSetTokenDialog && (
-                    <TokenSettingDialog
-                        onClose={handleSetTokenDialogClose}
-                        show={state.showSetTokenDialog}
-                    />
-                )}
-
-                {state.showEmbedCodeDialog && <GenerateEmbedCodeDialog onClose={handleGenEmbedCodeDialogClose} show={state.showEmbedCodeDialog} />}
             </div>
 
             {!compact && state.chartData && state.chartData.datasets.length > 0 && (
@@ -457,9 +429,6 @@ function StarChartViewer({ compact = false }: StarChartViewerProps) {
                                     <i className="fas fa-download"></i> CSV
                                 </button>
 
-                                <button className="ml-2 mb-2 btn-secondary" onClick={handleGenEmbedCodeDialogBtnClick}>
-                                    <i className="fas fa-code"></i> Embed
-                                </button>
                                 <button className="ml-2 mb-2 btn-secondary" onClick={handleCopyLinkBtnClick}>
                                     <i className="far fa-copy"></i> Link{" "}
                                 </button>

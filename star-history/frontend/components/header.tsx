@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import GitHubStarButton from "./GitHubStarButton";
-import TokenSettingDialog from "./TokenSettingDialog";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useAppStore } from "../store";
@@ -9,21 +8,12 @@ import { SketchLightBulbIcon, SketchHomeIcon } from "./SketchIcons";
 const Header: React.FC = () => {
   const store = useAppStore()
   const router = useRouter()
-  const [showSetTokenDialog, setShowSetTokenDialog] = useState(false);
   const [showDropMenu, setShowDropMenu] = useState(false);
 
-  const headerText = store.token ? "Edit access token" : "Add access token";
   const isHowToUse = router.pathname === "/how-to-use";
 
   return (
     <>
-      {showSetTokenDialog && (
-        <TokenSettingDialog
-          onClose={() => setShowSetTokenDialog(false)}
-          tokenCache={false}
-        />
-      )}
-
         <header className="w-full h-14 shrink-0 flex flex-row justify-center items-center bg-dark text-light">
           <div className="relative w-full h-full flex flex-row justify-between items-center px-4">
             <div className="h-full bg-dark flex flex-row justify-start items-center">
@@ -39,12 +29,6 @@ const Header: React.FC = () => {
               <a href="https://github.com/sponsors/Mubelotix" target="_blank" rel="noopener noreferrer" className="header-link text-base">
                 <span className="text-white -2">Sponsor</span>
               </a>
-              <span
-                className="header-link cursor-pointer text-white text-base"
-                onClick={() => setShowSetTokenDialog(true)}
-              >
-                {headerText}
-              </span>
             </div>
             <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
               {isHowToUse ? (
@@ -76,12 +60,6 @@ const Header: React.FC = () => {
           </div>
         </header>
         <div className={`w-full h-auto py-2 flex md:hidden flex-col justify-start items-start shadow-lg border-b ${showDropMenu ? "flex" : "hidden"}`}>
-          <span
-            className="h-12 px-3 text-base w-full flex flex-row justify-start items-center cursor-pointer font-semibold text-dark mr-2 hover:bg-gray-100 hover:text-blue-500"
-            onClick={() => setShowSetTokenDialog(true)}
-          >
-            {headerText}
-          </span>
           <span className="h-12 text-base px-3 w-full flex flex-row justify-start items-center text-dark">
             <GitHubStarButton />
           </span>
