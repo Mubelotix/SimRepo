@@ -36,7 +36,7 @@ This is a **Next.js 14 + TypeScript** application for visualizing GitHub reposit
 
 **Data Source**:
 - Star history and repo metadata come from the backend (`/repo-data`, sourced from `repos.sqlite`) via `@shared/common/chart.tsx`
-- The only GitHub API call is a client-side request from `components/GitHubStarButton.tsx` (fetches the star count for the header button). An optional access token is stored in the browser via `store/index.tsx` / `TokenSettingDialog.tsx` (client-side only, never sent to our servers).
+- The only GitHub API call is a client-side request from `components/GitHubStarButton.tsx` (fetches the star count for the header button).
 
 ### Data Flow
 1. URL hash → Parse repos and chart mode
