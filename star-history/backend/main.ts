@@ -5,6 +5,8 @@ import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { optimize } from 'svgo';
 import { JSDOM } from "jsdom";
+import fs from "node:fs";
+import path from "node:path";
 import XYChart from "../shared/packages/xy-chart.js";
 import { convertDataToChartData } from "../shared/common/chart.js";
 import { ChartMode } from "../shared/types/chart.js";
@@ -16,10 +18,12 @@ import {
   getBase64Image,
 } from "./utils.js";
 import { CHART_SIZES, MAX_REPOS_PER_REQUEST } from "./const.js";
-import { fetchRepoData, searchRepos } from "./repos.js";
+import { fetchRepoData, searchRepos, fetchTrustedBy, type TrustedByEntry } from "./repos.js";
 import { isWhitelisted, tryFetchRepos, RATE_LIMIT_MESSAGE } from "./rate-limiter.js";
 
 const FRONTEND_DIR = process.env.FRONTEND_DIR || "/app/www";
+
+const TRUSTED_BY_PATH = path.join(process.cwd(), "..", "gh", "data", "trusted-by.json");
 
 const SVG_HEADERS = {
   "Content-Type": "image/svg+xml;charset=utf-8",
@@ -64,6 +68,30 @@ const startServer = async () => {
       commit: process.env.GIT_COMMIT || "unknown",
       cache: getAllCacheStats(),
     }, 200);
+  });
+
+  // Lightweight, fixed dataset for the homepage "Trusted by" list. Resolved once
+  // from repos.sqlite at program start (then memoized), so it never touches the
+  // per-IP chart rate limit. Not rate-limited: it is a small, stable payload.
+  let trustedByCache: TrustedByEntry[] | null = null;
+  const getTrustedBy = (): TrustedByEntry[] => {
+    if (trustedByCache) return trustedByCache;
+    let list: string[] = [];
+    try {
+      list = JSON.parse(fs.readFileSync(TRUSTED_BY_PATH, "utf-8"));
+    } catch (err) {
+      logger.warn(`Failed to load trusted-by list from ${TRUSTED_BY_PATH}: ${err}`);
+    }
+    trustedByCache = fetchTrustedBy(list);
+    return trustedByCache;
+  };
+
+  app.get("/trusted-by", (c) => {
+    return c.json(
+      { repos: getTrustedBy() },
+      200,
+      { "Cache-Control": "public, s-maxage=3600, max-age=3600" }
+    );
   });
 
   // Serve star history + logo data sourced from repos.sqlite.

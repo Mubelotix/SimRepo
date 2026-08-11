@@ -89,6 +89,32 @@ export interface RepoSearchEntry {
   stars_total: number;
 }
 
+export interface TrustedByEntry {
+  name: string;
+  logoUrl: string;
+  stars: number | null;
+}
+
+/**
+ * Resolve a fixed list of repo names into lightweight trust indicators (icon +
+ * current star count) for the homepage "Trusted by" section. Repos missing from
+ * the dataset fall back to the GitHub owner avatar with unknown star count.
+ */
+export function fetchTrustedBy(repoNames: string[]): TrustedByEntry[] {
+  const { found, missing } = fetchRepoData(repoNames);
+  const foundMap = new Map(found.map((d) => [d.repo.toLowerCase(), d]));
+  return repoNames
+    .map((name) => {
+      const d = foundMap.get(name.toLowerCase());
+      if (d) {
+        const last = d.starRecords[d.starRecords.length - 1];
+        return { name, logoUrl: d.logoUrl, stars: last ? last.count : null };
+      }
+      return { name, logoUrl: `https://github.com/${name.split("/")[0]}.png?size=64`, stars: null };
+    })
+    .sort((a, b) => (b.stars ?? -1) - (a.stars ?? -1));
+}
+
 /**
  * Search repos by a (case-insensitive) prefix of their name, returning up to
  * `limit` matches ordered by the repo with the most stars first. Uses the
