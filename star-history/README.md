@@ -46,31 +46,12 @@
 
 ## 🏗 Development
 
-> We do not accept external contribution.
-
 **`Star-history`** is built using a **modern tech stack**: **`Next.js`** + **`TailwindCSS`**.
 
-### Prerequisites
-
-- [Node.js](https://nodejs.org/en/download/)
-- [pnpm](https://pnpm.io/)
-
-### Homepage
-
-**Homepage** of star-history with most of useful features.
+Contributions are welcome, especially those that give the website a more modern look. Reviews are made by humans, so keep your changes focused and prefer submitting multiple small pull requests over one large one.
 
 ```shell
-cd frontend && pnpm i && pnpm dev
+pnpm i && pnpm dev
 ```
 
-The website will be served at http://localhost:3000.
-
-### API Server
-
-**API server** is an **`experimental feature`**. It's mainly used to **generate chart `SVG`** image file that can be embeded into **`GitHub readme`**.
-
-```shell
-cd backend && pnpm i && pnpm dev
-```
-
-The API server will be running on http://localhost:8080.
+This runs both the frontend and the backend concurrently. The website will be served at http://localhost:3000, and the API server (used to generate chart **`SVG`** images for **`GitHub readme`**) on http://localhost:8080.
