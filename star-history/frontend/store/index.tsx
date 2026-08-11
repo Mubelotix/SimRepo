@@ -2,6 +2,14 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from "
 import storage from "../helpers/storage";
 import { ChartMode, LegendPosition } from "@shared/types/chart";
 import { useRouter } from "next/router";
+import axios from "axios";
+import { REPO_DATA_API_URL } from "@shared/common/config";
+
+export interface TrustedByRepo {
+    name: string;
+    logoUrl: string;
+    stars: number | null;
+}
 
 interface AppState {
     isFetching: boolean;
@@ -10,6 +18,8 @@ interface AppState {
     chartMode: ChartMode;
     useLogScale: boolean;
     legendPosition: LegendPosition;
+    trustedBy: TrustedByRepo[];
+    trustedByLoaded: boolean;
 }
 
 interface AppStateContextProps {
@@ -19,6 +29,8 @@ interface AppStateContextProps {
     useLogScale: boolean;
     legendPosition: LegendPosition;
     token: string;
+    trustedBy: TrustedByRepo[];
+    trustedByLoaded: boolean;
     state: AppState;
     actions: {
         addRepo(repo: string): void;
@@ -44,7 +56,30 @@ export const AppStateProvider: React.FC<{
         chartMode: "Date",
         useLogScale: false,
         legendPosition: "top-left",
+        trustedBy: [],
+        trustedByLoaded: false,
     });
+
+    // Process the trusted-by repo list once at program start: the backend resolves
+    // each repo to its icon (logoUrl) and current star count, served as a small,
+    // non-rate-limited payload.
+    useEffect(() => {
+        let disposed = false;
+        const loadTrustedBy = async () => {
+            try {
+                const { data } = await axios.get(`${REPO_DATA_API_URL}/trusted-by`, { timeout: 5000 });
+                if (disposed) return;
+                setState((prev) => ({ ...prev, trustedBy: data?.repos ?? [], trustedByLoaded: true }));
+            } catch {
+                if (disposed) return;
+                setState((prev) => ({ ...prev, trustedByLoaded: true }));
+            }
+        };
+        loadTrustedBy();
+        return () => {
+            disposed = true;
+        };
+    }, []);
 
     const router = useRouter();
     useEffect(() => {
@@ -151,6 +186,8 @@ export const AppStateProvider: React.FC<{
         useLogScale: state.useLogScale,
         legendPosition: state.legendPosition,
         token: state.token,
+        trustedBy: state.trustedBy,
+        trustedByLoaded: state.trustedByLoaded,
         state,
         actions,
     }), [state, actions]);
