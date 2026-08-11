@@ -27,7 +27,7 @@ const Header: React.FC = () => {
         <header className="w-full h-14 shrink-0 flex flex-row justify-center items-center bg-dark text-light">
           <div className="relative w-full h-full flex flex-row justify-between items-center px-4">
             <div className="h-full bg-dark flex flex-row justify-start items-center">
-              <Link href="/" className="header-link px-3">
+              <Link href="/" className="header-link px-3" onClick={() => store.actions.setRepos([])}>
                 <img className="w-7 h-auto logo-spin" src="/assets/logo-icon.png" alt="Logo" />
               </Link>
               <a href="https://blog.dera.page" target="_blank" rel="noopener noreferrer" className="header-link text-base">
