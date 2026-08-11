@@ -8,7 +8,7 @@
 </div>
 
 > [!IMPORTANT]
-> **This is a fork.** It is not affiliated with the original developers. Star History was originally built by [@tim_qian](https://github.com/timqian) and [Bytebase](https://github.com/bytebase). The original [star-history.com](https://www.star-history.com) project is being killed off by GitHub's decision to sunset the GitHub API it relied on ([GitHub Stargazer API restriction](https://www.star-history.com/blog/github-stargazer-api-restriction)). This fork fills that gap by serving star history from a different data source.
+> **Migrating here from [star-history.com](https://www.star-history.com)? You're at the right place.** [GitHub's Stargazer API shutdown](https://www.star-history.com/blog/github-stargazer-api-restriction) doomed the original, but this fork keeps star history alive from a different data source. And we're the only service that's simple to use *and* doesn't beg for a write-enabled API token.
 
 > 💖 Star History is maintained by [@Mubelotix](https://github.com/Mubelotix). If you find it useful, please consider contributing to the projects via GitHub Sponsors: **[sponsor Mubelotix](https://github.com/sponsors/Mubelotix)**.
 
