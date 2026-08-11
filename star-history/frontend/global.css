@@ -128,4 +128,13 @@ body {
     .code-text {
         @apply font-mono break-all text-gray-600 text-sm;
     }
+
+    /* ── Markdown syntax colors ── */
+    .md-heading { @apply text-green-600 font-bold; }
+    .md-punct { @apply text-gray-700; }
+    .md-alt { @apply text-black; }
+    .md-url { @apply text-blue-600; }
+    .md-tag { @apply text-red-700; }
+    .md-attr { @apply text-purple-700; }
+    .md-string { @apply text-blue-600; }
 }
