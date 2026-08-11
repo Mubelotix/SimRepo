@@ -50,6 +50,7 @@ token.env
 # generated files
 gh/data/*
 !gh/data/repos.json
+!gh/data/trusted-by.json
 
 # gh event pipeline
 gh/event.db
