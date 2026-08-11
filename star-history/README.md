@@ -16,7 +16,7 @@
 
 ---
 
-👇 **THIS** is a **`live`** chart. Follow [instruction](https://star-history.dera.page/torvalds/linux) to embed yours.
+👇 **THIS** is a **`live`** chart. Follow [instruction](https://star-history.dera.page/how-to-use) to embed yours.
 
 <a href="https://star-history.dera.page/#torvalds/linux&type=date&legend=top-left">
  <picture>
