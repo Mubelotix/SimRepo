@@ -125,7 +125,7 @@ export const AppStateProvider: React.FC<{
                 ...prev,
                 isFetching: false,
                 token: accessTokenCache || "",
-                repos: repos.length > 0 ? repos : prev.repos,
+                repos,
                 chartMode,
                 useLogScale,
                 legendPosition,
@@ -136,10 +136,8 @@ export const AppStateProvider: React.FC<{
         fetchData();
 
         // Listen for hash changes using Next.js router
-        const handleHashChange = (url: string) => {
-            if (url.includes("#")) {
-                fetchData();
-            }
+        const handleHashChange = () => {
+            fetchData();
         };
         router.events.on("hashChangeComplete", handleHashChange);
 
@@ -147,7 +145,7 @@ export const AppStateProvider: React.FC<{
         return () => {
             router.events.off("hashChangeComplete", handleHashChange);
         };
-    }, [router]);
+    }, [router.asPath]);
 
     const actions = useMemo<AppStateContextProps["actions"]>(() => ({
         addRepo: (repo: string) => {
