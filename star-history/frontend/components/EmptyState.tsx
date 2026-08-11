@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import React from "react"
+import Link from "next/link"
 import { useAppStore } from "../store"
 import { formatNumber } from "../helpers/format"
 import { FaSpinner } from "react-icons/fa"
@@ -41,10 +42,8 @@ const EmptyState: React.FC = () => {
                     <ul className="flex flex-row flex-wrap justify-center gap-3">
                         {store.trustedBy.map((repo) => (
                             <li key={repo.name}>
-                                <a
-                                    href={`https://github.com/${repo.name}`}
-                                    target="_blank"
-                                    rel="noreferrer"
+                                <Link
+                                    href={`/#${repo.name}`}
                                     className="flex flex-row justify-center items-center gap-2 px-3 py-1.5 text-sm text-dark bg-gray-100 rounded-lg shadow-sm hover:bg-gray-200"
                                 >
                                     <img src={repo.logoUrl} alt={`${repo.name} logo`} className="w-5 h-5 rounded-full" />
@@ -55,7 +54,7 @@ const EmptyState: React.FC = () => {
                                             {formatNumber(repo.stars)}
                                         </span>
                                     )}
-                                </a>
+                                </Link>
                             </li>
                         ))}
                     </ul>
