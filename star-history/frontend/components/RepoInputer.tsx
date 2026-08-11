@@ -369,12 +369,15 @@ export default function RepoInputer({ setChartVisibility }: RepoInputerProps) {
                     </ul>
                 )}
             </div>
-            <div className={`w-full mt-8 mb-2 flex flex-row justify-center items-center ${state.repos.length > 0 ? "invisible" : ""}`}>
-                <span className="text-sm text-gray-400">☝️ Enter a GitHub repo name to get started</span>
-            </div>
-            <div className="w-full mt-4 flex flex-row justify-center items-center">
-                <div className={`w-full max-w-2xl flex flex-row flex-wrap justify-center items-center ${state.repos.length > 0 ? "" : "invisible"}`}>
-                    {state.repos.map((item) => (
+            {state.repos.length === 0 && (
+                <div className="w-full mt-8 mb-2 flex flex-row justify-center items-center">
+                    <span className="text-sm text-gray-400">☝️ Enter a GitHub repo name to get started</span>
+                </div>
+            )}
+            {state.repos.length > 0 && (
+                <div className="w-full mt-4 flex flex-row justify-center items-center">
+                    <div className="w-full max-w-2xl flex flex-row flex-wrap justify-center items-center">
+                        {state.repos.map((item) => (
                         <div key={item.name} className="leading-8 px-3 pr-2 mb-2 text-dark rounded flex flex-row justify-center items-center border mr-3 last:mr-0">
                             <span className="relative w-3 h-3 mr-1 flex flex-row justify-center items-center cursor-pointer hover:opacity-60" onClick={() => handleDeleteRepoBtnClick(item.name)}>
                                 <span className="w-3 rotate-45 h-px bg-[black] absolute top-1/2"></span>
@@ -396,6 +399,7 @@ export default function RepoInputer({ setChartVisibility }: RepoInputerProps) {
                     </button>
                 </div>
             </div>
+        )}
         </div>
     )
 }
