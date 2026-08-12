@@ -1,4 +1,8 @@
 [
+  "aspizu/goboscript",
+  "ianyepan/yay-evil-emacs",
+  "kairolang/kairo",
+  "RTGS2017/NagaAgent",
   "Jman-Github/Universal-ReVanced-Manager",
   "Snailclimb/JavaGuide",
   "Winson-030/dify-kubernetes",
@@ -9,13 +13,11 @@
   "langgenius/dify",
   "lesismal/nbio",
   "milwad-dev/laravel-validate",
-  "moneymanagerex/android-money-manager-ex",
   "nezhahq/nezha",
   "opensandbox-group/OpenSandbox",
   "pieroproietti/penguins-eggs-legacy",
   "reader-dict/monolingual",
   "shner-elmo/TradingView-Screener",
-  "vchelaru/Gum",
   "vdesabou/kafka-docker-playground",
   "vycdev/Kromacut",
   "ruby-oauth/oauth",
@@ -23,5 +25,11 @@
   "gree/unity-webview",
   "vdesabou/alfred-spotify-mini-player",
   "extesy/hoverzoom",
-  "joaomlourenco/novathesis"
+  "moneymanagerex/android-money-manager-ex",
+  "joaomlourenco/novathesis",
+  "vchelaru/Gum",
+  "RoaringBitmap/CRoaring",
+  "slgobinath/safeeyes",
+  "theyosh/TerrariumPI",
+  "bibanon/tubeup"
 ]
