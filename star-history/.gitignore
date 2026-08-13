@@ -32,10 +32,6 @@ yarn-error.log*
 
 # local env files
 .env*.local
-gh/gcp-service-account.json
-gh/github-token.env
-gh/*.db-shm
-gh/*.db-wal
 
 # vercel
 .vercel
@@ -48,12 +44,7 @@ next-env.d.ts
 token.env
 
 # generated files
-gh/data/*
-!gh/data/repos.json
-!gh/data/trusted-by.json
-
-# gh event pipeline
-gh/event.db
-gh/archive-data/
+backend/data/*
+!backend/data/trusted-by.json
 
 *.sqlite*

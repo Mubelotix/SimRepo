@@ -23,7 +23,7 @@ The following files are auto-generated and gitignored. Never `git add -f` them:
 
 ## Project Structure
 
-The repo has four main directories: `shared/`, `frontend/`, `backend/`, and `gh/`.
+The repo has three main directories: `shared/`, `frontend/`, and `backend/`.
 
 ### Shared (`shared/`)
 
@@ -116,25 +116,9 @@ The `backend/` directory is a Hono server (deployed as `api.star-history.com`) t
 | `repos.ts` | Reads star history + logo URLs + repo metadata + radar attributes from `repos.sqlite` |
 | `utils.ts` | SVG manipulation, image conversion helpers |
 
-## GH (Data Pipelines)
+## Data Source
 
-The `gh/` directory contains the **event** pipeline (raw GitHub event archive for analytics).
-
-### Data Source
-
-All repo metadata, star history, and radar attributes live in `repos.sqlite` (gitignored, bind-mounted at runtime), served by the backend. `gh/data/trusted-by.json` is the fixed homepage "Trusted by" list. The former `gh/data/repos.json` / `@gh-data` pipeline has been removed.
-
-### Event Pipeline
-
-Downloads hourly GH Archive data into a local SQLite database with per-event-type tables (16 types) for schema exploration and analytics.
-
-- **Run**: `cd gh && pnpm run event [YYYY-MM-DD] [hour]` — defaults to yesterday hour 0
-- **DB**: `event.db` — separate per-type tables (e.g. `push_events`, `pull_request_events`), each with common fields (actor, repo, org) plus event-specific payload columns
-- **Data source**: `https://data.gharchive.org/{date}-{hour}.json.gz`
-
-| File | Purpose |
-|------|---------|
-| `event.ts` | Downloads, decompresses, and loads GH Archive events into `event.db` |
+All repo metadata, star history, and radar attributes live in `repos.sqlite` (gitignored, bind-mounted at runtime), served by the backend. `backend/data/trusted-by.json` is the fixed homepage "Trusted by" list.
 
 ## CI/CD Workflows
 
