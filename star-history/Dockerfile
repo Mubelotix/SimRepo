@@ -14,9 +14,8 @@ RUN corepack enable && pnpm i --frozen-lockfile
 COPY frontend/package.json frontend/pnpm-lock.yaml ./frontend/
 RUN cd frontend && pnpm i --frozen-lockfile
 
-# Sources needed to compile (@shared => shared/, @gh-data => gh/data)
+# Sources needed to compile (@shared => shared/, backend data => backend/data)
 COPY shared/ ./shared/
-COPY gh/data ./gh/data
 COPY frontend/ ./frontend/
 
 ENV NODE_ENV=production
@@ -47,7 +46,6 @@ RUN cd backend && pnpm i
 # Source code
 COPY shared/ ./shared/
 COPY backend/ ./backend/
-COPY gh/data ./gh/data
 
 # Frontend static files, exposed for an external nginx to serve.
 # Mount this directory into your nginx documents root.

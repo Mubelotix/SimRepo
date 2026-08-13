@@ -23,7 +23,7 @@ import { isWhitelisted, tryFetchRepos, RATE_LIMIT_MESSAGE } from "./rate-limiter
 
 const FRONTEND_DIR = process.env.FRONTEND_DIR || "/app/www";
 
-const TRUSTED_BY_PATH = path.join(process.cwd(), "..", "gh", "data", "trusted-by.json");
+const TRUSTED_BY_PATH = path.join(process.cwd(), "data", "trusted-by.json");
 
 const SVG_HEADERS = {
   "Content-Type": "image/svg+xml;charset=utf-8",

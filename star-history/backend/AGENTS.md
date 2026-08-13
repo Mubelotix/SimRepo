@@ -22,7 +22,6 @@ This is a Hono backend server that generates SVG charts of GitHub repository sta
 - **Main Server** (`main.ts`): Endpoints `/svg` (chart), `/repo-data` (star data + logo URLs), `/healthz`. `/svg` accepts query params (repos, type, size, theme, transparent). `style=landscape1` (OG cards) is disabled and returns 503 because it required the GitHub API.
 - **Data Processing** (`../shared/common/chart.tsx`): Converts data to chart format, handles Date vs Timeline modes
 - **Utilities** (`utils.ts`): Image conversion, SVG manipulation, size calculations
-- **Repo data** (`../shared/common/repo-data.ts`): Loads repo metadata (attributes/rank) from `gh/data/repos.json`
 
 ### Shared Code
 Chart code and types live in root `shared/` (shared with frontend). Backend imports via `../shared/` relative paths. See root AGENTS.md for the full shared directory listing.
