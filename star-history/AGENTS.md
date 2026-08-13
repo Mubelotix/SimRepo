@@ -61,19 +61,20 @@ Next.js **Pages Router** with `output: "export"` (static site generation).
 
 | Route | File (`frontend/pages/`) | Description |
 |-------|--------------------------|-------------|
-| `/` | `index.tsx` | Home — chart viewer with repo input, sidebars |
-| `/:owner/:repo` | `[...slug].tsx` | Repository detail page (catch-all) |
-| 404 | `404.tsx` | Custom 404 with context-aware messages |
+| `/` | `index.tsx` | Home — the single app page: chart viewer + stats card, driven by hash URLs (`#owner/repo&type=date&logscale`) |
+| `/how-to-use` | `how-to-use.tsx` | Usage documentation |
+| 404 | `404.tsx` | Redirects `/:owner/:repo` paths to the hash URL (`/#owner/repo`); otherwise a generic 404 |
 
-Layout wrappers: `_app.tsx` (per-page `getLayout` pattern), `_document.tsx`.
+There is **no static per-repo page**. Any repo is shown on the fly by the homepage reading the URL hash and fetching data from the backend. Layout wrappers: `_app.tsx` (per-page `getLayout` pattern), `_document.tsx`.
 
 ## State & Data Flow
 
 1. **URL hash** (`#repo1&repo2&type=date&logscale`) → parsed in `store/index.tsx`
 2. `RepoInputer` manages repo list → triggers `StarChartViewer`
-3. Backend serves star history and repo metadata from `repos.sqlite` (via `/repo-data`); frontend fetches it through `@shared/common/chart.tsx`. The server no longer calls the GitHub API.
-4. `@shared/common/chart.tsx` transforms data to D3-compatible format (frontend passes `{ insertZeroPoint: true }`)
-5. `@shared/packages/xy-chart.tsx` renders the SVG chart via D3
+3. When exactly one repo is present, `components/RepoStatsCard.tsx` renders the stats card + radar (`components/RadarChart.tsx`) from repo metadata/attributes.
+4. Backend serves star history, repo metadata, and radar attributes from `repos.sqlite` (via `/repo-data`); frontend fetches it through `@shared/common/chart.tsx`. The server never calls the GitHub API.
+5. `@shared/common/chart.tsx` transforms data to D3-compatible format (frontend passes `{ insertZeroPoint: true }`)
+6. `@shared/packages/xy-chart.tsx` renders the SVG chart via D3
 
 ## Visual Style Guide
 
@@ -95,9 +96,9 @@ The project uses an **xkcd / hand-drawn aesthetic**. All interactive overlays an
 ## Key Files for Common Changes
 
 - **Chart rendering**: `@shared/packages/xy-chart.tsx`, `components/StarChartViewer.tsx`, `components/Charts/StarXYChart.tsx`
-- **Repo metadata / star data**: `@shared/common/repo-data.ts` (frontend) and `backend/repos.ts` (reads `repos.sqlite`)
+- **Repo metadata / star data / radar attributes**: `backend/repos.ts` (reads `repos.sqlite`)
+- **Stats card / radar**: `components/RepoStatsCard.tsx`, `components/RadarChart.tsx`
 - **State management**: `store/index.tsx`
-- **Repo detail page**: `pages/[...slug].tsx`, `components/PageShell.tsx`
 - **Layout & nav**: `components/header.tsx`, `components/footer.tsx`, `components/LeftSidebar.tsx`, `components/RightSidebar.tsx`
 - **Styling**: `tailwind.config.js`, `global.css`
 
@@ -110,18 +111,18 @@ The `backend/` directory is a Hono server (deployed as `api.star-history.com`) t
 
 | File | Purpose |
 |------|---------|
-| `main.ts` | Hono server with `/svg`, `/repo-data`, `/healthz` endpoints (query params: `repos`, `type`, `style`, `size`, `theme`) |
+| `main.ts` | Hono server with `/svg`, `/repo-data`, `/repo-search`, `/trusted-by`, `/healthz` endpoints (query params: `repos`, `type`, `style`, `size`, `theme`) |
 | `cache.ts` | LRU cache (10K repos, 1GB, 24h TTL) for star records and rendered chart SVGs |
-| `repos.ts` | Reads star history + logo URLs from `repos.sqlite` |
+| `repos.ts` | Reads star history + logo URLs + repo metadata + radar attributes from `repos.sqlite` |
 | `utils.ts` | SVG manipulation, image conversion helpers |
 
 ## GH (Data Pipelines)
 
 The `gh/` directory contains the **event** pipeline (raw GitHub event archive for analytics).
 
-### Star / Leaderboard Data
+### Data Source
 
-The frontend consumes a static `gh/data/repos.json` (repo metadata: name, stars, rank, percentiles) imported via the `@gh-data/*` alias. It is **committed** to the repo and updated manually from time to time. The old `star.db` / `star:generate` pipeline has been removed. The leaderboard sidebar currently shows a WIP disclaimer.
+All repo metadata, star history, and radar attributes live in `repos.sqlite` (gitignored, bind-mounted at runtime), served by the backend. `gh/data/trusted-by.json` is the fixed homepage "Trusted by" list. The former `gh/data/repos.json` / `@gh-data` pipeline has been removed.
 
 ### Event Pipeline
 
@@ -137,13 +138,12 @@ Downloads hourly GH Archive data into a local SQLite database with per-event-typ
 
 ## CI/CD Workflows
 
-Three GitHub Actions workflows in `.github/workflows/`:
+One GitHub Actions workflow in `.github/workflows/`:
 
 | Workflow | Trigger | What it does |
 |----------|---------|-------------|
-| `deploy-frontend.yml` | Push to `frontend/**`, `shared/**`, workflow file; PR preview; `workflow_dispatch` | Builds frontend, deploys to Cloudflare Pages |
-| `deploy-backend.yml` | Push to `backend/**`, `shared/**`, workflow file; `workflow_dispatch` | Builds Docker image, deploys to GKE |
+| `publish.yml` | Push to `main`; `workflow_dispatch` | Builds Docker image (frontend static export + Hono backend), pushes to GHCR |
 
 **Key design decisions:**
-- `gh/data/repos.json` is committed and updated manually; the `star:generate` pipeline has been removed
+- All repo data lives in `repos.sqlite` (gitignored, bind-mounted at runtime); there is no committed repo metadata file and no GitHub API pipeline.
 - There is no longer a GitHub API fetch pipeline; repo data is committed directly
