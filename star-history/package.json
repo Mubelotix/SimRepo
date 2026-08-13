@@ -1,5 +1,6 @@
 {
   "private": true,
+  "packageManager": "pnpm@9.15.4",
   "description": "Shared dependencies for star-history shared/ code",
   "scripts": {
     "dev": "concurrently -k -n backend,frontend -c blue,green \"cd backend && pnpm dev\" \"cd frontend && NEXT_PUBLIC_REPO_DATA_API_URL=http://localhost:8080 pnpm dev\""

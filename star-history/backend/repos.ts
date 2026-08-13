@@ -1,7 +1,19 @@
 import Database from "better-sqlite3";
 import { gunzipSync } from "node:zlib";
 import path from "node:path";
-import type { RepoData, StarRecord } from "../shared/types/chart";
+import type { RepoData, RepoMeta, RepoRadarAttributes, StarRecord } from "../shared/types/chart";
+
+// Radar axes stored as raw columns in repos.sqlite, keyed by the RepoRadarAttributes
+// field they populate. `pushes`/`issues_closed` are intentionally excluded as
+// unreliable, and `contributors` is entirely -1 (missing).
+const RADAR_COLS: Record<keyof RepoRadarAttributes, string> = {
+  stars: "stars",
+  new_stars: "new_stars",
+  forks: "forks",
+  open_issues: "open_issues_count",
+  size: "size",
+  pushes: "pushes",
+};
 
 // repos.sqlite sits at the repo root (one level above this backend/ dir).
 const DB_PATH = path.join(process.cwd(), "..", "repos.sqlite");
@@ -18,7 +30,7 @@ function getDb(): Database.Database {
       db.pragma("journal_mode = WAL");
       db.pragma("busy_timeout = 5000");
       // Case-insensitive lookup index (idempotent; safe if the DB is regenerated).
-      db.exec("CREATE INDEX IF NOT EXISTS idx_repos_lower_repo ON repos(lower(repo))");
+      db.exec("CREATE INDEX IF NOT EXISTS idx_repos_lower_name ON repos(lower(name))");
     } catch {
       // Read-only database: skip optimizations.
     }
@@ -47,24 +59,109 @@ function decodePoints(buf: Buffer): StarRecord[] {
 // are reported to the client and never counted against a rate limit.
 export const MIN_DATAPOINTS = 5;
 
+// --- Radar attribute normalization -------------------------------------------------
+// The DB stores raw values per axis (stars, forks, weekly pushes, etc.). The radar
+// needs 0-99 values per axis, normalized independently (units differ). We use a log
+// transform against each axis's global max so a wide range of raw values maps into
+// 0-99. Per-axis maxes are computed once and memoized.
+
+let radarMaxes: Record<string, number> | null = null;
+
+function getRadarMaxes(db: Database.Database): Record<string, number> {
+  if (radarMaxes) return radarMaxes;
+  radarMaxes = {};
+  for (const col of Object.values(RADAR_COLS)) {
+    const row = db.prepare(`SELECT MAX(${col}) AS m FROM repos`).get() as { m: number | null };
+    radarMaxes[col] = row?.m ?? 0;
+  }
+  return radarMaxes;
+}
+
+// Raw -> normalized 0-99. Returns -1 for missing (negative) sentinels.
+function normalizeAttr(raw: number, max: number): number {
+  if (raw < 0) return -1;
+  if (max <= 0) return 0;
+  return Math.min(99, Math.round((99 * Math.log10(raw + 1)) / Math.log10(max + 1)));
+}
+
+// Recency score for the "Last Push" axis. The raw value is days since the last
+// push (lower = more recent), so we invert it: a very recent push scores near 99,
+// a stale repo near 0. Returns -1 for missing (negative) sentinels.
+function normalizeRecency(rawDays: number, maxDays: number): number {
+  if (rawDays < 0) return -1;
+  if (maxDays <= 0) return 99;
+  const d = Math.max(0, Math.min(rawDays, maxDays));
+  const t = Math.log10(d + 1) / Math.log10(maxDays + 1); // 0 recent .. 1 stale
+  return Math.round(99 * (1 - t));
+}
+
+type RawRow = Pick<RepoRow, "stars" | "new_stars" | "forks" | "open_issues_count" | "size" | "pushes">;
+
+function buildAttributes(
+  db: Database.Database,
+  row: RawRow
+): { attributes: RepoRadarAttributes; raw: RepoRadarAttributes } {
+  const maxes = getRadarMaxes(db);
+  const raw = {} as RepoRadarAttributes;
+  const attributes = {} as RepoRadarAttributes;
+  for (const key of Object.keys(RADAR_COLS) as (keyof RepoRadarAttributes)[]) {
+    const col = RADAR_COLS[key];
+    const value = row[col as keyof RawRow] as number;
+    raw[key] = value;
+    // `pushes` is days-since-last-push (recency), scored differently from counts.
+    attributes[key] =
+      key === "pushes" ? normalizeRecency(value, maxes[col]) : normalizeAttr(value, maxes[col]);
+  }
+  return { attributes, raw };
+}
+
+interface RepoRow {
+  logo_url: string | null;
+  points: Buffer | null;
+  owner: string;
+  stars_total: number;
+  description: string | null;
+  language: string | null;
+  license: string | null;
+  homepage: string | null;
+  forks_count: number;
+  open_issues_count: number;
+  created_at: string | null;
+  archived: number;
+  size: number;
+  topics: string;
+  stars: number;
+  new_stars: number;
+  forks: number;
+  pushes: number;
+  rank: number;
+  total_repos: number;
+}
+
 export interface RepoStarResult {
   found: RepoData[];
   missing: string[];
 }
 
 /**
- * Retrieve star history + logo URL for repos from repos.sqlite.
- * Repos that don't exist in the DB, or that have fewer than MIN_DATAPOINTS
- * records (i.e. insufficient data to plot), are reported in `missing`.
+ * Retrieve star history + logo URL + repo metadata/attributes for repos from
+ * repos.sqlite. Repos that don't exist in the DB, or that have fewer than
+ * MIN_DATAPOINTS records (i.e. insufficient data to plot), are reported in
+ * `missing`.
  */
 export function fetchRepoData(repos: string[]): RepoStarResult {
   const d = getDb();
-  const stmt = d.prepare("SELECT logo_url, points FROM repos WHERE lower(repo) = lower(?)");
+  const stmt = d.prepare(`
+    SELECT logo_url, points, owner, stars_total, description, language, license,
+           homepage, forks_count, open_issues_count, created_at, archived, size,
+           topics, stars, new_stars, forks, pushes, rank, total_repos
+    FROM repos WHERE lower(name) = lower(?)
+  `);
   const found: RepoData[] = [];
   const missing: string[] = [];
 
   for (const repo of repos) {
-    const row = stmt.get(repo) as { logo_url: string | null; points: Buffer | null } | undefined;
+    const row = stmt.get(repo) as RepoRow | undefined;
     if (!row || !row.points) {
       missing.push(repo);
       continue;
@@ -74,14 +171,44 @@ export function fetchRepoData(repos: string[]): RepoStarResult {
       missing.push(repo);
       continue;
     }
+    const { attributes, raw } = buildAttributes(d, row);
+    const meta: RepoMeta = {
+      owner: row.owner,
+      stars_total: row.stars_total,
+      description: row.description,
+      language: row.language,
+      license: row.license,
+      homepage: row.homepage,
+      forks_count: row.forks_count,
+      open_issues_count: row.open_issues_count,
+      created_at: row.created_at,
+      archived: !!row.archived,
+      size: row.size,
+      topics: parseTopics(row.topics),
+      rank: row.rank,
+      total_repos: row.total_repos,
+      attributes,
+      raw,
+    };
     found.push({
       repo,
       starRecords,
       logoUrl: row.logo_url ?? "",
+      meta,
     });
   }
 
   return { found, missing };
+}
+
+function parseTopics(topics: string | null): string[] {
+  if (!topics) return [];
+  try {
+    const parsed = JSON.parse(topics);
+    return Array.isArray(parsed) ? parsed.filter((t): t is string => typeof t === "string") : [];
+  } catch {
+    return [];
+  }
 }
 
 export interface RepoSearchEntry {
@@ -118,7 +245,7 @@ export function fetchTrustedBy(repoNames: string[]): TrustedByEntry[] {
 /**
  * Search repos by a (case-insensitive) prefix of their name, returning up to
  * `limit` matches ordered by the repo with the most stars first. Uses the
- * existing lower(repo) index for the prefix lookup.
+ * existing lower(name) index for the prefix lookup.
  */
 export function searchRepos(query: string, limit = 8): RepoSearchEntry[] {
   const q = query.trim();
@@ -126,10 +253,10 @@ export function searchRepos(query: string, limit = 8): RepoSearchEntry[] {
 
   const d = getDb();
   const stmt = d.prepare(
-    "SELECT repo, points FROM repos WHERE lower(repo) LIKE ? ORDER BY length(repo) LIMIT ?"
+    "SELECT name, points FROM repos WHERE lower(name) LIKE ? ORDER BY length(name) LIMIT ?"
   );
   const rows = stmt.all(`${q.toLowerCase()}%`, limit + 50) as {
-    repo: string;
+    name: string;
     points: Buffer | null;
   }[];
 
@@ -147,7 +274,7 @@ export function searchRepos(query: string, limit = 8): RepoSearchEntry[] {
           // skip malformed points
         }
       }
-      return { name: row.repo, stars_total };
+      return { name: row.name, stars_total };
     })
     .sort((a, b) => b.stars_total - a.stars_total)
     .slice(0, limit);

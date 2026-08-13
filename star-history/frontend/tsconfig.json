@@ -5,9 +5,6 @@
       "@shared/*": [
         "../shared/*"
       ],
-      "@gh-data/*": [
-        "../gh/data/*"
-      ],
       "@components/*": [
         "components/*"
       ],

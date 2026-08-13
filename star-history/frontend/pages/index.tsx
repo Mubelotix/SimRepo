@@ -6,6 +6,7 @@ import RightSidebar from "../components/RightSidebar"
 import RepoInputer from "../components/RepoInputer"
 import type { NextPage } from "next"
 import StarChartViewer from "../components/StarChartViewer"
+import RepoStatsCard from "../components/RepoStatsCard"
 import EmptyState from "../components/EmptyState"
 import Head from "next/head"
 import { SITE_URL } from "../helpers/consts"
@@ -49,7 +50,14 @@ const Index: NextPage = () => {
 
                         <div className="w-full flex flex-col justify-start">
                             <RepoInputer isChartVisible={isChartVisible} setChartVisibility={setChartVisibility} />
-                            {isChartVisible ? <StarChartViewer /> : <EmptyState />}
+                            {isChartVisible ? (
+                                <>
+                                    <RepoStatsCard />
+                                    <StarChartViewer />
+                                </>
+                            ) : (
+                                <EmptyState />
+                            )}
                         </div>
 
                         <div className="hidden lg:block">

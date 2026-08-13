@@ -1,18 +1,23 @@
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/router"
+import axios from "axios"
 import { GITHUB_REPO_URL_REG } from "../helpers/consts"
-import reposData from "@gh-data/repos.json"
+import { REPO_DATA_API_URL } from "@shared/common/config"
 import { formatNumber } from "../helpers/format"
 
-const repoList = (reposData as any).repos as { name: string; stars_total: number }[]
+interface Suggestion {
+    name: string
+    stars_total: number
+}
 
 export default function NavInput() {
     const router = useRouter()
     const [navInput, setNavInput] = useState("")
-    const [results, setResults] = useState<{ name: string; stars_total: number }[]>([])
+    const [results, setResults] = useState<Suggestion[]>([])
     const [highlightIndex, setHighlightIndex] = useState(-1)
     const [showDropdown, setShowDropdown] = useState(false)
     const containerRef = useRef<HTMLDivElement>(null)
+    const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     const handleNavSubmit = () => {
         let raw = navInput.trim()
@@ -24,11 +29,8 @@ export default function NavInput() {
         }
 
         const parts = raw.split("/").filter(Boolean)
-        if (parts.length === 1) {
-            router.push(`/${parts[0]}/${parts[0]}`)
-        } else if (parts.length >= 2) {
-            router.push(`/${parts[0]}/${parts[1]}`)
-        }
+        const name = parts.length === 1 ? `${parts[0]}/${parts[0]}` : `${parts[0]}/${parts[1]}`
+        router.push(`/#${name}`)
     }
 
     const closeDropdown = () => {
@@ -39,7 +41,7 @@ export default function NavInput() {
     const navigateToRepo = (repoName: string) => {
         setNavInput(repoName)
         closeDropdown()
-        router.push(`/${repoName}`)
+        router.push(`/#${repoName}`)
     }
 
     const handleInputChange = (value: string) => {
@@ -50,10 +52,23 @@ export default function NavInput() {
             closeDropdown()
             return
         }
-        const filtered = repoList.filter((r) => r.name.toLowerCase().includes(query)).slice(0, 8)
-        setResults(filtered)
-        setShowDropdown(filtered.length > 0)
-        setHighlightIndex(-1)
+
+        if (searchTimerRef.current) {
+            clearTimeout(searchTimerRef.current)
+        }
+        searchTimerRef.current = setTimeout(async () => {
+            try {
+                const { data } = await axios.get(`${REPO_DATA_API_URL}/repo-search`, {
+                    params: { q: query, limit: 8 },
+                    timeout: 5000,
+                })
+                setResults((data?.repos ?? []) as Suggestion[])
+                setShowDropdown((data?.repos?.length ?? 0) > 0)
+                setHighlightIndex(-1)
+            } catch {
+                closeDropdown()
+            }
+        }, 200)
     }
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -92,7 +107,10 @@ export default function NavInput() {
             }
         }
         document.addEventListener("mousedown", handleClickOutside)
-        return () => document.removeEventListener("mousedown", handleClickOutside)
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside)
+            if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
+        }
     }, [])
 
     return (
