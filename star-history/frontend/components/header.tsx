@@ -27,7 +27,7 @@ const Header: React.FC = () => {
                 <span className="text-white -2">Extension</span>
               </a>
               <a href="https://github.com/sponsors/Mubelotix" target="_blank" rel="noopener noreferrer" className="header-link text-base">
-                <span className="text-white -2">Sponsor</span>
+                <span className="text-white -2">Donate</span>
               </a>
             </div>
             <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
