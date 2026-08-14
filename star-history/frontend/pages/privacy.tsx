@@ -25,7 +25,7 @@ const Privacy: NextPage = () => {
 
                         <div className="px-6 py-6 space-y-8 text-sm leading-relaxed text-neutral-700">
                             <p className="text-xs text-neutral-400">
-                                Last updated: 2026-08-14
+                                Last updated: 2026-08-14 (fonts now self-hosted)
                             </p>
                             <p>
                                 This page explains what data GitHub Star History processes when you visit, why, and what
@@ -125,11 +125,6 @@ const Privacy: NextPage = () => {
                                         <strong>GitHub images</strong>: loading avatar images requires contacting GitHub&apos;s CDN
                                         (Art. 6(1)(b)-adjacent / legitimate interest), triggered only by the data you view.
                                     </li>
-                                    <li>
-                                        <strong>Google Fonts</strong>: fonts are still loaded from Google&apos;s servers rather
-                                        than self-hosted, which involves your IP address being sent to Google, a third-party
-                                        transfer requiring its own legal basis and disclosure (see §4).
-                                    </li>
                                 </ul>
                             </section>
 
@@ -145,11 +140,6 @@ const Privacy: NextPage = () => {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr className="border-b border-neutral-100 align-top">
-                                                <td className="py-2 pr-3 font-medium">Google Fonts</td>
-                                                <td className="py-2 pr-3">Web font delivery</td>
-                                                <td className="py-2">Visitor IP address, sent to Google when the font loads</td>
-                                            </tr>
                                             <tr className="align-top">
                                                 <td className="py-2 pr-3 font-medium">GitHub</td>
                                                 <td className="py-2 pr-3">Public data search feature</td>

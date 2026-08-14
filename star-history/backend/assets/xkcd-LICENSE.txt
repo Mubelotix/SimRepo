@@ -1,0 +1,21 @@
+xkcd Script font — Attribution
+==============================
+
+The "xkcd Script" font file (xkcd.ttf) used in this project is derived from
+the handwriting of Randall Munroe (the xkcd webcomic author).
+
+Copyright (c) ipython/xkcd-font contributors.
+
+Licensed under the Creative Commons Attribution-NonCommercial 3.0 License
+(CC BY-NC 3.0). The font's own metadata states:
+"Copyright (c) ipython/xkcd-font contributors, Creative Commons
+Attribution-NonCommercial 3.0 License"
+
+Attribution (as required by CC BY 3.0):
+- Title:   xkcd Script (Version 1.0)
+- Author:  ipython/xkcd-font contributors (Randall Munroe's handwriting)
+- Source:  https://github.com/ipython/xkcd-font
+- License: https://creativecommons.org/licenses/by-nc/3.0/
+
+NOTE: The NonCommercial (NC) clause restricts commercial use of this font
+without permission from the copyright holder.
