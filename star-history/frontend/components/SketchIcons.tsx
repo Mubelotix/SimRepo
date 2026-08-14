@@ -148,20 +148,3 @@ export const SketchHomeIcon = ({ size = 16 }: { size?: number }) => (
     </g>
   </svg>
 )
-
-export const SketchMailboxIcon = ({ size = 16 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="inline-block">
-    <defs>
-      <filter id="xkcdify-mail" filterUnits="userSpaceOnUse" x="-2" y="-2" width="28" height="28">
-        <feTurbulence type="fractalNoise" baseFrequency="0.04" result="noise" />
-        <feDisplacementMap scale="3" xChannelSelector="R" yChannelSelector="G" in="SourceGraphic" in2="noise" />
-      </filter>
-    </defs>
-    <g filter="url(#xkcdify-mail)">
-      {/* Envelope body */}
-      <rect x="2" y="5" width="20" height="14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      {/* Flap */}
-      <path d="M2 5l10 8 10-8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </g>
-  </svg>
-)

@@ -2,7 +2,6 @@ import React, { useState } from "react"
 import Header from "../components/header"
 import Footer from "../components/footer"
 import LeftSidebar from "../components/LeftSidebar"
-import RightSidebar from "../components/RightSidebar"
 import RepoInputer from "../components/RepoInputer"
 import type { NextPage } from "next"
 import StarChartViewer from "../components/StarChartViewer"
@@ -58,10 +57,6 @@ const Index: NextPage = () => {
                             ) : (
                                 <EmptyState />
                             )}
-                        </div>
-
-                        <div className="hidden lg:block">
-                            <RightSidebar />
                         </div>
                     </div>
                 </div>
