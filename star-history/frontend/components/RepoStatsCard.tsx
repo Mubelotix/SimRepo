@@ -86,7 +86,7 @@ export default function RepoStatsCard() {
                         <div className="w-full max-w-[380px] aspect-square">
                             {loading && <div className="w-full h-full flex items-center justify-center text-neutral-400">Loading…</div>}
                             {!loading && error && <div className="w-full h-full flex items-center justify-center text-neutral-400 text-sm px-4 text-center">{error}</div>}
-                            {!loading && !error && meta && <RadarChart attributes={meta.attributes} rawText={rawText} />}
+                            {!loading && !error && meta && <RadarChart attributes={meta.attributes} rawText={rawText} percentiles={meta.percentiles} />}
                         </div>
                     </div>
 

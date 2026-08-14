@@ -37,6 +37,9 @@ export interface RepoMeta {
     total_repos: number
     attributes: RepoRadarAttributes
     raw: RepoRadarAttributes
+    // Accurate "top N %" (0-100) per axis, derived from axis_percentiles.
+    // A key is absent when the repo's value isn't covered by the table.
+    percentiles: Partial<Record<keyof RepoRadarAttributes, number>>
 }
 
 export interface RepoRadarAttributes {

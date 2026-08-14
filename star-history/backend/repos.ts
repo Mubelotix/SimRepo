@@ -95,6 +95,48 @@ function normalizeRecency(rawDays: number, maxDays: number): number {
   return Math.round(99 * (1 - t));
 }
 
+// --- Accurate "Top N %" from axis_percentiles ---------------------------------
+// `axis_percentiles` maps each radar axis's raw value to the cumulative number
+// of repos with a value <= it. This lets us report the true "top N %" a repo
+// falls into, instead of the log-scale proxy (100 - normalized). `pushes` is
+// days-since-last-push (lower = better), so it's inverted.
+
+let percentileTotals: Record<string, number> | null = null;
+
+function getPercentileTotal(db: Database.Database, axis: string): number {
+  if (!percentileTotals) percentileTotals = {};
+  if (percentileTotals[axis] === undefined) {
+    const row = db
+      .prepare("SELECT MAX(count_le) AS t FROM axis_percentiles WHERE axis = ?")
+      .get(axis) as { t: number | null };
+    percentileTotals[axis] = row?.t ?? 0;
+  }
+  return percentileTotals[axis];
+}
+
+// Returns the "top N %" (0-100, rounded) for a repo's raw value on `axis`, or
+// undefined when the value is missing or the table has no applicable data.
+function topPercentile(
+  db: Database.Database,
+  axis: string,
+  rawValue: number
+): number | undefined {
+  if (rawValue < 0) return undefined;
+  const row = db
+    .prepare(
+      "SELECT count_le FROM axis_percentiles WHERE axis = ? AND value <= ? ORDER BY value DESC LIMIT 1"
+    )
+    .get(axis, rawValue) as { count_le: number } | undefined;
+  if (!row) return undefined;
+  const total = getPercentileTotal(db, axis);
+  if (total <= 0) return undefined;
+  const fracBelowOrEqual = row.count_le / total; // 0..1
+  // Higher-is-better axes: top N % = share of repos with a higher value.
+  // pushes (recency): top N % = share of repos pushed more recently (lower days).
+  const topN = axis === "pushes" ? 100 * fracBelowOrEqual : 100 * (1 - fracBelowOrEqual);
+  return Math.max(1, Math.round(topN));
+}
+
 type RawRow = Pick<RepoRow, "stars" | "new_stars" | "forks" | "open_issues_count" | "size" | "pushes">;
 
 function buildAttributes(
@@ -172,6 +214,11 @@ export function fetchRepoData(repos: string[]): RepoStarResult {
       continue;
     }
     const { attributes, raw } = buildAttributes(d, row);
+    const percentiles: Partial<Record<keyof RepoRadarAttributes, number>> = {};
+    for (const key of Object.keys(RADAR_COLS) as (keyof RepoRadarAttributes)[]) {
+      const p = topPercentile(d, key, raw[key]);
+      if (p !== undefined) percentiles[key] = p;
+    }
     const meta: RepoMeta = {
       owner: row.owner,
       stars_total: row.stars_total,
@@ -189,6 +236,7 @@ export function fetchRepoData(repos: string[]): RepoStarResult {
       total_repos: row.total_repos,
       attributes,
       raw,
+      percentiles,
     };
     found.push({
       repo,

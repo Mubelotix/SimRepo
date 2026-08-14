@@ -76,9 +76,10 @@ function sketchyPolygonPath(points: [number, number][], jitter: number, rng: () 
 interface RadarChartProps {
     attributes: RepoRadarAttributes
     rawText?: Partial<Record<keyof RepoRadarAttributes, string>>
+    percentiles?: Partial<Record<keyof RepoRadarAttributes, number>>
 }
 
-export default function RadarChart({ attributes, rawText }: RadarChartProps) {
+export default function RadarChart({ attributes, rawText, percentiles }: RadarChartProps) {
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
 
     const validAxes = useMemo(
@@ -94,24 +95,32 @@ export default function RadarChart({ attributes, rawText }: RadarChartProps) {
 
     const scaleR = (value: number) => (value / 99) * RADIUS
 
+    // Place each data point by its percentile ranking (higher = better = farther
+    // out), so a top-1% repo sits near the outer ring. Falls back to the log-
+    // normalized attribute value when no accurate percentile is available.
+    const placementFor = (key: keyof RepoRadarAttributes): number => {
+        const p = percentiles?.[key]
+        if (p !== undefined) return Math.max(0, Math.min(99, 100 - p))
+        return attributes[key]
+    }
+
     const pointAt = (axisIndex: number, radius: number): [number, number] => {
         const angle = angleSlice * axisIndex - Math.PI / 2
         return [CX + Math.cos(angle) * radius, CY + Math.sin(angle) * radius]
     }
 
-    // Data polygon points (normalized 0-99 -> radius)
+    // Data polygon points (0-99 placement -> radius)
     const dataPts: [number, number][] = validAxes.map((key, i) => {
-        const value = attributes[key]
-        const radius = scaleR(value)
+        const radius = scaleR(placementFor(key))
         return pointAt(i, radius)
     })
 
     // Per-axis data values for the data dots
     const axisPoints = validAxes.map((key, i) => {
-        const value = attributes[key]
+        const value = placementFor(key)
         const radius = scaleR(value)
         const [x, y] = pointAt(i, radius)
-        return { key, label: LABELS[key], x, y, value, percentile: 100 - value, raw: rawText?.[key] ?? String(value) }
+        return { key, label: LABELS[key], x, y, value, percentile: percentiles?.[key], raw: rawText?.[key] ?? String(attributes[key]) }
     })
 
     const hovered = hoveredIndex !== null ? axisPoints[hoveredIndex] : null
@@ -268,15 +277,17 @@ export default function RadarChart({ attributes, rawText }: RadarChartProps) {
                         >
                             {hovered.label}: {hovered.raw}
                         </text>
-                        <text
-                            x="15"
-                            y="44"
-                            fontSize="15px"
-                            fill="black"
-                            style={{ fontFamily: '"xkcd", cursive' }}
-                        >
-                            Top {hovered.percentile}%
-                        </text>
+                        {hovered.percentile !== undefined && (
+                            <text
+                                x="15"
+                                y="44"
+                                fontSize="15px"
+                                fill="black"
+                                style={{ fontFamily: '"xkcd", cursive' }}
+                            >
+                                Top {hovered.percentile}%
+                            </text>
+                        )}
                     </svg>
                 </div>
             )}
