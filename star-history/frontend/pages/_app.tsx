@@ -23,7 +23,7 @@ const MyApp = ({ Component, pageProps }: AppPropsWithLayout) => {
             <Head>
                 <link rel="icon" href="/assets/favicon.ico" />
             </Head>
-            <Script defer src="https://s.dera.page//app.js" data-website-id="4e35422e-a07a-486b-8dcc-6cfd46161ddf" strategy="afterInteractive" />
+            <Script defer src="https://s.dera.page//app.js" data-website-id="4e35422e-a07a-486b-8dcc-6cfd46161ddf" data-do-not-track="true" strategy="afterInteractive" />
             <AppStateProvider>
                 <ErrorBoundary>
                     {getLayout(<Component {...pageProps} />)}
