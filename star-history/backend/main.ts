@@ -18,7 +18,14 @@ import {
   getBase64Image,
 } from "./utils.js";
 import { CHART_SIZES, MAX_REPOS_PER_REQUEST } from "./const.js";
-import { fetchRepoData, searchRepos, fetchTrustedBy, type TrustedByEntry } from "./repos.js";
+import {
+  fetchRepoData,
+  searchRepos,
+  fetchTrustedBy,
+  fetchLeaderboard,
+  type TrustedByEntry,
+  type LeaderboardData,
+} from "./repos.js";
 import { isWhitelisted, tryFetchRepos, RATE_LIMIT_MESSAGE } from "./rate-limiter.js";
 
 const FRONTEND_DIR = process.env.FRONTEND_DIR || "/app/www";
@@ -129,6 +136,26 @@ const startServer = async () => {
     const limit = Math.min(Number(c.req.query("limit") ?? 8) || 8, 20);
     const repos = searchRepos(q, limit);
     return c.json({ repos });
+  });
+
+  // Sidebar leaderboard (top repos + star-count pyramid), sourced from
+  // repos.sqlite. Memoized with a short TTL since the DB is refreshed
+  // infrequently; cheap and stable, so not rate-limited.
+  let leaderboardCache: { data: LeaderboardData; at: number } | null = null;
+  const getLeaderboard = (): LeaderboardData => {
+    const now = Date.now();
+    if (!leaderboardCache || now - leaderboardCache.at > 10 * 60 * 1000) {
+      leaderboardCache = { data: fetchLeaderboard(), at: now };
+    }
+    return leaderboardCache.data;
+  };
+
+  app.get("/leaderboard", (c) => {
+    return c.json(
+      getLeaderboard(),
+      200,
+      { "Cache-Control": "public, s-maxage=600, max-age=600" }
+    );
   });
 
   // Normalize /svg query params for CDN cache efficiency.

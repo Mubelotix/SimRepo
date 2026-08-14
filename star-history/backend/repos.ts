@@ -1,5 +1,6 @@
 import Database from "better-sqlite3";
 import { gunzipSync } from "node:zlib";
+import { statSync } from "node:fs";
 import path from "node:path";
 import type { RepoData, RepoMeta, RepoRadarAttributes, StarRecord } from "../shared/types/chart";
 
@@ -326,4 +327,77 @@ export function searchRepos(query: string, limit = 8): RepoSearchEntry[] {
     })
     .sort((a, b) => b.stars_total - a.stars_total)
     .slice(0, limit);
+}
+
+export interface LeaderboardEntry {
+  name: string;
+  stars_total: number;
+  new_stars: number;
+  logo_url: string;
+}
+
+export interface LeaderboardTier {
+  threshold: number;
+  label: string;
+  count: number;
+}
+
+export interface LeaderboardData {
+  updated_at: string;
+  all_time: LeaderboardEntry[];
+  weekly: LeaderboardEntry[];
+  tiers: LeaderboardTier[];
+}
+
+// Star-count buckets for the pyramid tab, highest first. Mirrors the thresholds
+// the old arena pipeline used when this data was fetched from the GitHub API.
+const TIER_THRESHOLDS: { threshold: number; label: string }[] = [
+  { threshold: 100000, label: "100K+" },
+  { threshold: 50000, label: "50K+" },
+  { threshold: 20000, label: "20K+" },
+  { threshold: 10000, label: "10K+" },
+  { threshold: 5000, label: "5K+" },
+  { threshold: 3000, label: "3K+" },
+  { threshold: 1000, label: "1K+" },
+  { threshold: 500, label: "500+" },
+  { threshold: 100, label: "100+" },
+];
+
+/**
+ * Leaderboard data for the sidebar: top repos by total stars ("All-time"), top
+ * repos by recent star growth ("Weekly"), and a tier histogram of star counts
+ * ("Pyramid"). All read from repos.sqlite.
+ */
+export function fetchLeaderboard(limit = 20): LeaderboardData {
+  const d = getDb();
+
+  const allTimeStmt = d.prepare(
+    "SELECT name, stars_total, new_stars, logo_url FROM repos ORDER BY stars_total DESC LIMIT ?"
+  );
+  const weeklyStmt = d.prepare(
+    "SELECT name, stars_total, new_stars, logo_url FROM repos ORDER BY new_stars DESC LIMIT ?"
+  );
+
+  const tierSelect = TIER_THRESHOLDS.map(
+    (t, i) => `SUM(CASE WHEN stars_total >= ${t.threshold} THEN 1 ELSE 0 END) AS t${i}`
+  ).join(", ");
+  const tierRow = d.prepare(`SELECT ${tierSelect} FROM repos`).get() as Record<string, number>;
+  const tiers: LeaderboardTier[] = TIER_THRESHOLDS.map((t, i) => ({
+    ...t,
+    count: tierRow[`t${i}`] ?? 0,
+  }));
+
+  let updated_at: string;
+  try {
+    updated_at = new Date(statSync(DB_PATH).mtime).toISOString().slice(0, 10);
+  } catch {
+    updated_at = new Date().toISOString().slice(0, 10);
+  }
+
+  return {
+    updated_at,
+    all_time: allTimeStmt.all(limit) as LeaderboardEntry[],
+    weekly: weeklyStmt.all(limit) as LeaderboardEntry[],
+    tiers,
+  };
 }
