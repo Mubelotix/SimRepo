@@ -55,3 +55,10 @@ pnpm i && pnpm dev
 ```
 
 This runs both the frontend and the backend concurrently. The website will be served at http://localhost:3000, and the API server (used to generate chart **`SVG`** images for **`GitHub readme`**) on http://localhost:8080.
+
+## 📄 License
+
+This repository is licensed under two different licenses, split by commit boundary:
+
+- Code committed **before** the fork point (commit `32525a5`, 2026-08-05) — the upstream Star History code — is licensed under the **MIT License**. See [`NOTICE`](./NOTICE).
+- Code committed **from** the fork point onward (all changes since August 2026) is licensed under the **GNU General Public License, version 3 (GPL-3.0-only)**. See [`LICENSE`](./LICENSE).
