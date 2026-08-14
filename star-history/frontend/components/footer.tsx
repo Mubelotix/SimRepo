@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { FaEnvelope } from "react-icons/fa"
 
 const Footer = () => {
@@ -11,25 +12,20 @@ const Footer = () => {
                 </div>
                 <div className="text-xs leading-8 flex flex-row flex-nowrap justify-end items-center gap-3">
                     <a className="link" href="https://github.com/sponsors/Mubelotix" target="_blank" rel="noopener noreferrer">
-                        Sponsor
+                        Donate
                     </a>
                     <a className="link" href="https://github.com/Mubelotix/SimRepo" target="_blank" rel="noopener noreferrer">
                         Extension
                     </a>
+                    <Link className="link" href="/privacy">
+                        Privacy
+                    </Link>
+                    <Link className="link" href="/mentions-legales">
+                        Mentions légales
+                    </Link>
                     <a className="h-full flex flex-row justify-center items-center text-lg hover:opacity-80" href="mailto:mubelotix@gmail.com" target="_blank" rel="noopener noreferrer">
                         <FaEnvelope />
                     </a>
-                    <span className="text-gray-600">
-                        Maintained by{" "}
-                        <a className="link" href="https://github.com/Mubelotix" target="_blank" rel="noopener noreferrer">
-                            @mubelotix
-                        </a>
-                        , originally built by{" "}
-                        <a className="link" href="https://github.com/timqian" target="_blank" rel="noopener noreferrer">
-                            @tim_qian
-                        </a>
-                        {" "}and Bytebase
-                    </span>
                 </div>
             </div>
         </footer>
