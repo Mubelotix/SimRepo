@@ -93,12 +93,12 @@ function normalizeRecency(rawDays: number, maxDays: number): number {
 }
 
 // --- Accurate "Top N %" from axis_percentiles ---------------------------------
-// `axis_percentiles` maps each radar axis's raw value to `count_lt`, the number
-// of repos with a value strictly below it. Taking count_lt of the first bucket
-// strictly above a repo's value yields the number of repos with a value <= it,
-// which is what we need to report the true "top N %" the repo falls into.
-// `pushes` is days-since-last-push (lower = better), so it's inverted. `size` is
-// stored negated (smaller repo = higher value), so lookups use -size.
+// `axis_percentiles` maps each radar axis's raw value to `count_le`, the number
+// of repos with a value <= it (cumulative). Reading count_le of the largest
+// bucket at-or-below a repo's value yields the number of repos with a value
+// <= it, which is what we need to report the true "top N %" the repo falls
+// into. `pushes` is days-since-last-push (lower = better), so it's inverted.
+// `size` is stored negated (smaller repo = higher value), so lookups use -size.
 
 let percentileTotal: number | null = null;
 
@@ -124,18 +124,18 @@ function topPercentile(
   if (rawValue < 0) return undefined;
   // `size` is stored negated (smaller repo = higher value), so invert the lookup.
   const lookup = axis === "size" ? -rawValue : rawValue;
-  // count_lt of the first bucket strictly above `lookup` == # repos with a value
-  // <= `lookup`. When `lookup` is at/above the top bucket, fall back to the axis
-  // max (i.e. every repo ranks at-or-below it).
+  // Count of repos with a value `<= lookup`, read from the largest bucket
+  // at-or-below `lookup`. Falls back to the axis max (i.e. every repo ranks
+  // at-or-below it) when `lookup` is at/above the top bucket.
   const row = db
     .prepare(
-      "SELECT count_lt FROM axis_percentiles WHERE axis = ? AND value > ? ORDER BY value ASC LIMIT 1"
+      "SELECT count_le FROM axis_percentiles WHERE axis = ? AND value <= ? ORDER BY value DESC LIMIT 1"
     )
-    .get(axis, lookup) as { count_lt: number } | undefined;
+    .get(axis, lookup) as { count_le: number } | undefined;
   const countBelowOrEqual =
-    row?.count_lt ??
+    row?.count_le ??
     (db
-      .prepare("SELECT MAX(count_lt) AS c FROM axis_percentiles WHERE axis = ?")
+      .prepare("SELECT MAX(count_le) AS c FROM axis_percentiles WHERE axis = ?")
       .get(axis) as { c: number | null })?.c ??
     0;
   const total = getPercentileTotal(db);
