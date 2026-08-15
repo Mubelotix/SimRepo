@@ -50,3 +50,25 @@ export interface RepoRadarAttributes {
     size: number
     pushes: number
 }
+
+// A similar repository recommendation, served from the similar_repos table.
+// `score` is the raw similarity score (higher = more similar); `meta` holds the
+// lightweight metadata used to display the recommendation in the UI.
+export interface SimilarRepo {
+    repo: string
+    score: number
+    meta: {
+        owner: string
+        description: string | null
+        language: string | null
+        license: string | null
+        homepage: string | null
+        stars_total: number
+        forks_count: number
+        open_issues_count: number
+        topics: string[]
+        rank: number
+        archived: boolean
+    }
+    logoUrl: string
+}
