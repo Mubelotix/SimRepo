@@ -10,7 +10,6 @@
   "dependencies": {
     "@hono/node-server": "^1.14.1",
     "axios": "^1.6.3",
-    "better-sqlite3": "^11.7.0",
     "d3-axis": "^2.1.0",
     "d3-scale": "^3.3.0",
     "d3-selection": "^2.0.0",
@@ -26,7 +25,6 @@
     "winston": "3.8.2"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.12",
     "@types/d3-axis": "^2.1.0",
     "@types/d3-scale": "^3.3.0",
     "@types/d3-selection": "^2.0.0",
@@ -34,7 +32,7 @@
     "@types/jsdom": "20.0.0",
     "@types/lodash": "^4.14.200",
     "@types/lru-cache": "7.10.9",
-    "@types/node": "18.11.10",
+    "@types/node": "^22.10.0",
     "@types/react": "^19.2.14",
     "tsx": "^4.19.3"
   }

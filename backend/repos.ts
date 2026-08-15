@@ -1,4 +1,4 @@
-import Database from "better-sqlite3";
+import { DatabaseSync } from "node:sqlite";
 import { gunzipSync } from "node:zlib";
 import { statSync } from "node:fs";
 import path from "node:path";
@@ -19,25 +19,18 @@ const RADAR_COLS: Record<keyof RepoRadarAttributes, string> = {
 // repos.sqlite sits at the repo root (one level above this backend/ dir).
 const DB_PATH = path.join(process.cwd(), "..", "repos.sqlite");
 
-let db: Database.Database | null = null;
+// Opened with `immutable=1`: the file is treated as read-only and never-changing,
+// so SQLite skips the WAL/shm machinery entirely. This avoids reading/recovering
+// a potentially large WAL at startup (the source of the CPU spike) and never
+// attempts to write or checkpoint. Safe because repos.sqlite is produced by an
+// external ingest pipeline and swapped in atomically. Applied in prod and dev.
+const DB_URI = `file:${DB_PATH}?immutable=1`;
 
-function getDb(): Database.Database {
+let db: DatabaseSync | null = null;
+
+function getDb(): DatabaseSync {
   if (!db) {
-    db = new Database(DB_PATH);
-    // The DB may be bind-mounted read-only, so only apply these write
-    // optimizations when the file is actually writable. They are not
-    // required for reads.
-    try {
-      db.pragma("journal_mode = WAL");
-      db.pragma("busy_timeout = 5000");
-      // Case-insensitive lookup index (idempotent; safe if the DB is regenerated).
-      db.exec("CREATE INDEX IF NOT EXISTS idx_repos_lower_name ON repos(lower(name))");
-      // Index for the similar-repos lookup (idempotent). Without it, filtering
-      // the multi-million-row similar_repos table by repo would be a full scan.
-      db.exec("CREATE INDEX IF NOT EXISTS idx_similar_repos_repo ON similar_repos(repo)");
-    } catch {
-      // Read-only database: skip optimizations.
-    }
+    db = new DatabaseSync(DB_URI, { readOnly: true });
   }
   return db;
 }
@@ -71,7 +64,7 @@ export const MIN_DATAPOINTS = 5;
 
 let radarMaxes: Record<string, number> | null = null;
 
-function getRadarMaxes(db: Database.Database): Record<string, number> {
+function getRadarMaxes(db: DatabaseSync): Record<string, number> {
   if (radarMaxes) return radarMaxes;
   radarMaxes = {};
   for (const col of Object.values(RADAR_COLS)) {
@@ -109,7 +102,7 @@ function normalizeRecency(rawDays: number, maxDays: number): number {
 
 let percentileTotal: number | null = null;
 
-function getPercentileTotal(db: Database.Database): number {
+function getPercentileTotal(db: DatabaseSync): number {
   if (percentileTotal === null) {
     const row = db
       .prepare("SELECT MAX(total_repos) AS t FROM repos")
@@ -122,7 +115,7 @@ function getPercentileTotal(db: Database.Database): number {
 // Returns the "top N %" (0-100, rounded) for a repo's raw value on `axis`, or
 // undefined when the value is missing or the table has no applicable data.
 function topPercentile(
-  db: Database.Database,
+  db: DatabaseSync,
   axis: string,
   rawValue: number
 ): number | undefined {
@@ -157,7 +150,7 @@ function topPercentile(
 type RawRow = Pick<RepoRow, "stars" | "new_stars" | "forks" | "open_issues_count" | "size" | "pushes">;
 
 function buildAttributes(
-  db: Database.Database,
+  db: DatabaseSync,
   row: RawRow
 ): { attributes: RepoRadarAttributes; raw: RepoRadarAttributes } {
   const maxes = getRadarMaxes(db);
@@ -291,15 +284,18 @@ export function fetchSimilarRepos(repoName: string, limit: number): SimilarRepo[
 
   const candidates = d
     .prepare("SELECT similar_repo, score FROM similar_repos WHERE repo = ?")
-    .all(repoRow.id) as { similar_repo: number; score: Buffer }[];
+    .all(repoRow.id) as { similar_repo: number; score: Uint8Array | null }[];
 
   if (candidates.length === 0) return [];
 
   const similar = candidates
-    .map((c) => ({
-      id: c.similar_repo,
-      score: c.score.length >= 4 ? c.score.readFloatLE(0) : 0,
-    }))
+    .map((c) => {
+      const buf = c.score ? Buffer.from(c.score) : null;
+      return {
+        id: c.similar_repo,
+        score: buf && buf.length >= 4 ? buf.readFloatLE(0) : 0,
+      };
+    })
     .sort((a, b) => b.score - a.score)
     .slice(0, limit);
 
@@ -488,8 +484,18 @@ export function fetchLeaderboard(limit = 20): LeaderboardData {
 
   return {
     updated_at,
-    all_time: allTimeStmt.all(limit) as LeaderboardEntry[],
-    weekly: weeklyStmt.all(limit) as LeaderboardEntry[],
+    all_time: allTimeStmt.all(limit).map((r) => ({
+      name: String(r.name),
+      stars_total: Number(r.stars_total),
+      new_stars: Number(r.new_stars),
+      logo_url: String(r.logo_url),
+    })),
+    weekly: weeklyStmt.all(limit).map((r) => ({
+      name: String(r.name),
+      stars_total: Number(r.stars_total),
+      new_stars: Number(r.new_stars),
+      logo_url: String(r.logo_url),
+    })),
     tiers,
   };
 }

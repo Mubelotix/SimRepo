@@ -25,7 +25,8 @@ RUN cd frontend && pnpm build
 # =====================================================================
 # Stage 2: runtime (backend API on :8080 + shipped static frontend files)
 # =====================================================================
-FROM node:20-alpine AS runtime
+# Node 22+ is required for the backend's node:sqlite immutable DB access.
+FROM node:22-alpine AS runtime
 
 ARG GIT_COMMIT
 LABEL org.opencontainers.image.revision=${GIT_COMMIT}
