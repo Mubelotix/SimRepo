@@ -2,7 +2,7 @@ import Database from "better-sqlite3";
 import { gunzipSync } from "node:zlib";
 import { statSync } from "node:fs";
 import path from "node:path";
-import type { RepoData, RepoMeta, RepoRadarAttributes, StarRecord } from "../shared/types/chart";
+import type { RepoData, RepoMeta, RepoRadarAttributes, SimilarRepo, StarRecord } from "../shared/types/chart";
 
 // Radar axes stored as raw columns in repos.sqlite, keyed by the RepoRadarAttributes
 // field they populate. `pushes`/`issues_closed` are intentionally excluded as
@@ -32,6 +32,9 @@ function getDb(): Database.Database {
       db.pragma("busy_timeout = 5000");
       // Case-insensitive lookup index (idempotent; safe if the DB is regenerated).
       db.exec("CREATE INDEX IF NOT EXISTS idx_repos_lower_name ON repos(lower(name))");
+      // Index for the similar-repos lookup (idempotent). Without it, filtering
+      // the multi-million-row similar_repos table by repo would be a full scan.
+      db.exec("CREATE INDEX IF NOT EXISTS idx_similar_repos_repo ON similar_repos(repo)");
     } catch {
       // Read-only database: skip optimizations.
     }
@@ -258,6 +261,82 @@ function parseTopics(topics: string | null): string[] {
   } catch {
     return [];
   }
+}
+
+/**
+ * Fetch the top `limit` most similar repositories to `repoName` from the
+ * similar_repos table. Scores are stored as little-endian f32 blobs, so they are
+ * decoded and sorted in JS. Returns the recommendations (with their display
+ * metadata) ordered by descending similarity.
+ */
+export function fetchSimilarRepos(repoName: string, limit: number): SimilarRepo[] {
+  const d = getDb();
+  const repoRow = d
+    .prepare("SELECT id FROM repos WHERE lower(name) = lower(?)")
+    .get(repoName) as { id: number } | undefined;
+  if (!repoRow) return [];
+
+  const candidates = d
+    .prepare("SELECT similar_repo, score FROM similar_repos WHERE repo = ?")
+    .all(repoRow.id) as { similar_repo: number; score: Buffer }[];
+
+  if (candidates.length === 0) return [];
+
+  const similar = candidates
+    .map((c) => ({
+      id: c.similar_repo,
+      score: c.score.length >= 4 ? c.score.readFloatLE(0) : 0,
+    }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit);
+
+  const metaStmt = d.prepare(`
+    SELECT name, owner, stars_total, description, language, license, homepage,
+           forks_count, open_issues_count, topics, rank, logo_url, archived
+    FROM repos WHERE id = ?
+  `);
+
+  const results: SimilarRepo[] = [];
+  for (const s of similar) {
+    const row = metaStmt.get(s.id) as
+      | {
+          name: string;
+          owner: string;
+          stars_total: number;
+          description: string | null;
+          language: string | null;
+          license: string | null;
+          homepage: string | null;
+          forks_count: number;
+          open_issues_count: number;
+          topics: string;
+          rank: number;
+          logo_url: string | null;
+          archived: number;
+        }
+      | undefined;
+    if (!row) continue;
+    results.push({
+      repo: row.name,
+      score: s.score,
+      logoUrl: row.logo_url ?? "",
+      meta: {
+        owner: row.owner,
+        description: row.description,
+        language: row.language,
+        license: row.license,
+        homepage: row.homepage,
+        stars_total: row.stars_total,
+        forks_count: row.forks_count,
+        open_issues_count: row.open_issues_count,
+        topics: parseTopics(row.topics),
+        rank: row.rank,
+        archived: !!row.archived,
+      },
+    });
+  }
+
+  return results;
 }
 
 export interface RepoSearchEntry {

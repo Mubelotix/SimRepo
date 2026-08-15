@@ -7,6 +7,7 @@ import type { NextPage } from "next"
 import StarChartViewer from "../components/StarChartViewer"
 import RepoStatsCard from "../components/RepoStatsCard"
 import EmptyState from "../components/EmptyState"
+import SimilarReposCard from "../components/SimilarReposCard"
 import Head from "next/head"
 import { SITE_URL } from "../helpers/consts"
 
@@ -57,6 +58,10 @@ const Index: NextPage = () => {
                             ) : (
                                 <EmptyState />
                             )}
+                        </div>
+
+                        <div>
+                            <SimilarReposCard />
                         </div>
                     </div>
                 </div>

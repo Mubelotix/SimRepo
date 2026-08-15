@@ -17,12 +17,13 @@ import {
   fixJsdomSvgCasing,
   getBase64Image,
 } from "./utils.js";
-import { CHART_SIZES, MAX_REPOS_PER_REQUEST } from "./const.js";
+import { CHART_SIZES, MAX_REPOS_PER_REQUEST, MAX_SIMILAR_REPOS } from "./const.js";
 import {
   fetchRepoData,
   searchRepos,
   fetchTrustedBy,
   fetchLeaderboard,
+  fetchSimilarRepos,
   type TrustedByEntry,
   type LeaderboardData,
 } from "./repos.js";
@@ -136,6 +137,27 @@ const startServer = async () => {
     const limit = Math.min(Number(c.req.query("limit") ?? 8) || 8, 20);
     const repos = searchRepos(q, limit);
     return c.json({ repos });
+  });
+
+  // Similar repositories for a single repo, from the similar_repos table. The
+  // number of recommendations is deliberately capped at MAX_SIMILAR_REPOS (3):
+  // a future mechanism will relax this cap, so any request exceeding it is
+  // rejected up front rather than silently truncated. Not rate-limited: the
+  // payload is small and the lookup is indexed.
+  app.get("/similar-repos", (c) => {
+    const repo = (c.req.query("repo") ?? "").trim();
+    if (!repo) {
+      return c.text("Repo name required", 400);
+    }
+    let limit = Number(c.req.query("limit") ?? MAX_SIMILAR_REPOS) || MAX_SIMILAR_REPOS;
+    if (limit > MAX_SIMILAR_REPOS) {
+      return c.text(
+        `Too many repos: max ${MAX_SIMILAR_REPOS} per request (more will be allowed in the future)`,
+        400
+      );
+    }
+    limit = Math.max(1, limit);
+    return c.json({ repos: fetchSimilarRepos(repo, limit) });
   });
 
   // Sidebar leaderboard (top repos + star-count pyramid), sourced from
