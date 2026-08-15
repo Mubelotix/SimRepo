@@ -1,18 +1,23 @@
 This repository is licensed under two different licenses, split by
 commit boundary:
 
-- All code committed before the fork point (commit `32525a5`,
-  2026-08-05) — the upstream Star History code — is licensed under the
-  MIT License. See the `NOTICE` file for the MIT license text and
-  copyright notice.
+- All Star History code committed before the fork point (commit
+  `32525a5`, 2026-08-05) — the upstream Star History code — is licensed
+  under the MIT License. See the `NOTICE` file for the MIT license text
+  and copyright notice.
 
-- All code committed from the fork point (commit `32525a5`,
-  2026-08-05) onward — all changes made since August 2026 — is
-  licensed under the GNU General Public License, version 3 (GPL-3.0-only).
+- All Star History code committed from the fork point (commit
+  `32525a5`, 2026-08-05) onward — all changes made since August 2026 —
+  is licensed under the GNU General Public License, version 3
+  (GPL-3.0-only).
 
 The MIT-licensed portions remain available under the MIT License; the
-GPL-3.0-only terms apply to the code contributed from the fork point
-onward.
+GPL-3.0-only terms apply to the Star History code contributed from the
+fork point onward.
+
+The browser extension (the `extension/` directory) is a separate project
+and is excluded from the above; it is licensed entirely under the GNU
+General Public License, version 3 (GPL-3.0-only).
 
 ======================================================================
 
