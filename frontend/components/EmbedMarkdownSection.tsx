@@ -4,6 +4,7 @@ import utils from "@shared/common/utils"
 import toast from "../helpers/toast"
 import { SketchStarIcon } from "./SketchIcons"
 import { SITE_URL } from "../helpers/consts"
+import { countEvent } from "../helpers/analytics"
 
 const EmbedChart: React.FC = () => {
     const store = useAppStore()
@@ -43,11 +44,13 @@ const EmbedChart: React.FC = () => {
     const embedDarkModeCode = `## Star History\n\n<a href="${currentUrl}">\n <picture>\n   <source media="(prefers-color-scheme: dark)" srcset="${darkSvgUrl}" />\n   <source media="(prefers-color-scheme: light)" srcset="${svgUrl}" />\n   <img alt="Star History Chart" src="${svgUrl}" />\n </picture>\n</a>`
 
     const handleCopyBtnClick = () => {
+        countEvent("copy-embed", { repo: singleRepo ?? undefined })
         utils.copyTextToClipboard(embedCode)
         toast.succeed("Embed markdown code copied")
     }
 
     const handleDarkModeCopyBtnClick = () => {
+        countEvent("copy-embed", { repo: singleRepo ?? undefined })
         utils.copyTextToClipboard(embedDarkModeCode)
         toast.succeed("Embed markdown code copied")
     }

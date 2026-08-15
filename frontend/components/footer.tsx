@@ -1,5 +1,7 @@
 import Link from "next/link"
 import { FaEnvelope } from "react-icons/fa"
+import { countEvent } from "../helpers/analytics"
+import { getExtensionStoreUrl } from "./SimilarReposCard"
 
 const Footer = () => {
     return (
@@ -11,10 +13,10 @@ const Footer = () => {
                     </span>
                 </div>
                 <div className="text-xs leading-8 flex flex-row flex-nowrap justify-end items-center gap-3">
-                    <a className="link" href="https://github.com/sponsors/Mubelotix" target="_blank" rel="noopener noreferrer">
+                    <a className="link" href="https://github.com/sponsors/Mubelotix" target="_blank" rel="noopener noreferrer" onClick={() => countEvent("donate-click")}>
                         Donate
                     </a>
-                    <a className="link" href="https://github.com/Mubelotix/SimRepo" target="_blank" rel="noopener noreferrer">
+                    <a className="link" href={getExtensionStoreUrl()} target="_blank" rel="noopener noreferrer" onClick={() => countEvent("extension-click")}>
                         Extension
                     </a>
                     <Link className="link" href="/privacy">

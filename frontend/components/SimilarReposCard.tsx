@@ -6,6 +6,7 @@ import { REPO_DATA_API_URL } from "@shared/common/config"
 import { SimilarRepo } from "@shared/types/chart"
 import { formatNumber } from "../helpers/format"
 import { languageColor } from "../helpers/language-colors"
+import { countEvent } from "../helpers/analytics"
 
 // Max recommendations the backend will serve today. Keep in sync with the
 // backend's MAX_SIMILAR_REPOS so we never request more than is allowed.
@@ -59,12 +60,14 @@ const SimilarReposCard: React.FC = () => {
 
     const handleClick = (e: React.MouseEvent, repoName: string) => {
         e.preventDefault()
+        countEvent("similar-repo-click", { source: repo, target: repoName })
         store.actions.setRepos([repoName])
         window.location.hash = repoName
     }
 
     const handleExtensionClick = (e: React.MouseEvent) => {
         e.preventDefault()
+        countEvent("extension-click")
         window.open(getExtensionStoreUrl(), "_blank", "noopener,noreferrer")
     }
 
@@ -165,7 +168,7 @@ const EXTENSION_STORES = {
         "https://chromewebstore.google.com/detail/simrepo/jieoogmcigenidbkgnkaakagdnlnieap",
 }
 
-const getExtensionStoreUrl = (): string => {
+export const getExtensionStoreUrl = (): string => {
     const ua = navigator.userAgent.toLowerCase()
     if (ua.includes("firefox")) return EXTENSION_STORES.firefox
     if (ua.includes("edg")) return EXTENSION_STORES.edge
