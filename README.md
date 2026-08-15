@@ -76,5 +76,5 @@ We also welcome suggestions, please open issues for them.
 
 This repository is licensed under two different licenses, split by commit boundary:
 
-- The upstream Star History code committed **before** the fork point (commit `32525a5`, 2026-08-05) is licensed under the **MIT License**. See [`NOTICE`](./NOTICE).
+- The upstream Star History code committed **before** the fork point (commit `f5a0806`, 2026-08-05) is licensed under the **MIT License**. See [`NOTICE`](./NOTICE).
 - The entire extension, along with changes made **from** the fork point onward (all changes since August 2026) is licensed under the **GNU General Public License, version 3 (GPL-3.0-only)**. See [`LICENSE`](./LICENSE).
