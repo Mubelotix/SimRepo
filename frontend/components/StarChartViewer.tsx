@@ -64,9 +64,9 @@ function StarChartViewer({ compact = false }: StarChartViewerProps) {
 
             try {
                 const { data, missing } = await getRepoData(notCachedRepos)
-                for (const repo of missing) {
-                    store.actions.delRepo(repo)
-                }
+                // Keep missing repos in the store (and thus in the URL hash) so the
+                // page stays stable and the notice below remains visible, instead of
+                // silently resetting to the empty state.
                 setState((prevState) => {
                     const repoCacheMap = new Map(prevState.repoCacheMap)
                     for (const { repo, starRecords, logoUrl } of data) {
@@ -79,11 +79,11 @@ function StarChartViewer({ compact = false }: StarChartViewerProps) {
                         kind: "warn",
                         title: "Some repositories couldn't be displayed",
                         message:
-                            `Sorry, we don't have enough star-history data for: ${missing.join(", ")}. ` +
-                            "Please double-check that the name is spelled correctly, or that the repo has enough activity.",
+                            `Sorry, we don't have star-history data for: ${missing.join(", ")}. ` +
+                            "These repos may have been created too recently, or may have been renamed.",
                     })
-                } else if (notCachedRepos.length > 0) {
-                    // A fresh, fully-successful fetch clears any previous persistent notice.
+                } else {
+                    // A successful fetch (no missing repos) clears any previous notice.
                     setNotice(null)
                 }
             } catch (error: any) {
