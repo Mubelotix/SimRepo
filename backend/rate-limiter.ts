@@ -8,6 +8,12 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_REPOS_PER_HOUR = 10;
 const MAX_REPOS_PER_DAY = 25;
 
+// Per-IP limits for the /similar-repos endpoint, expressed in number of
+// requests (each request counts once, regardless of how many recommendations it
+// returns).
+const MAX_SIMILAR_REPOS_PER_HOUR = 5;
+const MAX_SIMILAR_REPOS_PER_DAY = 7;
+
 // Human-readable message sent when a non-whitelisted client is throttled.
 // Deliberately avoids exposing the exact numeric limits.
 export const RATE_LIMIT_MESSAGE =
@@ -18,9 +24,21 @@ export const RATE_LIMIT_MESSAGE =
   "CDN proxies are not rate-limited, so it's safe to embed chart images directly in " +
   "your READMEs.";
 
+// Message sent when a non-whitelisted client is throttled on /similar-repos.
+// Points to the browser extension, which fetches recommendations through a
+// separate (non-rate-limited) pipeline. Deliberately avoids the exact limits.
+export const SIMILAR_REPOS_RATE_LIMIT_MESSAGE =
+  "You've reached the limit for similar-repositories lookups on the website. " +
+  "Install the SimRepo browser extension to keep exploring similar repositories " +
+  "without limits.";
+
 // The window buckets per IP. We only keep events for the daily window since it is
 // the largest; the hourly total is derived from the same list.
 const ipEvents = new Map<string, { ts: number; count: number }[]>();
+
+// Request timestamps for the /similar-repos endpoint, keyed by IP. Only kept for
+// the daily window; the hourly total is derived from the same list.
+const similarRepoEvents = new Map<string, number[]>();
 
 // --- Whitelist ---
 
@@ -105,5 +123,24 @@ export function tryFetchRepos(ip: string, count: number): boolean {
   }
 
   pruned.push({ ts: now, count });
+  return true;
+}
+
+/**
+ * Register an attempt to fetch similar repos for the given IP.
+ * Returns true if allowed (consuming the quota) or false if it would exceed a limit.
+ * Whitelisted IPs are handled by the caller and never reach here.
+ */
+export function tryFetchSimilarRepos(ip: string): boolean {
+  const now = Date.now();
+  const events = (similarRepoEvents.get(ip) ?? []).filter((ts) => now - ts < DAY_MS);
+  similarRepoEvents.set(ip, events);
+
+  const hourly = events.filter((ts) => now - ts < HOUR_MS).length;
+  if (hourly >= MAX_SIMILAR_REPOS_PER_HOUR || events.length >= MAX_SIMILAR_REPOS_PER_DAY) {
+    return false;
+  }
+
+  events.push(now);
   return true;
 }

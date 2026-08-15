@@ -27,7 +27,13 @@ import {
   type TrustedByEntry,
   type LeaderboardData,
 } from "./repos.js";
-import { isWhitelisted, tryFetchRepos, RATE_LIMIT_MESSAGE } from "./rate-limiter.js";
+import {
+  isWhitelisted,
+  tryFetchRepos,
+  tryFetchSimilarRepos,
+  RATE_LIMIT_MESSAGE,
+  SIMILAR_REPOS_RATE_LIMIT_MESSAGE,
+} from "./rate-limiter.js";
 
 const FRONTEND_DIR = process.env.FRONTEND_DIR || "/app/www";
 
@@ -142,8 +148,9 @@ const startServer = async () => {
   // Similar repositories for a single repo, from the similar_repos table. The
   // number of recommendations is deliberately capped at MAX_SIMILAR_REPOS (3):
   // a future mechanism will relax this cap, so any request exceeding it is
-  // rejected up front rather than silently truncated. Not rate-limited: the
-  // payload is small and the lookup is indexed.
+  // rejected up front rather than silently truncated. Rate-limited per IP
+  // (5/hour, 7/day) so a single visitor can't hammer the lookup; the frontend
+  // points rate-limited visitors at the browser extension instead.
   app.get("/similar-repos", (c) => {
     const repo = (c.req.query("repo") ?? "").trim();
     if (!repo) {
@@ -157,6 +164,12 @@ const startServer = async () => {
       );
     }
     limit = Math.max(1, limit);
+
+    const ip = c.req.header("X-Real-IP") ?? "";
+    if (ip && !isWhitelisted(ip) && !tryFetchSimilarRepos(ip)) {
+      return c.text(SIMILAR_REPOS_RATE_LIMIT_MESSAGE, 429);
+    }
+
     return c.json({ repos: fetchSimilarRepos(repo, limit) });
   });
 
