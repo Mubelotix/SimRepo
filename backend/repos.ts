@@ -386,13 +386,16 @@ const PREFIX_TERMINATOR = "\uffff";
 
 /** Indexed prefix search over `expr`. Requires a matching expression index. */
 const RANGE_SQL = (expr: string) =>
-  `SELECT name, stars_total FROM repos WHERE ${expr} >= ? AND ${expr} < ?`;
+  `SELECT name, stars_total FROM repos WHERE ${expr} >= ? AND ${expr} < ? ORDER BY stars_total DESC LIMIT ?`;
 
 /**
  * Search repos by a (case-insensitive) prefix of their name, returning up to
  * `limit` matches ordered by the repo with the most stars first. A repo matches
  * if either its owner (`owner/...`) or its repo name (`owner/name`) starts with
- * the query. Each prefix lookup is a range scan over its own expression index.
+ * the query. Each prefix lookup is a range scan over its own expression index,
+ * truncated to the top `limit` by stars -- the global top-N is always a subset
+ * of the union of the two per-list top-Ns, so truncating before the merge keeps
+ * results correct while bounding work on short queries.
  */
 export function searchRepos(query: string, limit = 8): RepoSearchEntry[] {
   const q = query.trim().toLowerCase();
@@ -401,8 +404,8 @@ export function searchRepos(query: string, limit = 8): RepoSearchEntry[] {
   const d = getDb();
   const upper = q + PREFIX_TERMINATOR;
   const rows = [
-    ...d.prepare(RANGE_SQL("lower(name)")).all(q, upper),
-    ...d.prepare(RANGE_SQL("lower(substr(name, instr(name, '/') + 1))")).all(q, upper),
+    ...d.prepare(RANGE_SQL("lower(name)")).all(q, upper, limit),
+    ...d.prepare(RANGE_SQL("lower(substr(name, instr(name, '/') + 1))")).all(q, upper, limit),
   ] as unknown as RepoSearchEntry[];
 
   const seen = new Set<string>();
