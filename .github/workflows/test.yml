@@ -9,10 +9,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: npx lockfile-lint --path package-lock.json --validate-https
+      - run: npx lockfile-lint --path extension/package-lock.json --validate-https
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: npm install
-      - run: npm test
+      - run: npm install --prefix extension
+      - run: npm test --prefix extension
