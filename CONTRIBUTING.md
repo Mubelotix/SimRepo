@@ -1,7 +1,16 @@
-This document contains instructions for contributing to the browser
-extension (the `extension/` directory) only.
+## Website
 
-## Getting started
+The website is built using a **modern tech stack**: **`Next.js`** + **`TailwindCSS`**.
+
+Contributions are welcome, especially those that give the website a more modern look. Reviews are made by humans, so keep your changes focused and prefer submitting multiple small pull requests over one large one.
+
+```shell
+pnpm i && pnpm dev
+```
+
+This runs both the frontend and the backend concurrently. The website will be served at http://localhost:3000, and the API server (used to generate chart **`SVG`** images for **`GitHub readme`**) on http://localhost:8080.
+
+## Extension
 
 ### Requirements
 
