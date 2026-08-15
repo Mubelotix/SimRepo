@@ -379,40 +379,41 @@ export function fetchTrustedBy(repoNames: string[]): TrustedByEntry[] {
     .sort((a, b) => (b.stars ?? -1) - (a.stars ?? -1));
 }
 
+// Lower bound terminator used to turn a prefix match into an indexed range
+// scan. U+FFFF is invalid in UTF-8 so no real repo name ever contains it,
+// making `[q, q || '\uffff')` an exact match for "starts with q".
+const PREFIX_TERMINATOR = "\uffff";
+
+/** Indexed prefix search over `expr`. Requires a matching expression index. */
+const RANGE_SQL = (expr: string) =>
+  `SELECT name, stars_total FROM repos WHERE ${expr} >= ? AND ${expr} < ?`;
+
 /**
  * Search repos by a (case-insensitive) prefix of their name, returning up to
- * `limit` matches ordered by the repo with the most stars first. Uses the
- * existing lower(name) index for the prefix lookup.
+ * `limit` matches ordered by the repo with the most stars first. A repo matches
+ * if either its owner (`owner/...`) or its repo name (`owner/name`) starts with
+ * the query. Each prefix lookup is a range scan over its own expression index.
  */
 export function searchRepos(query: string, limit = 8): RepoSearchEntry[] {
-  const q = query.trim();
+  const q = query.trim().toLowerCase();
   if (!q) return [];
 
   const d = getDb();
-  const stmt = d.prepare(
-    "SELECT name, points FROM repos WHERE lower(name) LIKE ? ORDER BY length(name) LIMIT ?"
-  );
-  const rows = stmt.all(`${q.toLowerCase()}%`, limit + 50) as {
-    name: string;
-    points: Buffer | null;
-  }[];
+  const upper = q + PREFIX_TERMINATOR;
+  const rows = [
+    ...d.prepare(RANGE_SQL("lower(name)")).all(q, upper),
+    ...d.prepare(RANGE_SQL("lower(substr(name, instr(name, '/') + 1))")).all(q, upper),
+  ] as unknown as RepoSearchEntry[];
 
-  return rows
-    .map((row) => {
-      // star count = last cumulative point in the gzip blob (if present)
-      let stars_total = 0;
-      if (row.points) {
-        try {
-          const data = gunzipSync(row.points as unknown as Uint8Array);
-          if (data.length >= 8) {
-            stars_total = data.readUInt32LE(data.length - 4);
-          }
-        } catch {
-          // skip malformed points
-        }
-      }
-      return { name: row.name, stars_total };
-    })
+  const seen = new Set<string>();
+  const byName = new Map<string, RepoSearchEntry>();
+  for (const row of rows) {
+    if (seen.has(row.name)) continue;
+    seen.add(row.name);
+    byName.set(row.name, row);
+  }
+
+  return Array.from(byName.values())
     .sort((a, b) => b.stars_total - a.stars_total)
     .slice(0, limit);
 }
