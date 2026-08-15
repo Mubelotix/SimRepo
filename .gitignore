@@ -17,6 +17,7 @@ dist
 
 # production
 /build
+extension/distribution
 sitemap*.xml
 robots.txt
 
@@ -24,6 +25,7 @@ robots.txt
 .DS_Store
 *.pem
 plans/
+extension/media/preview.xcf
 
 # debug
 npm-debug.log*
@@ -46,5 +48,6 @@ token.env
 # generated files
 backend/data/*
 !backend/data/trusted-by.json
+extension/.parcel-cache
 
 *.sqlite*
