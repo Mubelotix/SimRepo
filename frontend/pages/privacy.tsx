@@ -24,9 +24,9 @@ const Privacy: NextPage = () => {
                         </header>
 
                         <div className="px-6 py-6 space-y-8 text-sm leading-relaxed text-neutral-700">
-                            <p className="text-xs text-neutral-400">
-                                Last updated: 2026-08-14 (fonts now self-hosted)
-                            </p>
+                                <p className="text-xs text-neutral-400">
+                                    Last updated: 2026-08-15 (event counting for similar repositories)
+                                </p>
                             <p>
                                 This page explains what data GitHub Star History processes when you visit, why, and what
                                 rights you have. It is written to satisfy GDPR (EU/France) and CalOPPA/CCPA-style
@@ -66,7 +66,8 @@ const Privacy: NextPage = () => {
                                                     Page views, referrer, and browser/device type. IP addresses are anonymized
                                                     before storage, so no individual visitor is identifiable from stored data. When
                                                     the &quot;Do Not Track&quot; (DNT) signal is set in your browser, analytics are
-                                                    completely ignored and no data is collected.
+                                                    completely ignored and no data is collected. We also count events (e.g.
+                                                    clicks on recommendations) to measure accuracy of our models and plan future improvements.
                                                 </td>
                                             </tr>
                                             <tr className="border-b border-neutral-100 align-top">
