@@ -165,7 +165,7 @@ export default function RepoInputer({ setChartVisibility }: RepoInputerProps) {
         }
         let rawRepos = state.repo
         if (rawRepos === "" && state.repos.length === 0) {
-            rawRepos = "Mubelotix/star-history"
+            rawRepos = "Mubelotix/simrepo"
         }
 
         if (rawRepos === "") {

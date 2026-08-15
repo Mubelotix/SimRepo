@@ -83,11 +83,11 @@ const Legal: NextPage = () => {
                                 </p>
                                 <p className="mt-2">
                                     Le code du site est ouvert et publié sur{" "}
-                                    <a className="link-action" target="_blank" rel="noopener noreferrer" href="https://github.com/Mubelotix/star-history">
+                                    <a className="link-action" target="_blank" rel="noopener noreferrer" href="https://github.com/Mubelotix/simrepo">
                                         GitHub
                                     </a>{" "}
                                     : une partie est licenciée sous MIT, l&apos;autre partie sous GPLv3 (voir{" "}
-                                    <a className="link-action" target="_blank" rel="noopener noreferrer" href="https://github.com/Mubelotix/star-history">
+                                    <a className="link-action" target="_blank" rel="noopener noreferrer" href="https://github.com/Mubelotix/simrepo">
                                         le dépôt
                                     </a>{" "}
                                     pour le détail). Les données fournies par le serveur ne sont quant à elles pas licenciées :
