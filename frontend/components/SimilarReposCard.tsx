@@ -17,14 +17,17 @@ const SimilarReposCard: React.FC = () => {
 
     const [repos, setRepos] = useState<SimilarRepo[]>([])
     const [loading, setLoading] = useState(false)
+    const [limited, setLimited] = useState(false)
 
     useEffect(() => {
         let disposed = false
         if (!repo) {
             setRepos([])
+            setLimited(false)
             return
         }
         setLoading(true)
+        setLimited(false)
         axios
             .get(`${REPO_DATA_API_URL}/similar-repos`, {
                 params: { repo, limit: MAX_SIMILAR_REPOS },
@@ -34,8 +37,13 @@ const SimilarReposCard: React.FC = () => {
                 if (disposed) return
                 setRepos(data?.repos ?? [])
             })
-            .catch(() => {
+            .catch((error) => {
                 if (disposed) return
+                if (error?.response?.status === 429) {
+                    setRepos([])
+                    setLimited(true)
+                    return
+                }
                 setRepos([])
             })
             .finally(() => {
@@ -70,6 +78,18 @@ const SimilarReposCard: React.FC = () => {
                 </div>
                 {loading ? (
                     <div className="text-xs text-gray-500 leading-relaxed">Loading…</div>
+                ) : limited ? (
+                    <div className="text-xs text-gray-500 leading-relaxed">
+                        You&apos;ve reached the limit for similar-repository lookups on the website.{" "}
+                        <a
+                            href="#"
+                            onClick={handleExtensionClick}
+                            className="font-medium text-blue-600 hover:text-blue-700 hover:underline"
+                        >
+                            Install the SimRepo browser extension
+                        </a>{" "}
+                        to keep exploring similar repositories without limits.
+                    </div>
                 ) : repos.length === 0 ? null : (
                     <>
                     <ul className="space-y-3">
