@@ -100,22 +100,23 @@ function normalizeRecency(rawDays: number, maxDays: number): number {
 }
 
 // --- Accurate "Top N %" from axis_percentiles ---------------------------------
-// `axis_percentiles` maps each radar axis's raw value to the cumulative number
-// of repos with a value <= it. This lets us report the true "top N %" a repo
-// falls into, instead of the log-scale proxy (100 - normalized). `pushes` is
-// days-since-last-push (lower = better), so it's inverted.
+// `axis_percentiles` maps each radar axis's raw value to `count_lt`, the number
+// of repos with a value strictly below it. Taking count_lt of the first bucket
+// strictly above a repo's value yields the number of repos with a value <= it,
+// which is what we need to report the true "top N %" the repo falls into.
+// `pushes` is days-since-last-push (lower = better), so it's inverted. `size` is
+// stored negated (smaller repo = higher value), so lookups use -size.
 
-let percentileTotals: Record<string, number> | null = null;
+let percentileTotal: number | null = null;
 
-function getPercentileTotal(db: Database.Database, axis: string): number {
-  if (!percentileTotals) percentileTotals = {};
-  if (percentileTotals[axis] === undefined) {
+function getPercentileTotal(db: Database.Database): number {
+  if (percentileTotal === null) {
     const row = db
-      .prepare("SELECT MAX(count_le) AS t FROM axis_percentiles WHERE axis = ?")
-      .get(axis) as { t: number | null };
-    percentileTotals[axis] = row?.t ?? 0;
+      .prepare("SELECT MAX(total_repos) AS t FROM repos")
+      .get() as { t: number | null };
+    percentileTotal = row?.t ?? 0;
   }
-  return percentileTotals[axis];
+  return percentileTotal;
 }
 
 // Returns the "top N %" (0-100, rounded) for a repo's raw value on `axis`, or
@@ -125,16 +126,28 @@ function topPercentile(
   axis: string,
   rawValue: number
 ): number | undefined {
+  if (rawValue === null || rawValue === undefined || Number.isNaN(rawValue)) return undefined;
+  // `pushes`/`open_issues` use -1 as a "no data" sentinel; `size` is always >= 0.
   if (rawValue < 0) return undefined;
+  // `size` is stored negated (smaller repo = higher value), so invert the lookup.
+  const lookup = axis === "size" ? -rawValue : rawValue;
+  // count_lt of the first bucket strictly above `lookup` == # repos with a value
+  // <= `lookup`. When `lookup` is at/above the top bucket, fall back to the axis
+  // max (i.e. every repo ranks at-or-below it).
   const row = db
     .prepare(
-      "SELECT count_le FROM axis_percentiles WHERE axis = ? AND value <= ? ORDER BY value DESC LIMIT 1"
+      "SELECT count_lt FROM axis_percentiles WHERE axis = ? AND value > ? ORDER BY value ASC LIMIT 1"
     )
-    .get(axis, rawValue) as { count_le: number } | undefined;
-  if (!row) return undefined;
-  const total = getPercentileTotal(db, axis);
+    .get(axis, lookup) as { count_lt: number } | undefined;
+  const countBelowOrEqual =
+    row?.count_lt ??
+    (db
+      .prepare("SELECT MAX(count_lt) AS c FROM axis_percentiles WHERE axis = ?")
+      .get(axis) as { c: number | null })?.c ??
+    0;
+  const total = getPercentileTotal(db);
   if (total <= 0) return undefined;
-  const fracBelowOrEqual = row.count_le / total; // 0..1
+  const fracBelowOrEqual = countBelowOrEqual / total; // 0..1
   // Higher-is-better axes: top N % = share of repos with a higher value.
   // pushes (recency): top N % = share of repos pushed more recently (lower days).
   const topN = axis === "pushes" ? 100 * fracBelowOrEqual : 100 * (1 - fracBelowOrEqual);
