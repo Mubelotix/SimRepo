@@ -149,7 +149,7 @@ const EmbedChart: React.FC = () => {
                     <span className="font-mono text-gray-500">README.md</span>
                 )}{" "}
                 with the following code (
-                <a className="link-mono" href="https://github.com/Mubelotix/star-history?tab=readme-ov-file#sparkles-star-history-sparkles" target="_blank">
+                <a className="link-mono" href="https://github.com/Mubelotix/simrepo?tab=readme-ov-file#sparkles-star-history-sparkles" target="_blank">
                     example
                 </a>
                 ):

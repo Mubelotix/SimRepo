@@ -49,7 +49,7 @@ const HowToUse: NextPage = () => {
                             of knowing these simply from gazing at the stars count. Here&apos;s when Star History comes in handy:
                             it shows how the number of GitHub stars of a project is increasing over the years. And - it&apos;s free
                             and{" "}
-                            <a className="link-action" target="_blank" rel="noopener noreferrer" href="https://github.com/Mubelotix/star-history">
+                            <a className="link-action" target="_blank" rel="noopener noreferrer" href="https://github.com/Mubelotix/simrepo">
                                 open-source
                             </a>
                             .
@@ -79,12 +79,12 @@ const HowToUse: NextPage = () => {
                             <ol className="list-decimal list-inside space-y-2">
                                 <li>
                                     Paste its whole URL in the search bar. e.g.{" "}
-                                    <code className="font-mono text-xs bg-neutral-100 px-1 rounded">https://github.com/Mubelotix/star-history</code>
+                                    <code className="font-mono text-xs bg-neutral-100 px-1 rounded">https://github.com/Mubelotix/simrepo</code>
                                 </li>
                                 <li>
                                     If you are feeling lazy, skip the{" "}
                                     <code className="font-mono text-xs bg-neutral-100 px-1 rounded">https://github.com/</code> part. e.g{" "}
-                                    <code className="font-mono text-xs bg-neutral-100 px-1 rounded">Mubelotix/star-history</code>
+                                    <code className="font-mono text-xs bg-neutral-100 px-1 rounded">Mubelotix/simrepo</code>
                                 </li>
                                 <li>
                                     When the repo name matches the organization&apos;s, writing once is enough, e.g.{" "}
