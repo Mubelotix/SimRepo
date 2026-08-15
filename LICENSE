@@ -14,6 +14,10 @@ The MIT-licensed portions remain available under the MIT License; the
 GPL-3.0-only terms apply to the code contributed from the fork point
 onward.
 
+The browser extension (the `extension/` directory) is a separate project
+and is licensed entirely under the GNU General Public License, version 3
+(GPL-3.0-only).
+
 ======================================================================
 
                     GNU GENERAL PUBLIC LICENSE
