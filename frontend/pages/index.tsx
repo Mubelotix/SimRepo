@@ -43,12 +43,12 @@ const Index: NextPage = () => {
             <div className="relative w-full h-auto min-h-screen flex flex-col overflow-x-hidden">
                 <Header />
                 <div className="w-full h-auto grow flex flex-row justify-center">
-                    <div className="w-full px-4 h-auto grow lg:grid lg:grid-cols-[1fr_288px] xl:grid-cols-[240px_1fr_288px] lg:gap-8 xl:gap-24">
-                        <div className="hidden xl:block">
+                    <div className="w-full max-w-screen-2xl mx-auto px-4 h-auto flex flex-col lg:flex-row items-center lg:items-start lg:justify-center lg:gap-8 xl:gap-16">
+                        <div className="hidden xl:block xl:w-60 shrink-0">
                             <LeftSidebar />
                         </div>
 
-                        <div className="w-full flex flex-col justify-start">
+                        <div className="w-full min-w-0 lg:flex-1 flex flex-col justify-start items-center">
                             <RepoInputer isChartVisible={isChartVisible} setChartVisibility={setChartVisibility} />
                             {isChartVisible ? (
                                 <>
@@ -60,7 +60,7 @@ const Index: NextPage = () => {
                             )}
                         </div>
 
-                        <div>
+                        <div className="w-full lg:w-72 shrink-0">
                             <SimilarReposCard />
                         </div>
                     </div>
