@@ -14,6 +14,22 @@ const MAX_REPOS_PER_DAY = 25;
 const MAX_SIMILAR_REPOS_PER_HOUR = 5;
 const MAX_SIMILAR_REPOS_PER_DAY = 7;
 
+// Higher per-IP limits for /similar-repos requests that come from the official
+// SimRepo browser extension (identified by its Origin header).
+const MAX_SIMILAR_REPOS_PER_HOUR_EXTENSION = 40;
+const MAX_SIMILAR_REPOS_PER_DAY_EXTENSION = 65;
+
+// Origin headers of the official SimRepo browser extension (Chrome and Firefox).
+export const EXTENSION_ORIGINS = new Set([
+  "chrome-extension://jieoogmcigenidbkgnkaakagdnlnieap",
+  "moz-extension://c157d40e-631c-4a1a-b63b-04a6f331eea8",
+]);
+
+export function isExtensionOrigin(origin: string | undefined): boolean {
+  if (!origin) return false;
+  return EXTENSION_ORIGINS.has(origin.toLowerCase());
+}
+
 // Human-readable message sent when a non-whitelisted client is throttled.
 // Deliberately avoids exposing the exact numeric limits.
 export const RATE_LIMIT_MESSAGE =
@@ -129,15 +145,18 @@ export function tryFetchRepos(ip: string, count: number): boolean {
 /**
  * Register an attempt to fetch similar repos for the given IP.
  * Returns true if allowed (consuming the quota) or false if it would exceed a limit.
- * Whitelisted IPs are handled by the caller and never reach here.
+ * Whitelisted IPs are handled by the caller and never reach here. Requests from
+ * a recognized browser extension (`isExtension`) get a higher quota.
  */
-export function tryFetchSimilarRepos(ip: string): boolean {
+export function tryFetchSimilarRepos(ip: string, isExtension = false): boolean {
   const now = Date.now();
   const events = (similarRepoEvents.get(ip) ?? []).filter((ts) => now - ts < DAY_MS);
   similarRepoEvents.set(ip, events);
 
   const hourly = events.filter((ts) => now - ts < HOUR_MS).length;
-  if (hourly >= MAX_SIMILAR_REPOS_PER_HOUR || events.length >= MAX_SIMILAR_REPOS_PER_DAY) {
+  const maxPerHour = isExtension ? MAX_SIMILAR_REPOS_PER_HOUR_EXTENSION : MAX_SIMILAR_REPOS_PER_HOUR;
+  const maxPerDay = isExtension ? MAX_SIMILAR_REPOS_PER_DAY_EXTENSION : MAX_SIMILAR_REPOS_PER_DAY;
+  if (hourly >= maxPerHour || events.length >= maxPerDay) {
     return false;
   }
 

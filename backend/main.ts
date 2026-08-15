@@ -31,6 +31,7 @@ import {
   isWhitelisted,
   tryFetchRepos,
   tryFetchSimilarRepos,
+  isExtensionOrigin,
   RATE_LIMIT_MESSAGE,
   SIMILAR_REPOS_RATE_LIMIT_MESSAGE,
 } from "./rate-limiter.js";
@@ -146,18 +147,20 @@ const startServer = async () => {
   });
 
   // Similar repositories for a single repo, from the similar_repos table. The
-  // number of recommendations is deliberately capped at MAX_SIMILAR_REPOS (3):
-  // a future mechanism will relax this cap, so any request exceeding it is
-  // rejected up front rather than silently truncated. Rate-limited per IP
-  // (5/hour, 7/day) so a single visitor can't hammer the lookup; the frontend
-  // points rate-limited visitors at the browser extension instead.
+  // number of recommendations is capped at MAX_SIMILAR_REPOS (3) for website
+  // requests; requests from the official browser extension (identified by its
+  // Origin header) may ask for as many as they want. Rate-limited per IP
+  // (5/hour, 7/day) so a single visitor can't hammer the lookup; requests from
+  // the extension get a higher quota (40/hour, 65/day). The frontend points
+  // rate-limited visitors at the browser extension instead.
   app.get("/similar-repos", (c) => {
     const repo = (c.req.query("repo") ?? "").trim();
     if (!repo) {
       return c.text("Repo name required", 400);
     }
+    const isExtension = isExtensionOrigin(c.req.header("Origin"));
     let limit = Number(c.req.query("limit") ?? MAX_SIMILAR_REPOS) || MAX_SIMILAR_REPOS;
-    if (limit > MAX_SIMILAR_REPOS) {
+    if (!isExtension && limit > MAX_SIMILAR_REPOS) {
       return c.text(
         `Too many repos: max ${MAX_SIMILAR_REPOS} per request (more will be allowed in the future)`,
         400
@@ -166,7 +169,7 @@ const startServer = async () => {
     limit = Math.max(1, limit);
 
     const ip = c.req.header("X-Real-IP") ?? "";
-    if (ip && !isWhitelisted(ip) && !tryFetchSimilarRepos(ip)) {
+    if (ip && !isWhitelisted(ip) && !tryFetchSimilarRepos(ip, isExtension)) {
       return c.text(SIMILAR_REPOS_RATE_LIMIT_MESSAGE, 429);
     }
 
