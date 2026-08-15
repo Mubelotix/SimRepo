@@ -55,6 +55,11 @@ const SimilarReposCard: React.FC = () => {
         window.location.hash = repoName
     }
 
+    const handleExtensionClick = (e: React.MouseEvent) => {
+        e.preventDefault()
+        window.open(getExtensionStoreUrl(), "_blank", "noopener,noreferrer")
+    }
+
     return (
         <div className="sidebar-sticky">
             <div className="pt-4">
@@ -66,6 +71,7 @@ const SimilarReposCard: React.FC = () => {
                 {loading ? (
                     <div className="text-xs text-gray-500 leading-relaxed">Loading…</div>
                 ) : repos.length === 0 ? null : (
+                    <>
                     <ul className="space-y-3">
                         {repos.map((item) => {
                             const [owner, repoName] = item.repo.split("/")
@@ -116,6 +122,14 @@ const SimilarReposCard: React.FC = () => {
                             )
                         })}
                     </ul>
+                    <a
+                        href="#"
+                        onClick={handleExtensionClick}
+                        className="mt-3 block text-xs font-medium text-blue-600 hover:text-blue-700 hover:underline"
+                    >
+                        Explore more than three similar repositories using the browser extension
+                    </a>
+                    </>
                 )}
             </div>
         </div>
@@ -123,6 +137,20 @@ const SimilarReposCard: React.FC = () => {
 }
 
 // --- GitHub octicons (16x16), rendered inline ---
+
+const EXTENSION_STORES = {
+    firefox: "https://addons.mozilla.org/en-US/firefox/addon/simrepo/",
+    edge: "https://microsoftedge.microsoft.com/addons/detail/simrepo/hepnmbpflckgenbalbaebckhpncaabid",
+    chrome:
+        "https://chromewebstore.google.com/detail/simrepo/jieoogmcigenidbkgnkaakagdnlnieap",
+}
+
+const getExtensionStoreUrl = (): string => {
+    const ua = navigator.userAgent.toLowerCase()
+    if (ua.includes("firefox")) return EXTENSION_STORES.firefox
+    if (ua.includes("edg")) return EXTENSION_STORES.edge
+    return EXTENSION_STORES.chrome
+}
 
 const iconProps = (props: React.SVGProps<SVGSVGElement>) => ({
     viewBox: "0 0 16 16",
