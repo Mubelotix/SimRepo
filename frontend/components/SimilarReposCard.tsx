@@ -7,10 +7,6 @@ import { SimilarRepo } from "@shared/types/chart"
 import SimilarRepoList from "./SimilarRepoList"
 import { countEvent } from "../helpers/analytics"
 
-// Max recommendations the backend will serve today. Keep in sync with the
-// backend's MAX_SIMILAR_REPOS so we never request more than is allowed.
-const MAX_SIMILAR_REPOS = 3
-
 const SimilarReposCard: React.FC = () => {
     const store = useAppStore()
     const repo = store.repos.length === 1 ? store.repos[0] : null
@@ -30,7 +26,7 @@ const SimilarReposCard: React.FC = () => {
         setLimited(false)
         axios
             .get(`${REPO_DATA_API_URL}/similar-repos`, {
-                params: { repo, limit: MAX_SIMILAR_REPOS },
+                params: { repo },
                 timeout: 10000,
             })
             .then(({ data }) => {

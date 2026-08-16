@@ -284,12 +284,12 @@ function parseTopics(topics: string | null): string[] {
 }
 
 /**
- * Fetch the top `limit` most similar repositories to `repoName` from the
- * similar_repos table. Scores are stored as little-endian f32 blobs, so they are
- * decoded and sorted in JS. Returns the recommendations (with their display
- * metadata) ordered by descending similarity.
+ * Fetch up to `limit` most similar repositories to `repoName`, skipping the
+ * first `offset` candidates, from the similar_repos table. Scores are stored as
+ * little-endian f32 blobs, so they are decoded and sorted in JS. Returns the
+ * recommendations (with their display metadata) ordered by descending similarity.
  */
-export function fetchSimilarRepos(repoName: string, limit: number): SimilarRepo[] {
+export function fetchSimilarRepos(repoName: string, offset: number, limit: number): SimilarRepo[] {
   const d = getDb();
   const repoRow = d
     .prepare("SELECT id FROM repos WHERE lower(name) = lower(?)")
@@ -311,7 +311,7 @@ export function fetchSimilarRepos(repoName: string, limit: number): SimilarRepo[
       };
     })
     .sort((a, b) => b.score - a.score)
-    .slice(0, limit);
+    .slice(offset, offset + limit);
 
   const metaStmt = d.prepare(`
     SELECT name, owner, stars_total, description, language, license, homepage,
