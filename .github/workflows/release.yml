@@ -19,26 +19,31 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v3
         with:
-          node-version-file: .nvmrc
+          node-version-file: extension/.nvmrc
           cache: npm
-      - run: npm ci
+          cache-dependency-path: extension/package-lock.json
+      - name: Install dependencies
+        working-directory: extension
+        run: npm ci
       - name: Test and build
+        working-directory: extension
         run: npm test
       - name: Create tag if necessary
         uses: fregante/daily-version-action@v2
       - name: Update manifest.json with version ${{ env.DAILY_VERSION}}
         if: env.DAILY_VERSION_CREATED
+        working-directory: extension
         run: npx dot-json@1 "$DIRECTORY/manifest.json" version "$DAILY_VERSION"
       - name: Ready for "submit" jobs
         if: env.DAILY_VERSION_CREATED
         uses: actions/upload-artifact@v4
         with:
-          path: ${{ env.DIRECTORY }}
+          path: extension/${{ env.DIRECTORY }}
       - name: Create release
         if: env.DAILY_VERSION_CREATED
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        working-directory: ${{ env.DIRECTORY }}
+        working-directory: extension/${{ env.DIRECTORY }}
         run: |
           FILENAME="$PROJECT_NAME-$DAILY_VERSION-for-local-testing-only.zip"
           zip -r "$FILENAME" ./*
