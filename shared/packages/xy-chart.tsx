@@ -3,7 +3,6 @@ import { select } from "d3-selection"
 import { line, curveMonotoneX } from "d3-shape"
 import { AxisScale } from "d3-axis";
 import dayjs from "dayjs"
-import uniq from "lodash/uniq"
 import ToolTip from "./components/ToolTip"
 import { drawXAxis, drawYAxis } from "./utils/drawAxis"
 import addFilter from "./utils/addFilter"
@@ -203,7 +202,7 @@ const XYChart = (
     drawWatermark(svgChart, chartWidth, chartHeight);
 
     if (title) {
-        if (uniq(datasets.map((d) => d.label.split("/")[0])).length === 1) {
+        if (new Set(datasets.map((d) => d.label.split("/")[0])).size === 1) {
             drawTitle(d3Selection, title, datasets[0].logo, options.strokeColor, options.chartWidth)
         } else {
             drawTitle(d3Selection, title, "", options.strokeColor, options.chartWidth)

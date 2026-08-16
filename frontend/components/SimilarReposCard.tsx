@@ -1,6 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
 import React, { useEffect, useState } from "react"
-import axios from "axios"
 import { useAppStore } from "../store"
 import { REPO_DATA_API_URL } from "@shared/common/config"
 import { SimilarRepo } from "@shared/types/chart"
@@ -24,22 +23,22 @@ const SimilarReposCard: React.FC = () => {
         }
         setLoading(true)
         setLimited(false)
-        axios
-            .get(`${REPO_DATA_API_URL}/similar-repos`, {
-                params: { repo },
-                timeout: 10000,
+        fetch(`${REPO_DATA_API_URL}/similar-repos?repo=${encodeURIComponent(repo)}`, {
+                signal: AbortSignal.timeout(10000),
             })
-            .then(({ data }) => {
+            .then(async (res) => {
                 if (disposed) return
-                setRepos(data?.repos ?? [])
-            })
-            .catch((error) => {
-                if (disposed) return
-                if (error?.response?.status === 429) {
+                if (res.status === 429) {
                     setRepos([])
                     setLimited(true)
                     return
                 }
+                const data = await res.json()
+                if (disposed) return
+                setRepos(data?.repos ?? [])
+            })
+            .catch(() => {
+                if (disposed) return
                 setRepos([])
             })
             .finally(() => {

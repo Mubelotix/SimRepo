@@ -6,20 +6,17 @@
     "dev": "concurrently -k -n backend,frontend -c blue,green \"cd backend && pnpm dev\" \"cd frontend && NEXT_PUBLIC_REPO_DATA_API_URL=http://localhost:8080 pnpm dev\""
   },
   "dependencies": {
-    "axios": "^1.8.2",
     "d3-axis": "^2.1.0",
     "d3-scale": "^3.3.0",
     "d3-selection": "^2.0.0",
     "d3-shape": "^2.1.0",
-    "dayjs": "^1.11.10",
-    "lodash": "^4.17.21"
+    "dayjs": "^1.11.10"
   },
   "devDependencies": {
     "@types/d3-axis": "^2.1.0",
     "@types/d3-scale": "^3.3.0",
     "@types/d3-selection": "^2.0.0",
     "@types/d3-shape": "^2.1.0",
-    "@types/lodash": "^4.14.200",
     "concurrently": "^10.0.4"
   }
 }

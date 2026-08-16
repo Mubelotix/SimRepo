@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react"
-import axios from "axios"
 import { useAppStore } from "../store"
 import { REPO_DATA_API_URL } from "@shared/common/config"
 import { formatNumber } from "../helpers/format"
@@ -42,7 +41,8 @@ const LeftSidebar: React.FC = () => {
         let disposed = false
         const load = async () => {
             try {
-                const { data } = await axios.get(`${REPO_DATA_API_URL}/leaderboard`, { timeout: 10000 })
+                const res = await fetch(`${REPO_DATA_API_URL}/leaderboard`, { signal: AbortSignal.timeout(10000) })
+                const data = await res.json()
                 if (!disposed) setData(data)
             } catch {
                 if (!disposed) setFailed(true)

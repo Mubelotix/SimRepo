@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { ChartMode, LegendPosition } from "@shared/types/chart";
 import { useRouter } from "next/router";
-import axios from "axios";
 import { REPO_DATA_API_URL } from "@shared/common/config";
 
 export interface TrustedByRepo {
@@ -62,7 +61,8 @@ export const AppStateProvider: React.FC<{
         let disposed = false;
         const loadTrustedBy = async () => {
             try {
-                const { data } = await axios.get(`${REPO_DATA_API_URL}/trusted-by`, { timeout: 5000 });
+                const res = await fetch(`${REPO_DATA_API_URL}/trusted-by`, { signal: AbortSignal.timeout(5000) });
+                const data = await res.json();
                 if (disposed) return;
                 setState((prev) => ({ ...prev, trustedBy: data?.repos ?? [], trustedByLoaded: true }));
             } catch {
