@@ -31,8 +31,8 @@ const V1_LIMIT = 3
 
 // --- v2: the recommendation engine already live on the site (/similar-repos).
 // Requesting through the existing endpoint means the normal per-IP rate limits
-// apply, exactly like the rest of the site.
-const V2_LIMIT = 3
+// apply, exactly like the rest of the site. Untrusted requests only get the
+// first page (up to 3 recommendations).
 
 // Example repos shown in the empty state so visitors can try the demo with one click.
 const EXAMPLE_REPOS = [
@@ -188,7 +188,7 @@ const Compare: React.FC = () => {
         let v2Error: string | null = null
         try {
             const { data } = await axios.get(`${REPO_DATA_API_URL}/similar-repos`, {
-                params: { repo: name, limit: V2_LIMIT },
+                params: { repo: name },
                 timeout: 10000,
             })
             v2 = data?.repos ?? []

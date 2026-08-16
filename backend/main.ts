@@ -162,34 +162,45 @@ const startServer = async () => {
     return c.json({ repo, id });
   });
 
-  // Similar repositories for a single repo, from the similar_repos table. The
-  // number of recommendations is capped at MAX_SIMILAR_REPOS (3) for website
-  // requests; requests from the official browser extension (identified by its
-  // Origin header) may ask for as many as they want. Rate-limited per IP
-  // (5/hour, 7/day) so a single visitor can't hammer the lookup; requests from
-  // the extension get a higher quota (40/hour, 65/day). The frontend points
-  // rate-limited visitors at the browser extension instead.
+  // Similar repositories for a single repo, from the similar_repos table.
+  // Paginated: every page returns at most MAX_SIMILAR_REPOS (3) recommendations,
+  // and a "page" query param selects which page to fetch (page 1 by default).
+  // Untrusted website requests may only query the first page; requests from the
+  // official browser extension (identified by its Origin header) may paginate
+  // through all results. Rate-limited per IP (5/hour, 7/day) so a single visitor
+  // can't hammer the lookup; requests from the extension get a higher quota
+  // (40/hour, 65/day). The frontend points rate-limited visitors at the browser
+  // extension instead.
   app.get("/similar-repos", (c) => {
     const repo = (c.req.query("repo") ?? "").trim();
     if (!repo) {
       return c.text("Repo name required", 400);
     }
     const isExtension = isExtensionOrigin(c.req.header("Origin"));
-    let limit = Number(c.req.query("limit") ?? MAX_SIMILAR_REPOS) || MAX_SIMILAR_REPOS;
-    if (!isExtension && limit > MAX_SIMILAR_REPOS) {
+    let page = 1;
+    const rawPage = c.req.query("page");
+    if (rawPage !== undefined && rawPage !== "") {
+      const parsed = Number(rawPage);
+      if (!Number.isInteger(parsed) || parsed < 1) {
+        return c.text("Invalid page", 400);
+      }
+      page = parsed;
+    }
+    if (!isExtension && page > 1) {
       return c.text(
-        `Too many repos: max ${MAX_SIMILAR_REPOS} per request (more will be allowed in the future)`,
+        `Only the first page of similar repositories is available on the website (more will be allowed in the future)`,
         400
       );
     }
-    limit = Math.max(1, limit);
 
     const ip = c.req.header("X-Real-IP") ?? "";
     if (ip && !isWhitelisted(ip) && !tryFetchSimilarRepos(ip, isExtension)) {
       return c.text(SIMILAR_REPOS_RATE_LIMIT_MESSAGE, 429);
     }
 
-    return c.json({ repos: fetchSimilarRepos(repo, limit) });
+    return c.json({
+      repos: fetchSimilarRepos(repo, (page - 1) * MAX_SIMILAR_REPOS, MAX_SIMILAR_REPOS),
+    });
   });
 
   // Sidebar leaderboard (top repos + star-count pyramid), sourced from
