@@ -66,6 +66,9 @@ function removeSection() {
     }
 }
 
+// See https://github.com/Mubelotix/SimRepo/issues/25
+const forkIcon = octicons['repo-forked'].toSVG({ class: 'simrepo-fork' }).replace('octicon-repo-forked', 'octicon-simrepo-fork');
+
 function getHtml(owner, repo, fullname, description, language, stars, forks, archived, similarity) {
     return `
 <div class="Box d-flex p-3 width-full public source">
@@ -102,7 +105,7 @@ function getHtml(owner, repo, fullname, description, language, stars, forks, arc
           
             ${forks > 0 ? `
             <a href="/${fullname}/forks" class="pinned-item-meta Link--muted">
-                ${octicons['repo-forked'].toSVG()}
+                ${forkIcon}
                 ${formatNumber(forks)}
             </a>
             ` : ''}
