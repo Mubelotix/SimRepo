@@ -16,7 +16,7 @@ const Index: NextPage = () => {
 
     const metadata = {
 		title:       "GitHub Star History",
-		description: "View and compare GitHub star history graph of open source projects.",
+		description: "GitHub star history graphs, no token required.",
 		imageURL:    `${SITE_URL}/assets/star-history-preview.webp`,
 	}
 
