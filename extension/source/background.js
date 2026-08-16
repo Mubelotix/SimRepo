@@ -72,6 +72,82 @@ async function getClosestN(ids, offset = 0, limit = 10) {
     throw new Error("All provided IDs were invalid or caused errors.");
 }
 
+// v2 model: similar repositories for a single repo, served by the site's
+// /similar-repos endpoint. Returns the SimilarRepo[] array (or throws).
+async function getSimilarReposV2(repo, page = 1) {
+    const url = `https://star-history.dera.page/similar-repos?repo=${encodeURIComponent(repo)}&page=${page}`;
+    const response = await fetch(url, {
+        method: "GET",
+        headers: { "Accept": "application/json" },
+    });
+
+    if (response.status === 429) {
+        throw new Error("Rate limited. Please try again later.");
+    }
+
+    if (!response.ok) {
+        // Surface the backend's own message (e.g. pagination restrictions) so
+        // the user isn't left with a bare HTTP status code.
+        const body = await response.text().catch(() => "");
+        const detail = body && !body.startsWith("<") ? body.trim() : "";
+        throw new Error(
+            detail
+                ? `HTTP ${response.status}: ${detail}`
+                : `Failed to fetch similar repositories (HTTP ${response.status}).`
+        );
+    }
+
+    const data = await response.json();
+    return data.repos ?? [];
+}
+
+async function handleGetSimilarReposV2Message(message, sender, sendResponse) {
+    console.log('Received message to get similar repos (v2):', message);
+
+    const repo = message.repo;
+    const page = Number(message.page) || 1;
+
+    const cacheKey = `cache:getSimilarReposV2:${repo}:${page}`;
+
+    // Check cache first
+    chrome.storage.local.get([cacheKey], async (result) => {
+        const cached = result[cacheKey];
+        if (cached) {
+            console.log('Serving from cache');
+            sendResponse({ status: 'success', cached: cached.timestamp, data: cached.data });
+            return;
+        }
+
+        if (!repo) {
+            sendResponse({ status: "unknown" });
+            return;
+        }
+
+        let repos;
+        try {
+            repos = await getSimilarReposV2(repo, page);
+        } catch (error) {
+            console.error('Error fetching similar repos (v2):', error);
+            sendResponse({ status: "error", message: error.message });
+            return;
+        }
+
+        // Cache the result
+        chrome.storage.local.set({
+            [cacheKey]: {
+                data: repos,
+                timestamp: Date.now()
+            }
+        });
+
+        if (repos.length === 0) {
+            sendResponse({ status: "error", message: "This repository is not covered by the similar-repositories dataset yet." });
+        } else {
+            sendResponse({ status: "success", data: repos });
+        }
+    });
+}
+
 async function handleGetSimilarReposMessage(message, sender, sendResponse) {
     console.log('Received message to get similar repos:', message);
 
@@ -128,6 +204,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'getSimilarRepos') {
         (async () => {
             await handleGetSimilarReposMessage(message, sender, sendResponse);
+        })();
+
+        // Tell Chrome this is a synchronous response
+        return true;
+    }
+
+    if (message.type === 'getSimilarReposV2') {
+        (async () => {
+            await handleGetSimilarReposV2Message(message, sender, sendResponse);
         })();
 
         // Tell Chrome this is a synchronous response
