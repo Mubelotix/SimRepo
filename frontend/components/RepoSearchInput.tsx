@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react"
-import axios from "axios"
 import { REPO_DATA_API_URL } from "@shared/common/config"
 import { formatNumber } from "../helpers/format"
 
@@ -73,10 +72,11 @@ export default function RepoSearchInput({
         }
         searchTimerRef.current = setTimeout(async () => {
             try {
-                const { data } = await axios.get(`${REPO_DATA_API_URL}/repo-search`, {
-                    params: { q: query, limit: 8 },
-                    timeout: 5000,
-                })
+                const res = await fetch(
+                    `${REPO_DATA_API_URL}/repo-search?q=${encodeURIComponent(query)}&limit=8`,
+                    { signal: AbortSignal.timeout(5000) }
+                )
+                const data = await res.json()
                 const list = (data?.repos ?? []) as Suggestion[]
                 setSuggestions(list)
                 setShowSuggestions(list.length > 0)

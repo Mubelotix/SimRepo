@@ -1,4 +1,3 @@
-import axios from "axios"
 import { XYChartData, XYData } from "../packages/xy-chart"
 import { ChartMode, RepoStarData, RepoData } from "../types/chart"
 import { REPO_DATA_API_URL } from "./config"
@@ -18,10 +17,11 @@ export const getRepoData = async (repos: string[]): Promise<RepoDataResult> => {
         return { data: [], missing: [] }
     }
 
-    const { data } = await axios.get(`${REPO_DATA_API_URL}/repo-data`, {
-        params: { repos: repos.join(",") },
-        timeout: 15000,
-    })
+    const res = await fetch(
+        `${REPO_DATA_API_URL}/repo-data?repos=${encodeURIComponent(repos.join(","))}`,
+        { signal: AbortSignal.timeout(15000) }
+    )
+    const data = await res.json()
 
     const found: RepoData[] = data?.data ?? []
     const missing: string[] = data?.missing ?? []

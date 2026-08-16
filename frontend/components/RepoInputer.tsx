@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react"
-import { head } from "lodash"
 import { GITHUB_REPO_URL_REG } from "../helpers/consts"
 import toast from "../helpers/toast"
 import { useAppStore } from "../store"
@@ -92,7 +91,7 @@ export default function RepoInputer({ setChartVisibility }: RepoInputerProps) {
             if (GITHUB_REPO_URL_REG.test(rawRepo)) {
                 repo = (rawRepo.match(GITHUB_REPO_URL_REG) as string[])[1]
             }
-            repo = head(rawRepo.split("#")) as string
+            repo = rawRepo.split("#")[0] as string
             if (repo === "") {
                 continue
             }

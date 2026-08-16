@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from "react"
 import Head from "next/head"
 import { useRouter } from "next/router"
-import axios from "axios"
 import Header from "../components/header"
 import Footer from "../components/footer"
 import RepoSearchInput from "../components/RepoSearchInput"
@@ -123,10 +122,10 @@ const Compare: React.FC = () => {
 
         let repoId: number | null = null
         try {
-            const { data } = await axios.get(`${REPO_DATA_API_URL}/repo-id`, {
-                params: { repo: name },
-                timeout: 10000,
+            const res = await fetch(`${REPO_DATA_API_URL}/repo-id?repo=${encodeURIComponent(name)}`, {
+                signal: AbortSignal.timeout(10000),
             })
+            const data = await res.json()
             repoId = data?.id ?? null
         } catch {
             repoId = null
@@ -151,35 +150,34 @@ const Compare: React.FC = () => {
         let v1Limited = false
         let v1Error: string | null = null
         try {
-            const { data } = await axios.post(
-                QDRANT_RECOMMEND_URL,
-                {
+            const res = await fetch(QDRANT_RECOMMEND_URL, {
+                method: "POST",
+                headers: {
+                    "Accept": "application/json",
+                    "api-key": QDRANT_API_KEY,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
                     limit: V1_LIMIT,
                     positive: [repoId],
                     filter: { must: [] },
                     offset: 0,
                     with_payload: true,
                     with_vector: false,
-                },
-                {
-                    headers: {
-                        "Accept": "application/json",
-                        "api-key": QDRANT_API_KEY,
-                        "Content-Type": "application/json",
-                    },
-                    timeout: 15000,
-                }
-            )
-            const raw = data?.result ?? []
-            v1 = raw
-                .filter((r: { payload?: { full_name?: string } }) => r?.payload?.full_name)
-                .map(toSimilarRepo)
-        } catch (error) {
-            if (axios.isAxiosError(error) && error.response?.status === 404) {
+                }),
+                signal: AbortSignal.timeout(15000),
+            })
+            if (res.status === 404) {
                 v1Error = "This repository is not covered by the v1 (TruncatedSVD) dataset."
             } else {
-                v1Error = "The v1 (TruncatedSVD) engine could not be reached."
+                const data = await res.json()
+                const raw = data?.result ?? []
+                v1 = raw
+                    .filter((r: { payload?: { full_name?: string } }) => r?.payload?.full_name)
+                    .map(toSimilarRepo)
             }
+        } catch {
+            v1Error = "The v1 (TruncatedSVD) engine could not be reached."
         }
 
         // v2: existing site endpoint (rate-limited per IP).
@@ -187,17 +185,17 @@ const Compare: React.FC = () => {
         let v2Limited = false
         let v2Error: string | null = null
         try {
-            const { data } = await axios.get(`${REPO_DATA_API_URL}/similar-repos`, {
-                params: { repo: name },
-                timeout: 10000,
+            const res = await fetch(`${REPO_DATA_API_URL}/similar-repos?repo=${encodeURIComponent(name)}`, {
+                signal: AbortSignal.timeout(10000),
             })
-            v2 = data?.repos ?? []
-        } catch (error) {
-            if (axios.isAxiosError(error) && error?.response?.status === 429) {
+            if (res.status === 429) {
                 v2Limited = true
             } else {
-                v2Error = "The v2 (site) engine could not be reached."
+                const data = await res.json()
+                v2 = data?.repos ?? []
             }
+        } catch {
+            v2Error = "The v2 (site) engine could not be reached."
         }
 
         setLoading(false)

@@ -1,5 +1,4 @@
 import { D3Selection, LegendPosition } from "../types"
-import uniq from "lodash/uniq"
 
 interface DrawLegendConfig {
     items: {
@@ -27,7 +26,7 @@ const drawLegend = (selection: D3Selection, { items, strokeColor, backgroundColo
     const textLayer = legend.append("svg")
     let maxTextLength = 0
     // If repos have more than one unique owner, draw logo before legend.
-    const shouldDrawLogo = uniq(items.map((i) => i.text.split("/")[0])).length > 1
+    const shouldDrawLogo = new Set(items.map((i) => i.text.split("/")[0])).size > 1
 
     // Calculate background dimensions first
     items.forEach((item) => {
