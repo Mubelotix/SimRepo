@@ -396,7 +396,19 @@ const startServer = async () => {
   // Serve the static frontend export (Next.js "output: export"). Registered last
   // so API routes above take precedence. No external nginx / volume sharing needed:
   // the container ships the files and serves them itself.
-  app.use("*", serveStatic({ root: FRONTEND_DIR }));
+  app.use(
+    "*",
+    serveStatic({
+      root: FRONTEND_DIR,
+      // Next.js "output: export" emits .html files. Map extensionless routes
+      // (e.g. /v1-vs-v2) to their .html file, since serveStatic does not.
+      rewriteRequestPath: (path) => {
+        if (path === "/") return "/index.html";
+        if (!path.includes(".")) return `${path}.html`;
+        return path;
+      },
+    })
+  );
 
   const banner = `
      _______.___________.    ___      .______          __    __   __       _______.___________.  ______   .______     ____    ____
