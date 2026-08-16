@@ -24,6 +24,7 @@ import {
   fetchTrustedBy,
   fetchLeaderboard,
   fetchSimilarRepos,
+  resolveRepoId,
   type TrustedByEntry,
   type LeaderboardData,
 } from "./repos.js";
@@ -144,6 +145,21 @@ const startServer = async () => {
     const limit = Math.min(Number(c.req.query("limit") ?? 8) || 8, 20);
     const repos = searchRepos(q, limit);
     return c.json({ repos });
+  });
+
+  // Resolve a repo name to its GitHub numeric repository id (used to query the
+  // v1 Qdrant recommendation engine). Lightweight single-row lookup from
+  // repos.sqlite; NOT rate-limited (mirrors /repo-search).
+  app.get("/repo-id", (c) => {
+    const repo = (c.req.query("repo") ?? "").trim();
+    if (!repo) {
+      return c.text("Repo name required", 400);
+    }
+    const id = resolveRepoId(repo);
+    if (id === null) {
+      return c.json({ repo, id: null }, 404);
+    }
+    return c.json({ repo, id });
   });
 
   // Similar repositories for a single repo, from the similar_repos table. The
