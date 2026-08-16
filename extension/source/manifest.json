@@ -18,7 +18,8 @@
         "storage"
     ],
     "host_permissions": [
-        "https://simrepo.dera.page/*"
+        "https://simrepo.dera.page/*",
+        "https://star-history.dera.page/*"
     ],
     "content_scripts": [
 		{
