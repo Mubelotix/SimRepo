@@ -10,6 +10,12 @@ const API_RESTRICTION_BLOG_URL = "https://www.star-history.com/blog/github-starg
 const EmptyState: React.FC = () => {
     const store = useAppStore()
 
+    const handleRepoClick = (e: React.MouseEvent, repoName: string) => {
+        e.preventDefault()
+        store.actions.setRepos([repoName])
+        window.location.hash = repoName
+    }
+
     return (
         <div className="w-full max-w-3xl 2xl:max-w-4xl mx-auto sm:px-4 mt-6 px-3">
             <div className="w-full border border-solid border-amber-300 rounded bg-amber-50 p-6 sm:p-8 shadow-sm">
@@ -42,9 +48,8 @@ const EmptyState: React.FC = () => {
                         {store.trustedBy.map((repo) => (
                             <li key={repo.name}>
                                 <a
-                                    href={`https://github.com/${repo.name}`}
-                                    target="_blank"
-                                    rel="noreferrer"
+                                    href={`#${repo.name}`}
+                                    onClick={(e) => handleRepoClick(e, repo.name)}
                                     className="flex flex-row justify-center items-center gap-2 px-3 py-1.5 text-sm text-dark bg-gray-100 rounded-lg shadow-sm hover:bg-gray-200"
                                 >
                                     <img src={repo.logoUrl} alt={`${repo.name} logo`} className="w-5 h-5 rounded-full" />
