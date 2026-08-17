@@ -6,6 +6,20 @@ import { SketchStarIcon } from "./SketchIcons"
 import { SITE_URL } from "../helpers/consts"
 import { countEvent } from "../helpers/analytics"
 
+const CodeBlock: React.FC<{ title: string; onCopy: () => void; children: React.ReactNode }> = ({ title, onCopy, children }) => (
+    <div className="w-full bg-gray-100 text-dark rounded-md shadow overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200">
+            <span className="font-mono text-sm font-semibold text-gray-600">{title}</span>
+            <button type="button" className="px-4 py-1.5 rounded-md cursor-pointer font-mono text-sm text-dark bg-gray-200 hover:bg-gray-300" onClick={onCopy}>
+                <span className="inline-block translate-y-[2px]">Copy</span>
+            </button>
+        </div>
+        <pre className="w-full p-4 font-mono break-all whitespace-pre-wrap text-sm">
+            <code>{children}</code>
+        </pre>
+    </div>
+)
+
 const EmbedChart: React.FC = () => {
     const store = useAppStore()
     const [singleRepo, setSingleRepo] = useState<string | null>(null)
@@ -124,20 +138,6 @@ const EmbedChart: React.FC = () => {
             {"\n"}
             {tag("</a>")}
         </>
-    )
-
-    const CodeBlock: React.FC<{ title: string; onCopy: () => void; children: React.ReactNode }> = ({ title, onCopy, children }) => (
-        <div className="w-full bg-gray-100 text-dark rounded-md shadow overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200">
-                <span className="font-mono text-sm font-semibold text-gray-600">{title}</span>
-                <button type="button" className="px-4 py-1.5 rounded-md cursor-pointer font-mono text-sm text-dark bg-gray-200 hover:bg-gray-300" onClick={onCopy}>
-                    <span className="inline-block translate-y-[2px]">Copy</span>
-                </button>
-            </div>
-            <pre className="w-full p-4 font-mono break-all whitespace-pre-wrap text-sm">
-                <code>{children}</code>
-            </pre>
-        </div>
     )
 
     return (

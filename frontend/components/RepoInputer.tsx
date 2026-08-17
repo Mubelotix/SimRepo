@@ -115,8 +115,11 @@ export default function RepoInputer({ setChartVisibility }: RepoInputerProps) {
                     if (r.visible) {
                         toast.warn(`Repo ${repo} is already on the chart`)
                     } else {
-                        r.visible = true
-                        store.actions.setRepos(state.repos.filter((r) => r.visible).map((r) => r.name))
+                        setState((prev) => ({
+                            ...prev,
+                            repos: prev.repos.map((x) => (x.name === repo ? { ...x, visible: true } : x)),
+                        }))
+                        store.actions.setRepos(state.repos.filter((r) => r.visible || r.name === repo).map((r) => r.name))
                         setChartVisibility(true)
                     }
                     setState((prev) => ({ ...prev, repo: "" }))
@@ -231,7 +234,7 @@ export default function RepoInputer({ setChartVisibility }: RepoInputerProps) {
                 <div className="w-full mt-4 flex flex-row justify-center items-center">
                     <div className="w-full max-w-2xl flex flex-row flex-wrap justify-center items-center">
                         {state.repos.map((item) => (
-                        <div key={item.name} className="leading-8 px-3 pr-2 mb-2 text-dark rounded flex flex-row justify-center items-center border mr-3 last:mr-0">
+                        <div key={item.name} className="leading-8 px-3 pr-2 mb-2 text-dark rounded flex flex-row justify-center items-center border border-gray-200 mr-3 last:mr-0">
                             <span className="relative w-3 h-3 mr-1 flex flex-row justify-center items-center cursor-pointer hover:opacity-60" onClick={() => handleDeleteRepoBtnClick(item.name)}>
                                 <span className="w-3 rotate-45 h-px bg-[black] absolute top-1/2"></span>
                                 <span className="w-3 -rotate-45 h-px bg-black absolute top-1/2"></span>

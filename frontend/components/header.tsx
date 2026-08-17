@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 import { useAppStore } from "../store";
 import { SketchLightBulbIcon, SketchHomeIcon } from "./SketchIcons";
 import { countEvent } from "../helpers/analytics";
-import { getExtensionStoreUrl } from "./SimilarReposCard";
+import { getExtensionStoreUrl, EXTENSION_STORE_URL } from "./SimilarReposCard";
 
 const Header: React.FC = () => {
   const store = useAppStore()
@@ -25,7 +25,11 @@ const Header: React.FC = () => {
               <a href="https://blog.dera.page" target="_blank" rel="noopener noreferrer" className="header-link text-base">
                 <span className="text-white -2">Blog</span>
               </a>
-              <a href={getExtensionStoreUrl()} target="_blank" rel="noopener noreferrer" className="header-link text-base" onClick={() => countEvent("extension-click")}>
+              <a href={EXTENSION_STORE_URL} target="_blank" rel="noopener noreferrer" className="header-link text-base" onClick={(e) => {
+                e.preventDefault()
+                window.open(getExtensionStoreUrl(), "_blank", "noopener,noreferrer")
+                countEvent("extension-click")
+              }}>
                 <span className="text-white -2">Extension</span>
               </a>
               <a href="https://github.com/sponsors/Mubelotix" target="_blank" rel="noopener noreferrer" className="header-link text-base" onClick={() => countEvent("donate-click")}>

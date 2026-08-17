@@ -44,10 +44,14 @@ export default function RepoSearchInput({
     const [suggestions, setSuggestions] = useState<Suggestion[]>([])
     const [showSuggestions, setShowSuggestions] = useState(false)
     const [highlightIndex, setHighlightIndex] = useState(-1)
-    const [randomPlaceholder] = useState(randomExample)
+    const [randomPlaceholder, setRandomPlaceholder] = useState(REPO_SEARCH_EXAMPLES[0])
     const containerRef = useRef<HTMLDivElement>(null)
     const inputElRef = useRef<HTMLInputElement>(null)
     const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+    useEffect(() => {
+        setRandomPlaceholder(randomExample())
+    }, [])
 
     const closeSuggestions = () => {
         setShowSuggestions(false)

@@ -51,3 +51,6 @@ backend/data/*
 extension/.parcel-cache
 
 *.sqlite*
+
+# deepwork
+.slim/deepwork/
