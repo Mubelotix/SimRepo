@@ -1,6 +1,6 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "./tailwind.config.js";
+@plugin "@tailwindcss/typography";
 
 @font-face {
     font-family: "Inter";
@@ -57,15 +57,15 @@ body {
         @apply px-4 rounded-md cursor-pointer;
     }
     .btn-primary {
-        @apply btn leading-10 accent-bg shadow-inner text-white;
+        @apply px-4 rounded-md cursor-pointer leading-10 bg-green-600 hover:bg-green-700 shadow-inner text-white;
     }
     .btn-secondary {
-        @apply rounded leading-9 text-sm px-3 cursor-pointer border text-dark bg-gray-100 hover:bg-gray-200;
+        @apply rounded leading-9 text-sm px-3 cursor-pointer border border-gray-200 text-dark bg-gray-100 hover:bg-gray-200;
     }
 
     /* ── Inputs ── */
     .input {
-        @apply w-full outline-none border mt-2 shadow-inner p-2 rounded-md focus:shadow-focus;
+        @apply w-full outline-none border border-gray-200 mt-2 shadow-inner p-2 rounded-md focus:shadow-focus;
     }
 
     /* ── Links ── */
@@ -129,7 +129,7 @@ body {
 
     /* ── Code block with shadow ── */
     .code-block {
-        @apply relative w-full h-auto border px-4 py-3 rounded-md shadow-inner;
+        @apply relative w-full h-auto border border-gray-200 px-4 py-3 rounded-md shadow-inner;
     }
     .code-text {
         @apply font-mono break-all text-gray-600 text-sm;

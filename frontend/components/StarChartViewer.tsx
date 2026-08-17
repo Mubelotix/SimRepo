@@ -4,7 +4,7 @@ import StarXYChart from "./Charts/StarXYChart"
 import EmbedMarkdownSection from "./EmbedMarkdownSection"
 import { useAppStore } from "store"
 import { FaSpinner } from "react-icons/fa"
-import { XYChartData } from "@shared/packages/xy-chart"
+import { XYChartData, XYData } from "@shared/packages/xy-chart"
 import { convertDataToChartData, getRepoData } from "@shared/common/chart"
 import toast from "helpers/toast"
 import { RepoData, LegendPosition } from "@shared/types/chart"
@@ -86,12 +86,13 @@ function StarChartViewer({ compact = false }: StarChartViewerProps) {
                     // A successful fetch (no missing repos) clears any previous notice.
                     setNotice(null)
                 }
-            } catch (error: any) {
-                const isRateLimited = error?.response?.status === 429
+            } catch (error) {
+                const err = error as { response?: { status?: number; data?: string }; message?: string }
+                const isRateLimited = err?.response?.status === 429
                 const message =
-                    isRateLimited && error?.response?.data
-                        ? error.response.data
-                        : error?.message ?? "Something went wrong while loading the chart."
+                    isRateLimited && err?.response?.data
+                        ? err.response.data
+                        : err?.message ?? "Something went wrong while loading the chart."
                 setNotice({
                     kind: "error",
                     title: isRateLimited ? "You've been rate limited" : "Unable to load data",
@@ -313,8 +314,8 @@ function StarChartViewer({ compact = false }: StarChartViewerProps) {
 
             const csvContent =
                 "data:text/csv;charset=utf-8," +
-                state.chartData.datasets.reduce((acc: string, dataset: any) => {
-                    dataset.data.forEach((dataPoint: any) => {
+                state.chartData.datasets.reduce((acc: string, dataset: XYData) => {
+                    dataset.data.forEach((dataPoint) => {
                         acc += `${dataset.label},${new Date(dataPoint.x).toString()},${dataPoint.y}\n`
                     })
                     return acc

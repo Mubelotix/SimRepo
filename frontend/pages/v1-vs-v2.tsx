@@ -95,16 +95,6 @@ const Compare: React.FC = () => {
     const [result, setResult] = useState<CompareResult | null>(null)
     const [loading, setLoading] = useState(false)
 
-    // Load (or reload) the comparison from a shareable ?repo= param.
-    useEffect(() => {
-        const fromUrl = typeof router.query.repo === "string" ? router.query.repo : ""
-        if (fromUrl) {
-            setRepo(fromUrl)
-            runCompare(fromUrl)
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [router.query.repo])
-
     const runCompare = async (nameOverride?: string) => {
         const name = (nameOverride ?? repo).trim()
         if (!name) return
@@ -147,7 +137,7 @@ const Compare: React.FC = () => {
 
         // v1: live Qdrant recommendation (same call the browser extension makes).
         let v1: SimilarRepo[] = []
-        let v1Limited = false
+        const v1Limited = false
         let v1Error: string | null = null
         try {
             const res = await fetch(QDRANT_RECOMMEND_URL, {
@@ -205,6 +195,16 @@ const Compare: React.FC = () => {
     const handleSubmit = () => {
         runCompare()
     }
+
+    // Load (or reload) the comparison from a shareable ?repo= param.
+    useEffect(() => {
+        const fromUrl = typeof router.query.repo === "string" ? router.query.repo : ""
+        if (fromUrl) {
+            setRepo(fromUrl)
+            runCompare(fromUrl)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [router.query.repo])
 
     const handleSelect = (repoName: string) => {
         setRepo(repoName)

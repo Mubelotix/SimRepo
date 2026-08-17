@@ -1,18 +1,23 @@
 {
   "compilerOptions": {
-    "baseUrl": "./",
     "paths": {
       "@shared/*": [
         "../shared/*"
       ],
       "@components/*": [
-        "components/*"
+        "./components/*"
       ],
       "@styles/*": [
-        "styles/*"
+        "./styles/*"
+      ],
+      "store": [
+        "./store/index"
+      ],
+      "helpers/toast": [
+        "./helpers/toast"
       ]
     },
-    "target": "es5",
+    "target": "es2020",
     "lib": [
       "dom",
       "dom.iterable",
@@ -25,10 +30,10 @@
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true
   },
   "include": [

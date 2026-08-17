@@ -120,4 +120,6 @@ export const getExtensionStoreUrl = (): string => {
     return EXTENSION_STORES.chrome
 }
 
+export const EXTENSION_STORE_URL = EXTENSION_STORES.chrome
+
 export default SimilarReposCard
