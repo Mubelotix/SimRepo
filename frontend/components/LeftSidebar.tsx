@@ -3,7 +3,7 @@ import { useAppStore } from "../store"
 import { REPO_DATA_API_URL } from "@shared/common/config"
 import { formatNumber } from "../helpers/format"
 
-type Tab = "weekly" | "alltime" | "pyramid" | "random"
+type Tab = "weekly" | "alltime" | "random"
 
 interface LeaderboardEntry {
     name: string
@@ -12,25 +12,17 @@ interface LeaderboardEntry {
     logo_url: string
 }
 
-interface LeaderboardTier {
-    threshold: number
-    label: string
-    count: number
-}
-
 interface LeaderboardData {
     updated_at: string
     all_time: LeaderboardEntry[]
     weekly: LeaderboardEntry[]
     random: LeaderboardEntry[]
-    tiers: LeaderboardTier[]
 }
 
 const tabs: { key: Tab; label: string }[] = [
     { key: "weekly", label: "Weekly" },
     { key: "alltime", label: "All-time" },
     { key: "random", label: "Random" },
-    { key: "pyramid", label: "Pyramid" },
 ]
 
 const LeftSidebar: React.FC = () => {
@@ -119,44 +111,7 @@ const LeftSidebar: React.FC = () => {
                         </button>
                     ))}
                 </div>
-                {activeTab === "pyramid" ? (
-                    <div className="space-y-2 mt-1">
-                        {(data?.tiers ?? []).map((tier, _, filtered) => {
-                            const total = filtered[filtered.length - 1].count
-                            const widthPct = total > 0 ? (tier.count / total) * 100 : 0
-                            const pct = total > 0 ? (tier.count / total) * 100 : 0
-                            const pctLabel =
-                                pct < 0.0001
-                                    ? `${pct.toFixed(5)}%`
-                                    : pct < 0.001
-                                    ? `${pct.toFixed(4)}%`
-                                    : pct < 0.01
-                                    ? `${pct.toFixed(3)}%`
-                                    : pct < 0.1
-                                    ? `${pct.toFixed(2)}%`
-                                    : `${pct.toFixed(1)}%`
-                            return (
-                                <div key={tier.threshold}>
-                                    <div className="flex items-baseline justify-between text-xs mb-0.5">
-                                        <span className="text-gray-700 font-medium">★ {tier.label}</span>
-                                        <span className="text-gray-400">
-                                            {formatNumber(tier.count)}{" "}
-                                            <span className="text-gray-300">({pctLabel})</span>
-                                        </span>
-                                    </div>
-                                    <div
-                                        className="h-3 rounded-sm"
-                                        style={{
-                                            width: `${widthPct}%`,
-                                            backgroundColor: "#16a34a",
-                                        }}
-                                    />
-                                </div>
-                            )
-                        })}
-                    </div>
-                ) : (
-                    <ol className="space-y-0.5">
+                <ol className="space-y-0.5">
                         {items.map((item, i) => {
                             const repoName = item.name.split("/")[1] ?? item.name
                             return (
@@ -191,7 +146,6 @@ const LeftSidebar: React.FC = () => {
                             )
                         })}
                     </ol>
-                )}
                 {data && <p className="text-[10px] text-gray-300 mt-3">Updated {data.updated_at}</p>}
             </div>
         </div>

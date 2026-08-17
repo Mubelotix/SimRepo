@@ -442,38 +442,17 @@ export interface LeaderboardEntry {
   logo_url: string;
 }
 
-export interface LeaderboardTier {
-  threshold: number;
-  label: string;
-  count: number;
-}
-
 export interface LeaderboardData {
   updated_at: string;
   all_time: LeaderboardEntry[];
   weekly: LeaderboardEntry[];
   random: LeaderboardEntry[];
-  tiers: LeaderboardTier[];
 }
 
-// Star-count buckets for the pyramid tab, highest first. Mirrors the thresholds
-// the old arena pipeline used when this data was fetched from the GitHub API.
-const TIER_THRESHOLDS: { threshold: number; label: string }[] = [
-  { threshold: 100000, label: "100K+" },
-  { threshold: 50000, label: "50K+" },
-  { threshold: 20000, label: "20K+" },
-  { threshold: 10000, label: "10K+" },
-  { threshold: 5000, label: "5K+" },
-  { threshold: 3000, label: "3K+" },
-  { threshold: 1000, label: "1K+" },
-  { threshold: 500, label: "500+" },
-  { threshold: 100, label: "100+" },
-];
-
 /**
- * Leaderboard data for the sidebar: top repos by total stars ("All-time"), top
- * repos by recent star growth ("Weekly"), and a tier histogram of star counts
- * ("Pyramid"). All read from repos.sqlite.
+ * Leaderboard data for the sidebar: top repos by total stars ("All-time") and
+ * top repos by recent star growth ("Weekly"), plus a random sample. All read
+ * from repos.sqlite.
  */
 export function fetchLeaderboard(limit = 20): LeaderboardData {
   const d = getDb();
@@ -487,15 +466,6 @@ export function fetchLeaderboard(limit = 20): LeaderboardData {
   const randomStmt = d.prepare(
     "SELECT name, stars_total, new_stars, logo_url FROM repos WHERE pushes >= 0 AND pushes <= 30 ORDER BY RANDOM() LIMIT ?"
   );
-
-  const tierSelect = TIER_THRESHOLDS.map(
-    (t, i) => `SUM(CASE WHEN stars_total >= ${t.threshold} THEN 1 ELSE 0 END) AS t${i}`
-  ).join(", ");
-  const tierRow = d.prepare(`SELECT ${tierSelect} FROM repos`).get() as Record<string, number>;
-  const tiers: LeaderboardTier[] = TIER_THRESHOLDS.map((t, i) => ({
-    ...t,
-    count: tierRow[`t${i}`] ?? 0,
-  }));
 
   let updated_at: string;
   try {
@@ -524,6 +494,5 @@ export function fetchLeaderboard(limit = 20): LeaderboardData {
       new_stars: Number(r.new_stars),
       logo_url: String(r.logo_url),
     })),
-    tiers,
   };
 }
