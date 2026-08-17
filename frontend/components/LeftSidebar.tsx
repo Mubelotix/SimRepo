@@ -3,7 +3,7 @@ import { useAppStore } from "../store"
 import { REPO_DATA_API_URL } from "@shared/common/config"
 import { formatNumber } from "../helpers/format"
 
-type Tab = "weekly" | "alltime" | "pyramid"
+type Tab = "weekly" | "alltime" | "pyramid" | "random"
 
 interface LeaderboardEntry {
     name: string
@@ -22,12 +22,14 @@ interface LeaderboardData {
     updated_at: string
     all_time: LeaderboardEntry[]
     weekly: LeaderboardEntry[]
+    random: LeaderboardEntry[]
     tiers: LeaderboardTier[]
 }
 
 const tabs: { key: Tab; label: string }[] = [
     { key: "weekly", label: "Weekly" },
     { key: "alltime", label: "All-time" },
+    { key: "random", label: "Random" },
     { key: "pyramid", label: "Pyramid" },
 ]
 
@@ -84,6 +86,13 @@ const LeftSidebar: React.FC = () => {
                   logo_url: r.logo_url,
                   metric: `+${formatNumber(r.new_stars)}`,
                   metricClass: "accent-text",
+              }))
+            : activeTab === "random"
+            ? (data?.random ?? []).map((r) => ({
+                  name: r.name,
+                  logo_url: r.logo_url,
+                  metric: formatNumber(r.stars_total),
+                  metricClass: "text-gray-400",
               }))
             : (data?.all_time ?? []).map((r) => ({
                   name: r.name,
@@ -157,7 +166,9 @@ const LeftSidebar: React.FC = () => {
                                         onClick={(e) => handleClick(e, item.name)}
                                         className="flex items-center gap-2 py-1 text-sm cursor-pointer"
                                     >
+                                        {activeTab !== "random" && (
                                         <span className="text-xs text-gray-400 w-4 shrink-0">{i + 1}</span>
+                                    )}
                                         <img
                                             src={item.logo_url}
                                             alt=""

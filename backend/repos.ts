@@ -452,6 +452,7 @@ export interface LeaderboardData {
   updated_at: string;
   all_time: LeaderboardEntry[];
   weekly: LeaderboardEntry[];
+  random: LeaderboardEntry[];
   tiers: LeaderboardTier[];
 }
 
@@ -483,6 +484,9 @@ export function fetchLeaderboard(limit = 20): LeaderboardData {
   const weeklyStmt = d.prepare(
     "SELECT name, stars_total, new_stars, logo_url FROM repos ORDER BY new_stars DESC LIMIT ?"
   );
+  const randomStmt = d.prepare(
+    "SELECT name, stars_total, new_stars, logo_url FROM repos WHERE pushes >= 0 AND pushes <= 30 ORDER BY RANDOM() LIMIT ?"
+  );
 
   const tierSelect = TIER_THRESHOLDS.map(
     (t, i) => `SUM(CASE WHEN stars_total >= ${t.threshold} THEN 1 ELSE 0 END) AS t${i}`
@@ -509,6 +513,12 @@ export function fetchLeaderboard(limit = 20): LeaderboardData {
       logo_url: String(r.logo_url),
     })),
     weekly: weeklyStmt.all(limit).map((r) => ({
+      name: String(r.name),
+      stars_total: Number(r.stars_total),
+      new_stars: Number(r.new_stars),
+      logo_url: String(r.logo_url),
+    })),
+    random: randomStmt.all(limit).map((r) => ({
       name: String(r.name),
       stars_total: Number(r.stars_total),
       new_stars: Number(r.new_stars),
