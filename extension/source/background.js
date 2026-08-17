@@ -75,7 +75,7 @@ async function getClosestN(ids, offset = 0, limit = 10) {
 // v2 model: similar repositories for a single repo, served by the site's
 // /similar-repos endpoint. Returns the SimilarRepo[] array (or throws).
 async function getSimilarReposV2(repo, page = 1) {
-    const url = `https://star-history.dera.page/similar-repos?repo=${encodeURIComponent(repo)}&page=${page}`;
+    const url = `https://simrepo.dera.page/similar-repos?repo=${encodeURIComponent(repo)}&page=${page}`;
     const response = await fetch(url, {
         method: "GET",
         headers: { "Accept": "application/json" },
