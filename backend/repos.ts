@@ -464,7 +464,7 @@ export function fetchLeaderboard(limit = 20): LeaderboardData {
     "SELECT name, stars_total, new_stars, logo_url FROM repos ORDER BY new_stars DESC LIMIT ?"
   );
   const randomStmt = d.prepare(
-    "SELECT name, stars_total, new_stars, logo_url FROM repos WHERE pushes >= 0 AND pushes <= 30 ORDER BY RANDOM() LIMIT ?"
+    "SELECT name, stars_total, new_stars, logo_url FROM repos WHERE rowid = ?"
   );
 
   let updated_at: string;
@@ -488,11 +488,48 @@ export function fetchLeaderboard(limit = 20): LeaderboardData {
       new_stars: Number(r.new_stars),
       logo_url: String(r.logo_url),
     })),
-    random: randomStmt.all(limit).map((r) => ({
+    random: randomLeaderboard(d, randomStmt, limit),
+  };
+}
+
+// Memoized pool of ids (rowids) for repos with 0 <= pushes <= 30. The DB is
+// immutable for the process lifetime, so this is built once. Sampling a handful
+// of ids and fetching them by PK is far cheaper than ORDER BY RANDOM() over the
+// full 1.5GB table on every request.
+let randomPool: number[] | null = null;
+
+function randomLeaderboard(
+  d: DatabaseSync,
+  fetchStmt: { get: (id: number) => unknown },
+  limit: number
+): LeaderboardEntry[] {
+  if (randomPool === null) {
+    randomPool = d
+      .prepare("SELECT id FROM repos WHERE pushes >= 0 AND pushes <= 30")
+      .all()
+      .map((r) => Number((r as { id: number }).id));
+  }
+  const picks: number[] = [];
+  const seen = new Set<number>();
+  while (picks.length < limit) {
+    const id = randomPool[(Math.random() * randomPool.length) | 0];
+    if (!seen.has(id)) {
+      seen.add(id);
+      picks.push(id);
+    }
+  }
+  return picks.map((id) => {
+    const r = fetchStmt.get(id) as {
+      name: unknown;
+      stars_total: unknown;
+      new_stars: unknown;
+      logo_url: unknown;
+    };
+    return {
       name: String(r.name),
       stars_total: Number(r.stars_total),
       new_stars: Number(r.new_stars),
       logo_url: String(r.logo_url),
-    })),
-  };
+    };
+  });
 }
