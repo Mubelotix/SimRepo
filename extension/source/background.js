@@ -1,5 +1,6 @@
 import { initCache } from './cache.js';
-import { TELEMETRY_ENDPOINT } from './analytics.js';
+import { TELEMETRY_ENDPOINT, TELEMETRY_WEBSITE_ID } from './analytics.js';
+import { optionsStorage } from './options-storage.js';
 
 async function handleReportMessage(message) {
     try {
@@ -15,6 +16,32 @@ async function handleReportMessage(message) {
         });
     } catch (error) {
         console.error("Failed to send usage statistics:", error);
+    }
+}
+
+async function reportRateLimitEvent(repo, page) {
+    const options = await optionsStorage.getAll();
+    if (!options.telemetryEnabled) {
+        return;
+    }
+
+    try {
+        await fetch(TELEMETRY_ENDPOINT, {
+            method: "POST",
+            credentials: "omit",
+            mode: "cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                type: "event",
+                payload: {
+                    website: TELEMETRY_WEBSITE_ID,
+                    name: "rate-limit",
+                    data: { repo, page },
+                },
+            }),
+        });
+    } catch (error) {
+        console.error("Failed to send rate-limit event:", error);
     }
 }
 
@@ -82,6 +109,7 @@ async function getSimilarReposV2(repo, page = 1) {
     });
 
     if (response.status === 429) {
+        void reportRateLimitEvent(repo, page);
         throw new Error("Rate limited. Please try again later.");
     }
 
