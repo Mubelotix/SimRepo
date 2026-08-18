@@ -19,6 +19,11 @@ const MAX_SIMILAR_REPOS_PER_DAY = 7;
 const MAX_SIMILAR_REPOS_PER_HOUR_EXTENSION = 40;
 const MAX_SIMILAR_REPOS_PER_DAY_EXTENSION = 65;
 
+// Per-IP limits for the /suspicious-stars endpoint, expressed in number of
+// requests (each request counts once).
+const MAX_SUSPICIOUS_STARS_PER_HOUR = 50;
+const MAX_SUSPICIOUS_STARS_PER_DAY = 100;
+
 // Origin headers of the official SimRepo browser extension (Chrome and Firefox).
 export const EXTENSION_ORIGINS = new Set([
   "chrome-extension://jieoogmcigenidbkgnkaakagdnlnieap",
@@ -48,6 +53,12 @@ export const SIMILAR_REPOS_RATE_LIMIT_MESSAGE =
   "Install the SimRepo browser extension to keep exploring similar repositories " +
   "without limits.";
 
+// Message sent when a non-whitelisted client is throttled on /suspicious-stars.
+// Deliberately avoids the exact limits.
+export const SUSPICIOUS_STARS_RATE_LIMIT_MESSAGE =
+  "You've reached the limit for suspicious-star lookups on the website. " +
+  "Please try again later.";
+
 // The window buckets per IP. We only keep events for the daily window since it is
 // the largest; the hourly total is derived from the same list.
 const ipEvents = new Map<string, { ts: number; count: number }[]>();
@@ -55,6 +66,10 @@ const ipEvents = new Map<string, { ts: number; count: number }[]>();
 // Request timestamps for the /similar-repos endpoint, keyed by IP. Only kept for
 // the daily window; the hourly total is derived from the same list.
 const similarRepoEvents = new Map<string, number[]>();
+
+// Request timestamps for the /suspicious-stars endpoint, keyed by IP. Only kept
+// for the daily window; the hourly total is derived from the same list.
+const suspiciousStarsEvents = new Map<string, number[]>();
 
 // --- Whitelist ---
 
@@ -157,6 +172,25 @@ export function tryFetchSimilarRepos(ip: string, isExtension = false): boolean {
   const maxPerHour = isExtension ? MAX_SIMILAR_REPOS_PER_HOUR_EXTENSION : MAX_SIMILAR_REPOS_PER_HOUR;
   const maxPerDay = isExtension ? MAX_SIMILAR_REPOS_PER_DAY_EXTENSION : MAX_SIMILAR_REPOS_PER_DAY;
   if (hourly >= maxPerHour || events.length >= maxPerDay) {
+    return false;
+  }
+
+  events.push(now);
+  return true;
+}
+
+/**
+ * Register an attempt to look up the suspicious-star ratio for an IP.
+ * Returns true if allowed (consuming the quota) or false if it would exceed a
+ * limit. Whitelisted IPs are handled by the caller and never reach here.
+ */
+export function tryFetchSuspiciousStars(ip: string): boolean {
+  const now = Date.now();
+  const events = (suspiciousStarsEvents.get(ip) ?? []).filter((ts) => now - ts < DAY_MS);
+  suspiciousStarsEvents.set(ip, events);
+
+  const hourly = events.filter((ts) => now - ts < HOUR_MS).length;
+  if (hourly >= MAX_SUSPICIOUS_STARS_PER_HOUR || events.length >= MAX_SUSPICIOUS_STARS_PER_DAY) {
     return false;
   }
 

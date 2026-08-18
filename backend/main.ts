@@ -24,6 +24,7 @@ import {
   fetchTrustedBy,
   fetchLeaderboard,
   fetchSimilarRepos,
+  fetchSuspiciousStarRatio,
   resolveRepoId,
   type TrustedByEntry,
   type LeaderboardData,
@@ -32,9 +33,11 @@ import {
   isWhitelisted,
   tryFetchRepos,
   tryFetchSimilarRepos,
+  tryFetchSuspiciousStars,
   isExtensionOrigin,
   RATE_LIMIT_MESSAGE,
   SIMILAR_REPOS_RATE_LIMIT_MESSAGE,
+  SUSPICIOUS_STARS_RATE_LIMIT_MESSAGE,
 } from "./rate-limiter.js";
 
 const FRONTEND_DIR = process.env.FRONTEND_DIR || "/app/www";
@@ -160,6 +163,28 @@ const startServer = async () => {
       return c.json({ repo, id: null }, 404);
     }
     return c.json({ repo, id });
+  });
+
+  // Estimated share (0-1) of a repo's stars that appear fake/purchased, served
+  // as a standalone lightweight lookup. Dedicated endpoint so the ratio can be
+  // fetched without pulling the heavy star-history / radar payload. Rate-limited
+  // per IP (50/hour, 100/day); whitelisted IPs bypass the limit.
+  app.get("/suspicious-stars", (c) => {
+    const repo = (c.req.query("repo") ?? "").trim();
+    if (!repo) {
+      return c.text("Repo name required", 400);
+    }
+    const ratio = fetchSuspiciousStarRatio(repo);
+    if (ratio === null) {
+      return c.json({ repo, ratio: null }, 404);
+    }
+
+    const ip = c.req.header("X-Real-IP") ?? "";
+    if (ip && !isWhitelisted(ip) && !tryFetchSuspiciousStars(ip)) {
+      return c.text(SUSPICIOUS_STARS_RATE_LIMIT_MESSAGE, 429);
+    }
+
+    return c.json({ repo, ratio });
   });
 
   // Similar repositories for a single repo, from the similar_repos table.

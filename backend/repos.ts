@@ -147,7 +147,23 @@ function topPercentile(
   return Math.max(1, Math.round(topN));
 }
 
-type RawRow = Pick<RepoRow, "stars" | "new_stars" | "forks" | "open_issues_count" | "size" | "pushes">;
+type RawRow = Pick<
+  RepoRow,
+  | "stars"
+  | "new_stars"
+  | "forks"
+  | "open_issues_count"
+  | "size"
+  | "pushes"
+  | "spam_ratio"
+>;
+
+// The radar's `new_stars` axis reports the estimated share of fake stars as a
+// 0-100 percentage, so the label, hover value, and plotted value match.
+function fakeStars(row: RawRow): number {
+  const ratio = Math.min(1, Math.max(0, row.spam_ratio ?? 0));
+  return Math.round(ratio * 100);
+}
 
 function buildAttributes(
   db: DatabaseSync,
@@ -157,6 +173,15 @@ function buildAttributes(
   const raw = {} as RepoRadarAttributes;
   const attributes = {} as RepoRadarAttributes;
   for (const key of Object.keys(RADAR_COLS) as (keyof RepoRadarAttributes)[]) {
+    // Fake-star axis: the value is a percentage, placed linearly and inverted
+    // so fewer fake stars sit further out ("good = far out"), consistent with
+    // the rest of the radar.
+    if (key === "new_stars") {
+      const pct = fakeStars(row);
+      raw[key] = pct;
+      attributes[key] = Math.max(0, Math.min(99, 99 - pct));
+      continue;
+    }
     const col = RADAR_COLS[key];
     const value = row[col as keyof RawRow] as number;
     raw[key] = value;
@@ -188,6 +213,7 @@ interface RepoRow {
   pushes: number;
   rank: number;
   total_repos: number;
+  spam_ratio: number | null;
 }
 
 export interface RepoStarResult {
@@ -206,7 +232,7 @@ export function fetchRepoData(repos: string[]): RepoStarResult {
   const stmt = d.prepare(`
     SELECT logo_url, points, owner, stars_total, description, language, license,
            homepage, forks_count, open_issues_count, created_at, archived, size,
-           topics, stars, new_stars, forks, pushes, rank, total_repos
+           topics, stars, new_stars, forks, pushes, rank, total_repos, spam_ratio
     FROM repos WHERE lower(name) = lower(?)
   `);
   const found: RepoData[] = [];
@@ -226,6 +252,9 @@ export function fetchRepoData(repos: string[]): RepoStarResult {
     const { attributes, raw } = buildAttributes(d, row);
     const percentiles: Partial<Record<keyof RepoRadarAttributes, number>> = {};
     for (const key of Object.keys(RADAR_COLS) as (keyof RepoRadarAttributes)[]) {
+      // No percentile table exists for fake stars; the radar falls back to the
+      // normalized attribute for this axis instead.
+      if (key === "new_stars") continue;
       const p = topPercentile(d, key, raw[key]);
       if (p !== undefined) percentiles[key] = p;
     }
@@ -244,6 +273,7 @@ export function fetchRepoData(repos: string[]): RepoStarResult {
       topics: parseTopics(row.topics),
       rank: row.rank,
       total_repos: row.total_repos,
+      spam_ratio: row.spam_ratio,
       attributes,
       raw,
       percentiles,
@@ -257,6 +287,22 @@ export function fetchRepoData(repos: string[]): RepoStarResult {
   }
 
   return { found, missing };
+}
+
+/**
+ * Look up the estimated share (0-1) of a repo's stars that appear to be fake or
+ * purchased, per the spam model. Returns null when the repo isn't in the dataset
+ * or hasn't been scored yet. This is the "suspicious star" ratio served by the
+ * dedicated /suspicious-stars endpoint.
+ */
+export function fetchSuspiciousStarRatio(repoName: string): number | null {
+  const d = getDb();
+  const row = d
+    .prepare("SELECT spam_ratio FROM repos WHERE lower(name) = lower(?)")
+    .get(repoName) as { spam_ratio: number | null } | undefined;
+  if (!row) return null;
+  if (row.spam_ratio === null || row.spam_ratio === undefined) return null;
+  return Math.min(1, Math.max(0, row.spam_ratio));
 }
 
 /**

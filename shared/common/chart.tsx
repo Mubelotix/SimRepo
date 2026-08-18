@@ -12,6 +12,22 @@ export interface RepoDataResult {
     missing: string[]
 }
 
+// Estimated share (0-1) of a repo's stars that appear fake/purchased, from the
+// dedicated /suspicious-stars endpoint. Returns null when the repo is unknown,
+// un-scored, or the lookup fails/gets rate-limited.
+export const getSuspiciousStarRatio = async (repo: string): Promise<number | null> => {
+    if (!repo) return null
+
+    const res = await fetch(
+        `${REPO_DATA_API_URL}/suspicious-stars?repo=${encodeURIComponent(repo)}`,
+        { signal: AbortSignal.timeout(15000) }
+    )
+    if (!res.ok) return null
+    const data = await res.json()
+    const ratio = data?.ratio
+    return typeof ratio === "number" ? ratio : null
+}
+
 export const getRepoData = async (repos: string[]): Promise<RepoDataResult> => {
     if (repos.length === 0) {
         return { data: [], missing: [] }

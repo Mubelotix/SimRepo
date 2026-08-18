@@ -1,8 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
-import React, { useEffect, useState } from "react"
+import React from "react"
 import { useAppStore } from "store"
-import { getRepoData } from "@shared/common/chart"
-import type { RepoMeta } from "@shared/types/chart"
+import type { RepoStats } from "../helpers/useRepoStats"
 import RadarChart from "./RadarChart"
 import { formatNumber } from "../helpers/format"
 import { languageColor } from "../helpers/language-colors"
@@ -26,50 +25,16 @@ function lastPushText(days: number): string {
     return `${(days / 365).toFixed(1)} years ago`
 }
 
-export default function RepoStatsCard() {
+export default function RepoStatsCard({ meta, avatar, loading, error }: RepoStats) {
     const store = useAppStore()
     const repo = store.repos.length === 1 ? store.repos[0] : null
-
-    const [meta, setMeta] = useState<RepoMeta | null>(null)
-    const [avatar, setAvatar] = useState("")
-    const [loading, setLoading] = useState(false)
-    const [error, setError] = useState<string | null>(null)
-
-    useEffect(() => {
-        let disposed = false
-        if (!repo) {
-            setMeta(null)
-            setAvatar("")
-            setError(null)
-            return
-        }
-        setLoading(true)
-        setError(null)
-        getRepoData([repo])
-            .then(({ data }) => {
-                if (disposed) return
-                setMeta(data[0]?.meta ?? null)
-                setAvatar(data[0]?.logoUrl ?? "")
-                if (!data[0]?.meta) setError("No stats available for this repo.")
-            })
-            .catch(() => {
-                if (disposed) return
-                setError("Failed to load stats.")
-            })
-            .finally(() => {
-                if (!disposed) setLoading(false)
-            })
-        return () => {
-            disposed = true
-        }
-    }, [repo])
 
     if (!repo) return null
 
     const rawText = meta
         ? {
               stars: formatNumber(meta.raw.stars),
-              new_stars: `+${formatNumber(meta.raw.new_stars)}`,
+              new_stars: `${meta.raw.new_stars}%`,
               forks: formatNumber(meta.raw.forks),
               open_issues: formatNumber(meta.raw.open_issues),
               size: `${formatNumber(meta.raw.size)} KB`,
@@ -185,7 +150,7 @@ export default function RepoStatsCard() {
 }
 
 function LanguageValue({ language }: { language: string | null }) {
-    if (!language) return <span>—</span>
+    if (!language) return <span className="text-neutral-400">Unknown</span>
     return (
         <span className="inline-flex items-center gap-1.5 text-sm text-neutral-800">
             <span className="inline-block w-3 h-3 rounded-full" style={{ backgroundColor: languageColor(language) }} />

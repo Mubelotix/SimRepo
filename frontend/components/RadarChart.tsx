@@ -3,7 +3,7 @@ import type { RepoRadarAttributes } from "@shared/types/chart"
 
 const LABELS: Record<keyof RepoRadarAttributes, string> = {
     stars: "Stars",
-    new_stars: "New Stars",
+    new_stars: "Fake Stars",
     forks: "Forks",
     open_issues: "Open Issues",
     size: "Size",

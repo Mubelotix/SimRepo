@@ -35,6 +35,9 @@ export interface RepoMeta {
     topics: string[]
     rank: number
     total_repos: number
+    // Estimated share (0-1) of stars that appear to be fake/purchased, per the
+    // spam model. Null when the ingest pipeline hasn't scored the repo yet.
+    spam_ratio: number | null
     attributes: RepoRadarAttributes
     raw: RepoRadarAttributes
     // Accurate "top N %" (0-100) per axis, derived from axis_percentiles.
