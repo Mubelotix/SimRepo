@@ -39,7 +39,7 @@ function formatBytes(bytes: number): string {
   return `${value.toFixed(1)} ${units[i]}`;
 }
 
-function cacheStats(name: CacheName, c: LRUCache<string, unknown>) {
+function cacheStats(name: CacheName, c: LRUCache<string, RepoData> | LRUCache<string, string>) {
   const { hits, misses } = counters[name];
   const total = hits + misses;
   return {
@@ -53,8 +53,8 @@ function cacheStats(name: CacheName, c: LRUCache<string, unknown>) {
 
 export function getAllCacheStats() {
   return {
-    starData: cacheStats("starData", cache as LRUCache<string, unknown>),
-    svgChart: cacheStats("svgChart", svgCache as LRUCache<string, unknown>),
+    starData: cacheStats("starData", cache),
+    svgChart: cacheStats("svgChart", svgCache),
   };
 }
 
