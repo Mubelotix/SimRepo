@@ -80,7 +80,8 @@ function StarChartViewer({ compact = false }: StarChartViewerProps) {
                         title: "Some repositories couldn't be displayed",
                         message:
                             `Sorry, we don't have star-history data for: ${missing.join(", ")}. ` +
-                            "These repos may have been created too recently, or may have been renamed.",
+                            "These repos may have been moved, renamed, or deleted, or may have too few stars " +
+                            "(we detect repositories shortly after they reach 50 stars).",
                     })
                 } else {
                     // A successful fetch (no missing repos) clears any previous notice.

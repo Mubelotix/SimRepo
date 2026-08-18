@@ -328,7 +328,7 @@ const startServer = async () => {
       const { found, missing } = fetchRepoData(nodataRepos);
 
       if (missing.length > 0) {
-        return c.text(`Repo not found in dataset: ${missing[0]}`, 404);
+        return c.text(`Repo not found: "${missing[0]}" may have been moved, renamed, or deleted. Repositories are detected shortly after they reach 50 stars, so it may also have too few stars.`, 404);
       }
 
       // Embed all logos in parallel (bounded by MAX_REPOS_PER_REQUEST)
