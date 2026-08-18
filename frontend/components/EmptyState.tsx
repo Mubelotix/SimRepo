@@ -30,8 +30,8 @@ const EmptyState: React.FC = () => {
                         GitHub&apos;s Stargazer API shutdown
                     </a>{" "}
                     doomed the original, but this fork keeps star history alive from a different data source. And
-                    we&apos;re the only service that&apos;s simple to use <em>and</em> doesn&apos;t beg for a
-                    write-enabled API token.
+                    we&apos;re the only service that&apos;s simple to use <em>and</em> doesn&apos;t beg for an
+                    API token.
                 </p>
             </div>
 

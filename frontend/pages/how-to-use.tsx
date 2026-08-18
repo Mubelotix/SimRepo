@@ -5,6 +5,7 @@ import Header from "../components/header"
 import Footer from "../components/footer"
 import PageShell from "../components/PageShell"
 import { SITE_URL } from "../helpers/consts"
+import { countEvent } from "../helpers/analytics"
 
 const BASE = "/assets/blog/how-to-use-github-star-history"
 
@@ -27,28 +28,20 @@ const HowToUse: NextPage = () => {
                     </header>
 
                     <div className="px-6 py-6 space-y-8 text-sm leading-relaxed text-neutral-700">
+                        <section>
+                            <h2 className="text-base font-semibold text-neutral-900 mb-2">No token required</h2>
+                            <p>
+                                Many star history services (including the original star-history.com) ask you to create a
+                                GitHub token with <strong>write access</strong> just to look at a chart. We believe that level
+                                of trust shouldn&apos;t be necessary for generating a simple chart. That&apos;s why this fork collects
+                                and uses its own data, so you don&apos;t need a token at all.
+                            </p>
+                        </section>
+
                         <p>
-                            When choosing a tool (especially an open-source one) to use, what&apos;s your thought process? What
-                            are the factors that matter to you?
-                        </p>
-                        <ul className="list-disc list-inside space-y-1">
-                            <li>Any other users out there?</li>
-                            <li>Is it the most popular in this category?</li>
-                            <li>Is this technology in decline?</li>
-                        </ul>
-                        <p>
-                            Here&apos;s one obvious metric I&apos;m sure you will also investigate: its GitHub stars.
-                        </p>
-                        <p>
-                            We know, you can&apos;t fully trust a project&apos;s GitHub stars alone. It is, however, a good way to
-                            determine if a tool is an adequate one and if it&apos;s likely to grow, if you use it correctly.
-                        </p>
-                        <p>
-                            Even if a project has hundreds of millions of stars now, doesn&apos;t mean that it&apos;s still gaining
-                            popularity or maintained. Or if the project had an explosive breakout in the past? There&apos;s no way
-                            of knowing these simply from gazing at the stars count. Here&apos;s when Star History comes in handy:
-                            it shows how the number of GitHub stars of a project is increasing over the years. And - it&apos;s free
-                            and{" "}
+                            GitHub stars are a useful signal when choosing a tool, but the raw count alone won&apos;t tell you if a
+                            project is gaining traction, in decline, or simply dormant. SimRepo&apos;s Star History shows you how a project&apos;s
+                            stars grow over the years - and it&apos;s free and{" "}
                             <a className="link-action" target="_blank" rel="noopener noreferrer" href="https://github.com/Mubelotix/simrepo">
                                 open-source
                             </a>
@@ -57,13 +50,14 @@ const HowToUse: NextPage = () => {
 
                         <section>
                             <h2 className="text-base font-semibold text-neutral-900 mb-2">User Manual</h2>
-                            <img className="w-full rounded-lg border border-neutral-200 my-2" src={`${BASE}/user-manual.webp`} alt="User manual" />
+                            <img className="w-full rounded-lg border border-neutral-400 shadow-xl my-2" src={`${BASE}/search.png`} alt="User manual" />
                             <p>
                                 It&apos;s just a simple search box, how hard could it be? Simplicity is indeed Star History&apos;s No 1
                                 design principal. On the other hand, it also provides some handy features for power users. Below we
                                 will show you:
                             </p>
                             <ul className="list-disc list-inside space-y-1 mt-2">
+                                <li>How to discover similar repositories.</li>
                                 <li>How to add a repo using 3 different formats.</li>
                                 <li>How to add multiple repos.</li>
                                 <li>How to align the timeline to compare multiple repos.</li>
@@ -73,8 +67,46 @@ const HowToUse: NextPage = () => {
                         </section>
 
                         <section>
+                            <h2 className="text-base font-semibold text-neutral-900 mb-2">How to discover similar repositories</h2>
+                            <p>
+                                Searching for a single repo also surfaces <strong>similar repositories</strong> on the website,
+                                so you can spot adjacent tools worth considering:
+                            </p>
+                            <img className="w-full rounded-lg border border-neutral-400 shadow-xl my-2" src={`${BASE}/similar-directly-onsite.png`} alt="Similar repositories on the website" />
+                            <p>
+                                Only three similar repos are shown on the website. For unlimited lookups
+                                and to see similar repositories directly in the GitHub sidebar, install the SimRepo browser
+                                extension:
+                            </p>
+                            <div className="flex justify-center gap-4 py-2">
+                                <a className="hover:opacity-80" href="https://addons.mozilla.org/en-US/firefox/addon/simrepo/" target="_blank" rel="noopener noreferrer" onClick={() => countEvent("extension-click", { browser: "firefox" })}>
+                                    <img src="https://imgur.com/ihXsdDO.png" width="48" height="48" alt="Firefox" />
+                                </a>
+                                <a className="hover:opacity-80" href="https://chromewebstore.google.com/detail/simrepo/jieoogmcigenidbkgnkaakagdnlnieap" target="_blank" rel="noopener noreferrer" onClick={() => countEvent("extension-click", { browser: "chrome" })}>
+                                    <img src="https://imgur.com/3C4iKO0.png" width="48" height="48" alt="Chrome" />
+                                </a>
+                                <a className="hover:opacity-80" href="https://chromewebstore.google.com/detail/simrepo/jieoogmcigenidbkgnkaakagdnlnieap" target="_blank" rel="noopener noreferrer" onClick={() => countEvent("extension-click", { browser: "brave" })}>
+                                    <img src="https://imgur.com/z8yjLZ2.png" width="48" height="48" alt="Brave" />
+                                </a>
+                                <a className="hover:opacity-80" href="https://microsoftedge.microsoft.com/addons/detail/simrepo/hepnmbpflckgenbalbaebckhpncaabid" target="_blank" rel="noopener noreferrer" onClick={() => countEvent("extension-click", { browser: "edge" })}>
+                                    <img src="https://imgur.com/vMcaXaw.png" width="48" height="48" alt="Edge" />
+                                </a>
+                                <a className="hover:opacity-80" href="https://chromewebstore.google.com/detail/simrepo/jieoogmcigenidbkgnkaakagdnlnieap" target="_blank" rel="noopener noreferrer" onClick={() => countEvent("extension-click", { browser: "vivaldi" })}>
+                                    <img src="https://imgur.com/EuDp4vP.png" width="48" height="48" alt="Vivaldi" />
+                                </a>
+                                <a className="hover:opacity-80" href="https://chromewebstore.google.com/detail/simrepo/jieoogmcigenidbkgnkaakagdnlnieap" target="_blank" rel="noopener noreferrer" onClick={() => countEvent("extension-click", { browser: "opera" })}>
+                                    <img src="https://imgur.com/nSJ9htU.png" width="48" height="48" alt="Opera" />
+                                </a>
+                                <a className="hover:opacity-80" href="https://addons.mozilla.org/en-US/firefox/addon/simrepo/" target="_blank" rel="noopener noreferrer" onClick={() => countEvent("extension-click", { browser: "tor" })}>
+                                    <img src="https://imgur.com/MQYBSrD.png" width="48" height="48" alt="Tor" />
+                                </a>
+                            </div>
+                            <img className="w-full rounded-lg border border-neutral-400 shadow-xl my-2" src={`${BASE}/similar-on-github-sidebar.png`} alt="Similar repositories in the extension sidebar" />
+                        </section>
+
+                        <section>
                             <h2 className="text-base font-semibold text-neutral-900 mb-2">How to add a repo using 3 different formats</h2>
-                            <img className="w-full rounded-lg border border-neutral-200 my-2" src={`${BASE}/search-bar.webp`} alt="Search bar" />
+                            <img className="w-full rounded-lg border border-neutral-400 shadow-xl my-2" src={`${BASE}/search-bar.webp`} alt="Search bar" />
                             <p>To add a repo, you can:</p>
                             <ol className="list-decimal list-inside space-y-2">
                                 <li>
@@ -104,14 +136,10 @@ const HowToUse: NextPage = () => {
                                 After adding one repo, you can continue adding more by just typing the next repo in the input box.
                                 They will be rendered in the same chart.
                             </p>
-                            <img className="w-full rounded-lg border border-neutral-200 my-2" src={`${BASE}/multiple-repos.webp`} alt="Multiple repos" />
+                            <img className="w-full rounded-lg border border-neutral-400 shadow-xl my-2" src={`${BASE}/multiple-repos.webp`} alt="Multiple repos" />
                             <p>
                                 For example, if you were wondering about which database change management tool to use, here we have
-                                the history of their growth. Both <a className="link-action" target="_blank" rel="noopener noreferrer" href="https://flywaydb.org">Flyway</a> and{" "}
-                                <a className="link-action" target="_blank" rel="noopener noreferrer" href="https://liquibase.com">Liquibase</a> started way
-                                back and are gaining popularity over the years, but in recent years,{" "}
-                                <a className="link-action" target="_blank" rel="noopener noreferrer" href="https://bytebase.com">Bytebase</a> is picking up
-                                rapidly and has already bypassed Liquibase. You can not naively choose the project based on mere
+                                the history of their growth. You can not naively choose the project based on mere
                                 stars, while stars and its trajectory give you a hint about those projects worth looking at.
                             </p>
                         </section>
@@ -121,7 +149,7 @@ const HowToUse: NextPage = () => {
                             <p>
                                 By checking <strong>Align timeline</strong>, the chart will be rerendered.
                             </p>
-                            <img className="w-full rounded-lg border border-neutral-200 my-2" src={`${BASE}/align-timeline.webp`} alt="Align timeline" />
+                            <img className="w-full rounded-lg border border-neutral-400 shadow-xl my-2" src={`${BASE}/align-timeline.webp`} alt="Align timeline" />
                         </section>
 
                         <section>
@@ -130,18 +158,27 @@ const HowToUse: NextPage = () => {
                                 Instead of removing a repo from the chart, you can switch visibility of it by clicking the name in
                                 its label box.
                             </p>
-                            <img className="w-full rounded-lg border border-neutral-200 my-2" src={`${BASE}/hide-show.webp`} alt="Hide/show repo" />
+                            <img className="w-full rounded-lg border border-neutral-400 shadow-xl my-2" src={`${BASE}/hide-show.webp`} alt="Hide/show repo" />
                         </section>
 
                         <section>
                             <h2 className="text-base font-semibold text-neutral-900 mb-2">How to embed a live star history chart inside your GitHub project README.md</h2>
-                            <ol className="list-decimal list-inside space-y-2">
-                                <li>Click <strong>Embed</strong> below the chart.</li>
-                                <li>Copy the iframe snippet and paste it into your README.md.</li>
-                            </ol>
-                            <img className="w-full rounded-lg border border-neutral-200 my-2" src={`${BASE}/embed.webp`} alt="Embed menu" />
-                            <img className="w-full rounded-lg border border-neutral-200 my-2" src={`${BASE}/copy-iframe-readme.webp`} alt="Copy iframe" />
-                            <img className="w-full rounded-lg border border-neutral-200 my-2" src={`${BASE}/gh-readme.webp`} alt="Chart in README" />
+                            <p>Copy the markdown snippet and paste it into your README.md:</p>
+                            <ul className="list-disc list-inside space-y-1 mt-2">
+                                <li>
+                                    <strong>Light theme</strong>: plain markdown with broad support.
+                                </li>
+                                <li>
+                                    <strong>Dynamic Theme</strong>: GitHub-flavored markdown with HTML, which gives your
+                                    chart an automatic dark/light theme switch.
+                                </li>
+                            </ul>
+                            <img className="w-full rounded-lg border border-neutral-400 shadow-xl my-2" src={`${BASE}/copy-markdown.png`} alt="Copy markdown embed code" />
+                            <p>
+                                GitHub proxies embedded images through its own servers, so no data from visitors of your
+                                pages ever reaches us.
+                            </p>
+                            <img className="w-full rounded-lg border border-neutral-400 shadow-xl my-2" src={`${BASE}/gh-readme.webp`} alt="Chart in README" />
                         </section>
 
                         <p className="pt-2 border-t border-neutral-100 text-neutral-400 text-xs">
