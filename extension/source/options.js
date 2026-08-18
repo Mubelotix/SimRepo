@@ -129,7 +129,7 @@ async function defaultCode() {
                     value = options.homepageHideChangelog;
                     break;
                 case "analytics.enabled":
-                    value = options.telemetryEnabled;
+                    value = options.metricsEnabled;
                     break;
                 default:
                     value = "Unknown value. Open an issue on GitHub if you see this.";
@@ -185,7 +185,7 @@ async function saveIfChanged() {
                 homepagePoolSize: parsed.homepage?.poolSize ?? optionsStorage.defaults.homepagePoolSize,
                 homepageRedirectToFeed: parsed.homepage?.redirectToFeed ?? optionsStorage.defaults.homepageRedirectToFeed,
                 homepageHideChangelog: parsed.homepage?.hideChangelog ?? optionsStorage.defaults.homepageHideChangelog,
-                telemetryEnabled: parsed.analytics?.enabled ?? optionsStorage.defaults.telemetryEnabled,
+                metricsEnabled: parsed.analytics?.enabled ?? optionsStorage.defaults.metricsEnabled,
             });
 
             let options = await optionsStorage.getAll();

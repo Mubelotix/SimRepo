@@ -17,7 +17,7 @@ const optionsStorage = new OptionsSync({
         homepageRedirectToFeed: false,
         homepageHideChangelog: true,
 
-        telemetryEnabled: true,
+        metricsEnabled: true,
     },
     migrations: [
         OptionsSync.migrations.removeUnused,

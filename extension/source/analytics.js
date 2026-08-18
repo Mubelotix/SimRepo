@@ -1,11 +1,11 @@
 import { optionsStorage } from './options-storage.js';
 
-export const TELEMETRY_WEBSITE_ID = "28a193cd-8e9c-4c5b-857a-59b233853903";
-export const TELEMETRY_ENDPOINT = "https://simrepo.dera.page/u/api/send";
+export const METRICS_WEBSITE_ID = "28a193cd-8e9c-4c5b-857a-59b233853903";
+export const METRICS_ENDPOINT = "https://simrepo.dera.page/u/api/send";
 
 async function sendReport(payload) {
     const options = await optionsStorage.getAll();
-    if (!options.telemetryEnabled) {
+    if (!options.metricsEnabled) {
         return;
     }
 
@@ -13,7 +13,7 @@ async function sendReport(payload) {
         {
             type: 'report',
             payload: {
-                website: TELEMETRY_WEBSITE_ID,
+                website: METRICS_WEBSITE_ID,
                 hostname: window.location.hostname,
                 url: window.location.href,
                 title: document.title,

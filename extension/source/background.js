@@ -1,10 +1,10 @@
 import { initCache } from './cache.js';
-import { TELEMETRY_ENDPOINT, TELEMETRY_WEBSITE_ID } from './analytics.js';
+import { METRICS_ENDPOINT, METRICS_WEBSITE_ID } from './analytics.js';
 import { optionsStorage } from './options-storage.js';
 
 async function handleReportMessage(message) {
     try {
-        await fetch(TELEMETRY_ENDPOINT, {
+        await fetch(METRICS_ENDPOINT, {
             method: "POST",
             credentials: "omit",
             mode: "cors",
@@ -21,12 +21,12 @@ async function handleReportMessage(message) {
 
 async function reportRateLimitEvent(repo, page) {
     const options = await optionsStorage.getAll();
-    if (!options.telemetryEnabled) {
+    if (!options.metricsEnabled) {
         return;
     }
 
     try {
-        await fetch(TELEMETRY_ENDPOINT, {
+        await fetch(METRICS_ENDPOINT, {
             method: "POST",
             credentials: "omit",
             mode: "cors",
@@ -34,7 +34,7 @@ async function reportRateLimitEvent(repo, page) {
             body: JSON.stringify({
                 type: "event",
                 payload: {
-                    website: TELEMETRY_WEBSITE_ID,
+                    website: METRICS_WEBSITE_ID,
                     name: "rate-limit",
                     data: { repo, page },
                 },
