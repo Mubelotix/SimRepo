@@ -17,6 +17,8 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          lfs: true
 
       - uses: docker/setup-buildx-action@v3
 
