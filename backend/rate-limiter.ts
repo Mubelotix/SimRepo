@@ -100,6 +100,10 @@ export function isWhitelisted(ip: string): boolean {
   return whitelist.check(ip);
 }
 
+export function isGithubCamoUserAgent(userAgent: string | undefined): boolean {
+  return userAgent ? /^github-camo(?:\s|\(|$)/i.test(userAgent) : false;
+}
+
 // --- Core limit logic ---
 
 function pruneOld(events: { ts: number; count: number }[]): { ts: number; count: number }[] {

@@ -30,6 +30,7 @@ import {
 } from "./repos.js";
 import {
   isWhitelisted,
+  isGithubCamoUserAgent,
   tryFetchRepos,
   tryFetchSimilarRepos,
   isExtensionOrigin,
@@ -63,6 +64,18 @@ const startServer = async () => {
   const app = new Hono();
   app.use(cors());
   app.use(compress());
+
+  // GitHub Camo requests should come from an IP range configured in the
+  // rate-limit whitelist. Report unexpected source addresses without changing
+  // the request response or rate-limit behavior.
+  app.use(async (c, next) => {
+    const ip = c.req.header("X-Real-IP") ?? "";
+    const userAgent = c.req.header("User-Agent");
+    if (ip && isGithubCamoUserAgent(userAgent) && !isWhitelisted(ip)) {
+      logger.error(`github-camo request from non-whitelisted IP ${ip}`);
+    }
+    await next();
+  });
 
   // Request logging middleware
   app.use(async (c, next) => {
