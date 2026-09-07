@@ -15,9 +15,6 @@
 
 ## ⭐ Star History
 
-> [!TIP]
-> **Migrating here from [star-history.com](https://www.star-history.com)? You're at the right place.** [GitHub's Stargazer API shutdown](https://www.star-history.com/blog/github-stargazer-api-restriction) doomed the original project, but this fork keeps star history alive using our own data. We are the only service that's simple to use and **doesn't beg for an API token**.
-
 👇 **THIS** is a **live** chart. Head towards [**star-history.dera.page**](https://star-history.dera.page) to get started.
 
 <a href="https://star-history.dera.page/#Mubelotix/SimRepo">

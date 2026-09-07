@@ -28,16 +28,6 @@ const HowToUse: NextPage = () => {
                     </header>
 
                     <div className="px-6 py-6 space-y-8 text-sm leading-relaxed text-neutral-700">
-                        <section>
-                            <h2 className="text-base font-semibold text-neutral-900 mb-2">No token required</h2>
-                            <p>
-                                Many star history services (including the original star-history.com) ask you to create a
-                                GitHub token with <strong>write access</strong> just to look at a chart. We believe that level
-                                of trust shouldn&apos;t be necessary for generating a simple chart. That&apos;s why this fork collects
-                                and uses its own data, so you don&apos;t need a token at all.
-                            </p>
-                        </section>
-
                         <p>
                             GitHub stars are a useful signal when choosing a tool, but the raw count alone won&apos;t tell you if a
                             project is gaining traction, in decline, or simply dormant. SimRepo&apos;s Star History shows you how a project&apos;s
