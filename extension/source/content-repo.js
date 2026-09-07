@@ -196,10 +196,7 @@ const STAR_REQUIRED_MESSAGE = "Star SimRepo on GitHub to view more than three si
 
 function getErrorMessage(raw) {
     if (typeof raw !== 'string') {
-        return "No similar repositories found. Try on older repositories.";
-    }
-    if (raw === "This repository is not covered by the similar-repositories dataset yet.") {
-        return "This repository got popular too recently! It will be included in the dataset soon.";
+        return "Repo not included in the dataset yet";
     }
     return raw;
 }
@@ -225,7 +222,7 @@ function getErrorHtml(message, code) {
 
 // Show an error, but keep already-loaded items intact when paginating ("view
 // more"): replace the section only on the first page, otherwise append a notice.
-function renderError(message, page, code = null) {
+function renderError(message, page, code = null, repoName = null) {
     const display = code === 'star-required' ? STAR_REQUIRED_MESSAGE : getErrorMessage(message);
     if (code === 'star-required' || code === 'star-required-rate-limit') {
         void reportEvent('star-required', { context: 'repository', page });
@@ -243,6 +240,13 @@ function renderError(message, page, code = null) {
         }
     } else {
         renderSection(getErrorContainerHtml(display, code));
+    }
+    if (similarReposSection) {
+        if (repoName !== null) {
+            similarReposSection.dataset.simrepoRepo = repoName;
+        }
+        similarReposSection.dataset.simrepoTerminal = code === 'not-in-dataset' ? 'not-in-dataset' : '';
+        sectionHtml = similarReposSection.outerHTML;
     }
     setupSettingsListener();
 }
@@ -314,26 +318,6 @@ function restoreContainer() {
 // Safety net for GitHub's async sidebar re-renders.
 setInterval(restoreContainer, 2000);
 
-// Convert GitHub counts like "1,234" or "1.2k" to numbers.
-function parseCount(text) {
-    const match = text
-        .trim()
-        .replace(/,/g, '')
-        .match(/^(\d+(?:\.\d+)?)\s*([kKmM]?)$/);
-
-    if (!match) {
-        return null;
-    }
-
-    const multipliers = {
-        '': 1,
-        k: 1_000,
-        m: 1_000_000,
-    };
-
-    return Number(match[1]) * multipliers[match[2].toLowerCase()];
-}
-
 function setupCallback() {
     const viewMoreLink = document.querySelector('#similar-repos-view-more');
     if (viewMoreLink) {
@@ -389,6 +373,20 @@ export async function loadMoreRepos(resetPage = false) {
 
     // Ensure the container exists
     let container = document.querySelector('#similar-repos-container');
+    if (container) {
+        // Adopt a section left behind by a previous content-script instance.
+        similarReposSection = container;
+        similarReposSidebar = container.parentElement;
+        sectionHtml = container.outerHTML;
+        if (
+            container.dataset.simrepoRepo === repoName &&
+            container.dataset.simrepoTerminal === 'not-in-dataset'
+        ) {
+            keepContainerAtBottom();
+            setupSettingsListener();
+            return;
+        }
+    }
     if (!container) {
         const sidebar = findSidebar();
 
@@ -406,6 +404,8 @@ export async function loadMoreRepos(resetPage = false) {
         // Move SimRepo back to the bottom whenever that happens.
         keepContainerAtBottom();
     }
+    similarReposSection.dataset.simrepoRepo = repoName;
+    delete similarReposSection.dataset.simrepoTerminal;
 
     // Don't fetch if private
     const isPrivate = document.querySelector('.Label.Label--secondary')?.textContent.trim() === 'Private';
@@ -417,42 +417,6 @@ export async function loadMoreRepos(resetPage = false) {
             removeSection();
         }
         return;
-    }
-
-    // Don't fetch if less than 100 stars
-    try {
-        const starElement =
-            document.querySelector('[data-testid="star-button"] [data-component="CounterLabel"]') ||
-            document.querySelector('[data-testid="star-button"]');
-
-        let starsCount = parseCount(starElement?.textContent || '');
-
-        if (starsCount === null) {
-            console.warn('💈 SimRepo: star button element not found, falling back to innerText');
-            const line = document.body.innerText
-                .split('\n')
-                .map(l => l.trim())
-                .find(l => /^Star\s*[\d.]+[kKmM]?/.test(l));
-            if (line) {
-                starsCount = parseCount(line.replace(/^Star\s*/, ''));
-            }
-        }
-
-        if (starsCount === null) {
-            console.warn('💈 SimRepo: unable to determine stars count, proceeding with fetch anyway');
-        }
-
-        if (starsCount !== null && starsCount < 100) {
-            if (options.similarShowUnavailable) {
-                renderSection(getErrorContainerHtml("Unavailable for repositories with less than 100 stars."));
-                setupSettingsListener();
-            } else {
-                removeSection();
-            }
-            return;
-        }
-    } catch (error) {
-        console.error('Error fetching stars count:', error);
     }
 
     let page = nextPage;
@@ -494,14 +458,14 @@ export async function loadMoreRepos(resetPage = false) {
             console.log('No similar repos found');
 
             if (response.status === "error" && response.message) {
-                renderError(response.message, page, response.code);
+                renderError(response.message, page, response.code, repoName);
             } else {
-                renderError("No similar repositories found. Try on older repositories.", page);
+                renderError("Repo not included in the dataset yet", page, "not-in-dataset", repoName);
             }
         }
     } catch (error) {
         console.error('Error fetching similar repos:', error);
         loading = false;
-        renderError(error.message, page);
+        renderError(error.message, page, error.code, repoName);
     }
 }

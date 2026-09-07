@@ -120,10 +120,6 @@ async function getSimilarReposV2(repo, page = 1, githubUserId = null) {
         );
         error.code = response.headers.get("X-SimRepo-Error");
 
-        if (response.status !== 429 && detail) {
-            error.message = `HTTP ${response.status}: ${detail}`;
-        }
-
         if (response.status === 429) {
             void reportRateLimitEvent(repo, page);
         }
@@ -176,7 +172,7 @@ async function handleGetSimilarReposV2Message(message, sender, sendResponse) {
         });
 
         if (repos.length === 0) {
-            sendResponse({ status: "error", message: "This repository is not covered by the similar-repositories dataset yet." });
+            sendResponse({ status: "error", code: "not-in-dataset", message: "Repo not included in the dataset yet" });
         } else {
             sendResponse({ status: "success", data: repos });
         }

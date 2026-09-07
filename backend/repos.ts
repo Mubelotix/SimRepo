@@ -288,13 +288,14 @@ function parseTopics(topics: string | null): string[] {
  * first `offset` candidates, from the similar_repos table. Scores are stored as
  * little-endian f32 blobs, so they are decoded and sorted in JS. Returns the
  * recommendations (with their display metadata) ordered by descending similarity.
+ * Returns null when the repository is not in the dataset.
  */
-export function fetchSimilarRepos(repoName: string, offset: number, limit: number): SimilarRepo[] {
+export function fetchSimilarRepos(repoName: string, offset: number, limit: number): SimilarRepo[] | null {
   const d = getDb();
   const repoRow = d
     .prepare("SELECT id FROM repos WHERE lower(name) = lower(?)")
     .get(repoName) as { id: number } | undefined;
-  if (!repoRow) return [];
+  if (!repoRow) return null;
 
   const candidates = d
     .prepare("SELECT similar_repo, score FROM similar_repos WHERE repo = ?")

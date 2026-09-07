@@ -238,9 +238,18 @@ const startServer = async () => {
       );
     }
 
-    return c.json({
-      repos: fetchSimilarRepos(repo, (page - 1) * MAX_SIMILAR_REPOS, MAX_SIMILAR_REPOS),
-    });
+    const similarRepos = fetchSimilarRepos(
+      repo,
+      (page - 1) * MAX_SIMILAR_REPOS,
+      MAX_SIMILAR_REPOS,
+    );
+    if (similarRepos === null) {
+      return c.text("Repo not included in the dataset yet", 404, {
+        [SIMILAR_REPOS_ERROR_HEADER]: "not-in-dataset",
+      });
+    }
+
+    return c.json({ repos: similarRepos });
   });
 
   // Sidebar leaderboard (top repos + star-count pyramid), sourced from
@@ -369,7 +378,7 @@ const startServer = async () => {
       const { found, missing } = fetchRepoData(nodataRepos);
 
       if (missing.length > 0) {
-        return c.text(`Repo not found: "${missing[0]}" may have been moved, renamed, or deleted. Repositories are detected shortly after they reach 50 stars, so it may also have too few stars.`, 404);
+        return c.text("Repo not included in the dataset yet", 404);
       }
 
       // Embed all logos in parallel (bounded by MAX_REPOS_PER_REQUEST)
