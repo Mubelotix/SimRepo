@@ -8,6 +8,7 @@ import { JSDOM } from "jsdom";
 import fs from "node:fs";
 import path from "node:path";
 import XYChart from "../shared/packages/xy-chart.js";
+import XYChartGithub from "../shared/packages/xy-chart-github.js";
 import { convertDataToChartData } from "../shared/common/chart.js";
 import { ChartMode } from "../shared/types/chart.js";
 import logger from "./logger.js";
@@ -28,6 +29,7 @@ import {
   type TrustedByEntry,
   type LeaderboardData,
 } from "./repos.js";
+import { parseChartStyle } from "../shared/packages/chart-style.js";
 import {
   isWhitelisted,
   isGithubCamoUserAgent,
@@ -275,6 +277,7 @@ const startServer = async () => {
     if (style === "landscape1") {
       return c.text("OG cards are unavailable: GitHub API access has been disabled", 503);
     }
+    const chartStyle = parseChartStyle(style);
 
     // --- Star history chart params (only relevant when style is not set) ---
     const theme = c.req.query("theme") ?? "";
@@ -310,7 +313,7 @@ const startServer = async () => {
     }
 
     // Check rendered SVG cache before any data fetching or rendering.
-    const svgCacheKey = `${repos.join(",")}|${type}|${size}|${theme}|${transparent}|${legendPosition}|${useLogScale}`;
+    const svgCacheKey = `${repos.join(",")}|${type}|${size}|${theme}|${transparent}|${legendPosition}|${useLogScale}|${chartStyle}`;
     const cachedSvg = svgCache.get(svgCacheKey);
     if (cachedSvg) {
       recordCacheHit("svgChart");
@@ -377,7 +380,8 @@ const startServer = async () => {
     svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
 
     try {
-      XYChart(
+      const chartRenderer = chartStyle === "github" ? XYChartGithub : XYChart;
+      chartRenderer(
         svg,
         {
           title: "Star History",

@@ -8,6 +8,7 @@ import { XYChartData, XYData } from "@shared/packages/xy-chart"
 import { convertDataToChartData, getRepoData } from "@shared/common/chart"
 import toast from "helpers/toast"
 import { RepoData, LegendPosition } from "@shared/types/chart"
+import { parseChartStyle } from "@shared/packages/chart-style"
 import NoticeBanner from "./NoticeBanner"
 
 interface Notice {
@@ -23,6 +24,7 @@ interface State {
     chartMode: "Date" | "Timeline"
     useLogScale: boolean
     legendPosition: LegendPosition
+    chartStyle: string
     repoCacheMap: Map<
         string,
         {
@@ -48,6 +50,7 @@ function StarChartViewer({ compact = false }: StarChartViewerProps) {
         chartMode: "Date",
         useLogScale: false,
         legendPosition: "top-left",
+        chartStyle: "xkcd",
         repoCacheMap: new Map(),
         chartData: undefined,
         isGeneratingImage: false,
@@ -157,11 +160,15 @@ function StarChartViewer({ compact = false }: StarChartViewerProps) {
                 }
             }
 
+            const styleMatch = hash.match(/style=(\w+)/)
+            const chartStyle = parseChartStyle(styleMatch?.[1])
+
             setState(prev => ({
                 ...prev,
                 chartMode: alignTimeline ? "Timeline" : "Date",
                 useLogScale,
                 legendPosition,
+                chartStyle,
             }))
         }
 
@@ -358,6 +365,14 @@ function StarChartViewer({ compact = false }: StarChartViewerProps) {
         })
     }, [store.actions])
 
+    const handleChartStyleChange = React.useCallback((style: string) => {
+        const chartStyle = parseChartStyle(style)
+        store.actions.setChartStyle(chartStyle)
+        setState((prevState) => {
+            return { ...prevState, chartStyle }
+        })
+    }, [store.actions])
+
     return (
         <>
             <div className="w-full max-w-3xl 2xl:max-w-4xl mx-auto sm:px-4">
@@ -396,6 +411,29 @@ function StarChartViewer({ compact = false }: StarChartViewerProps) {
                                     Bottom right
                                 </label>
                             </div>
+                            <div className="flex flex-row justify-center items-center rounded leading-8 text-sm px-3 z-10 text-dark select-none">
+                                <span className="mr-2">Style</span>
+                                <label className="mr-2 cursor-pointer hover:opacity-80 flex items-center">
+                                    <input
+                                        className="mr-1"
+                                        type="radio"
+                                        name="chartStyle"
+                                        checked={state.chartStyle === "xkcd"}
+                                        onChange={() => handleChartStyleChange("xkcd")}
+                                    />
+                                    Sketch
+                                </label>
+                                <label className="cursor-pointer hover:opacity-80 flex items-center">
+                                    <input
+                                        className="mr-1"
+                                        type="radio"
+                                        name="chartStyle"
+                                        checked={state.chartStyle === "github"}
+                                        onChange={() => handleChartStyleChange("github")}
+                                    />
+                                    GitHub
+                                </label>
+                            </div>
                         </div>
                         <div className="absolute top-0 right-1 p-2 flex flex-row">
                             <div
@@ -415,7 +453,7 @@ function StarChartViewer({ compact = false }: StarChartViewerProps) {
                         </div>
                     </>
                 )}
-                <div id="capture">{state.chartData && state.chartData.datasets.length > 0 && <StarXYChart classname={`w-full h-auto ${compact ? "" : "mt-6"}`} data={state.chartData} chartMode={state.chartMode} useLogScale={state.useLogScale} legendPosition={state.legendPosition} />}</div>
+                <div id="capture">{state.chartData && state.chartData.datasets.length > 0 && <StarXYChart classname={`w-full h-auto ${compact ? "" : "mt-6"}`} data={state.chartData} chartMode={state.chartMode} useLogScale={state.useLogScale} legendPosition={state.legendPosition} chartStyle={state.chartStyle} />}</div>
             </div>
 
             {!compact && state.chartData && state.chartData.datasets.length > 0 && (

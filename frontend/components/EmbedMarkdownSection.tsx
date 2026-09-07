@@ -37,6 +37,7 @@ const EmbedChart: React.FC = () => {
         if (theme) params += `&theme=${theme}`
         if (store.useLogScale) params += `&logscale`
         if (store.legendPosition === "bottom-right") params += `&legend=bottom-right`
+        if (store.chartStyle === "github") params += `&style=github`
         return params
     }
 
@@ -45,6 +46,7 @@ const EmbedChart: React.FC = () => {
         if (store.chartMode === "Timeline") parts.push("type=timeline")
         if (store.useLogScale) parts.push("logscale")
         if (store.legendPosition === "bottom-right") parts.push("legend=bottom-right")
+        if (store.chartStyle === "github") parts.push("style=github")
         return parts.join("&")
     }
 

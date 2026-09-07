@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { ChartMode, LegendPosition } from "@shared/types/chart";
+import { ChartMode, ChartStyle, LegendPosition } from "@shared/types/chart";
+import { parseChartStyle } from "@shared/packages/chart-style";
 import { useRouter } from "next/router";
 import { REPO_DATA_API_URL } from "@shared/common/config";
 
@@ -13,6 +14,7 @@ interface AppState {
     isFetching: boolean;
     repos: string[];
     chartMode: ChartMode;
+    chartStyle: ChartStyle;
     useLogScale: boolean;
     legendPosition: LegendPosition;
     trustedBy: TrustedByRepo[];
@@ -23,6 +25,7 @@ interface AppStateContextProps {
     isFetching: boolean;
     repos: string[];
     chartMode: ChartMode;
+    chartStyle: ChartStyle;
     useLogScale: boolean;
     legendPosition: LegendPosition;
     trustedBy: TrustedByRepo[];
@@ -34,6 +37,7 @@ interface AppStateContextProps {
         setRepos(repos: string[]): void;
         setIsFetching(isFetching: boolean): void;
         setChartMode(chartMode: ChartMode): void;
+        setChartStyle(chartStyle: ChartStyle): void;
         setUseLogScale(useLogScale: boolean): void;
         setLegendPosition(legendPosition: LegendPosition): void;
     };
@@ -48,6 +52,7 @@ export const AppStateProvider: React.FC<{
         isFetching: false,
         repos: [],
         chartMode: "Date",
+        chartStyle: "xkcd",
         useLogScale: false,
         legendPosition: "top-left",
         trustedBy: [],
@@ -83,6 +88,7 @@ export const AppStateProvider: React.FC<{
             const params = hash.split("&").filter((i) => Boolean(i));
             const repos: string[] = [];
             let chartMode: ChartMode = "Date";
+            let chartStyle: ChartStyle = "xkcd";
             let useLogScale = false;
             let legendPosition: LegendPosition = "top-left";
 
@@ -103,6 +109,8 @@ export const AppStateProvider: React.FC<{
                 } else if (value === "timeline" || value === "Timeline") {
                     // Backward compatibility: naked timeline parameter
                     chartMode = "Timeline";
+                } else if (value.startsWith("style=")) {
+                    chartStyle = parseChartStyle(value.split("=")[1]);
                 } else if (value === "logscale" || value === "LogScale") {
                     useLogScale = true;
                 } else if (value.startsWith("legend=")) {
@@ -120,6 +128,7 @@ export const AppStateProvider: React.FC<{
                 isFetching: false,
                 repos,
                 chartMode,
+                chartStyle,
                 useLogScale,
                 legendPosition,
             }));
@@ -159,6 +168,9 @@ export const AppStateProvider: React.FC<{
         setChartMode: (chartMode: ChartMode) => {
             setState((prev) => ({ ...prev, chartMode }));
         },
+        setChartStyle: (chartStyle: ChartStyle) => {
+            setState((prev) => ({ ...prev, chartStyle }));
+        },
         setUseLogScale: (useLogScale: boolean) => {
             setState((prev) => ({ ...prev, useLogScale }));
         },
@@ -171,6 +183,7 @@ export const AppStateProvider: React.FC<{
         isFetching: state.isFetching,
         repos: state.repos,
         chartMode: state.chartMode,
+        chartStyle: state.chartStyle,
         useLogScale: state.useLogScale,
         legendPosition: state.legendPosition,
         trustedBy: state.trustedBy,

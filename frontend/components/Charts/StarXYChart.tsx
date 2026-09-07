@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react"
 import XYChart, { XYChartData } from "@shared/packages/xy-chart"
+import XYChartGithub from "@shared/packages/xy-chart-github"
 import { MIN_CHART_WIDTH } from "../../helpers/consts"
 import { LegendPosition } from "@shared/types/chart"
 
@@ -11,8 +12,9 @@ interface Props {
     legendPosition?: LegendPosition
     timeFormat?: string
     id?: string
+    chartStyle?: string
 }
-const StarXYChart: React.FC<Props> = ({ classname = "", data, chartMode = "Date", useLogScale = false, legendPosition = "top-left" }) => {
+const StarXYChart: React.FC<Props> = ({ classname = "", data, chartMode = "Date", useLogScale = false, legendPosition = "top-left", chartStyle = "xkcd" }) => {
     const chartContainerElRef = useRef<HTMLDivElement | null>(null)
     const svgElRef = useRef<SVGSVGElement | null>(null)
 
@@ -21,28 +23,31 @@ const StarXYChart: React.FC<Props> = ({ classname = "", data, chartMode = "Date"
             if (svgElRef.current) {
                 svgElRef.current.innerHTML = ""
 
-                XYChart(
-                    svgElRef.current,
-                    {
-                        title: "Star History",
-                        xLabel: chartMode === "Timeline" ? "Timeline" : "Date",
-                        yLabel: "GitHub Stars",
-                        data: {
-                            datasets: data.datasets
-                        },
-                        showDots: true,
-                        transparent: false
+                const config = {
+                    title: "Star History",
+                    xLabel: chartMode === "Timeline" ? "Timeline" : "Date",
+                    yLabel: "GitHub Stars",
+                    data: {
+                        datasets: data.datasets
                     },
-                    {
-                        xTickLabelType: chartMode === "Date" ? "Date" : "Number",
-                        envType: "browser",
-                        useLogScale: useLogScale,
-                        legendPosition: legendPosition
-                    }
-                )
+                    showDots: true,
+                    transparent: false
+                }
+                const options = {
+                    xTickLabelType: chartMode === "Date" ? "Date" as const : "Number" as const,
+                    envType: "browser" as const,
+                    useLogScale: useLogScale,
+                    legendPosition: legendPosition
+                }
+
+                if (chartStyle === "github") {
+                    XYChartGithub(svgElRef.current, config, options)
+                } else {
+                    XYChart(svgElRef.current, config, options)
+                }
             }
         },
-        [chartMode, useLogScale, legendPosition]
+        [chartMode, useLogScale, legendPosition, chartStyle]
     )
 
     useEffect(() => {
