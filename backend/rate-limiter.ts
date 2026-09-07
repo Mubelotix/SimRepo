@@ -34,6 +34,9 @@ export const SIMILAR_REPOS_RATE_LIMIT_MESSAGE =
   "You've reached the limit for similar-repositories lookups. " +
   "Star SimRepo on GitHub to increase your usage limits.";
 
+export const STARRED_SIMILAR_REPOS_RATE_LIMIT_MESSAGE =
+  "You've reached the increased limit for similar-repositories lookups. Please try again later.";
+
 // The window buckets per rate-limit key. We only keep events for the daily window
 // since it is the largest; the hourly total is derived from the same list.
 const ipEvents = new Map<string, { ts: number; count: number }[]>();

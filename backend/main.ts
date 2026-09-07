@@ -37,6 +37,7 @@ import {
   tryFetchSimilarRepos,
   RATE_LIMIT_MESSAGE,
   SIMILAR_REPOS_RATE_LIMIT_MESSAGE,
+  STARRED_SIMILAR_REPOS_RATE_LIMIT_MESSAGE,
 } from "./rate-limiter.js";
 import {
   isCachedGithubUserStarred,
@@ -53,6 +54,8 @@ const SVG_HEADERS = {
   "Cache-Control": "public, s-maxage=86400, max-age=86400",
 } as const;
 
+const SIMILAR_REPOS_ERROR_HEADER = "X-SimRepo-Error";
+
 // Applies per-IP rate limiting based on the number of repos being fetched.
 // The IP is read from the X-Real-IP header (set by the reverse proxy). Whitelisted
 // IPs (e.g. GitHub's CDN proxies) are never limited. Returns a 429 Response when
@@ -68,7 +71,7 @@ function checkRateLimit(c: Context, count: number): Response | null {
 
 const startServer = async () => {
   const app = new Hono();
-  app.use(cors());
+  app.use(cors({ exposeHeaders: [SIMILAR_REPOS_ERROR_HEADER] }));
   app.use(compress());
 
   // GitHub Camo requests should come from an IP range configured in the
@@ -213,10 +216,14 @@ const startServer = async () => {
     // refresh. Known stargazers avoid the refresh and use their user-ID bucket.
     if (cachedStarred) {
       if (!tryFetchSimilarRepos(`github:${githubUserId}`, true)) {
-        return c.text(SIMILAR_REPOS_RATE_LIMIT_MESSAGE, 429);
+        return c.text(STARRED_SIMILAR_REPOS_RATE_LIMIT_MESSAGE, 429, {
+          [SIMILAR_REPOS_ERROR_HEADER]: "rate-limited",
+        });
       }
     } else if (ip && !whitelisted && !tryFetchSimilarRepos(`ip:${ip}`, false)) {
-      return c.text(SIMILAR_REPOS_RATE_LIMIT_MESSAGE, 429);
+      return c.text(SIMILAR_REPOS_RATE_LIMIT_MESSAGE, 429, {
+        [SIMILAR_REPOS_ERROR_HEADER]: "star-required-rate-limit",
+      });
     }
 
     if (githubUserId && !cachedStarred) {
@@ -226,7 +233,8 @@ const startServer = async () => {
     if (!isStarred && page > 1) {
       return c.text(
         `Only the first page of similar repositories is available unless you have starred SimRepo on GitHub`,
-        400
+        400,
+        { [SIMILAR_REPOS_ERROR_HEADER]: "star-required" }
       );
     }
 

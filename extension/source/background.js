@@ -106,27 +106,29 @@ async function getSimilarReposV2(repo, page = 1, githubUserId = null) {
     if (githubUserId) {
         params.set('user_id', githubUserId);
     }
-    const url = `https://simrepo.dera.page/similar-repos?${params}`;
+    const url = `http://localhost:8080/similar-repos?${params}`;
     const response = await fetch(url, {
         method: "GET",
         headers: { "Accept": "application/json" },
     });
 
-    if (response.status === 429) {
-        void reportRateLimitEvent(repo, page);
-        throw new Error("Rate limited. Please try again later.");
-    }
-
     if (!response.ok) {
-        // Surface the backend's own message (e.g. pagination restrictions) so
-        // the user isn't left with a bare HTTP status code.
         const body = await response.text().catch(() => "");
         const detail = body && !body.startsWith("<") ? body.trim() : "";
-        throw new Error(
-            detail
-                ? `HTTP ${response.status}: ${detail}`
-                : `Failed to fetch similar repositories (HTTP ${response.status}).`
+        const error = new Error(
+            detail || `Failed to fetch similar repositories (HTTP ${response.status}).`
         );
+        error.code = response.headers.get("X-SimRepo-Error");
+
+        if (response.status !== 429 && detail) {
+            error.message = `HTTP ${response.status}: ${detail}`;
+        }
+
+        if (response.status === 429) {
+            void reportRateLimitEvent(repo, page);
+        }
+
+        throw error;
     }
 
     const data = await response.json();
@@ -161,7 +163,7 @@ async function handleGetSimilarReposV2Message(message, sender, sendResponse) {
             repos = await getSimilarReposV2(repo, page, githubUserId);
         } catch (error) {
             console.error('Error fetching similar repos (v2):', error);
-            sendResponse({ status: "error", message: error.message });
+            sendResponse({ status: "error", code: error.code, message: error.message });
             return;
         }
 

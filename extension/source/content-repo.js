@@ -181,20 +181,17 @@ function getLoadingContainerHtml() {
     </div>`;
 }
 
-function getErrorContainerHtml(error = "No similar repositories found.") {
+function getErrorContainerHtml(error = "No similar repositories found.", code = null) {
     return `
     <div class="SidebarSection-module__sidebarSection" id="similar-repos-container">
         ${SECTION_HEADER_HTML}
 
         <div class="text-small color-fg-muted">
-            ${getErrorHtml(error)}
+            ${getErrorHtml(error, code)}
         </div>
     </div>`;
 }
 
-// Turn a raw error (e.g. from the backend or background) into a user-friendly
-// message. The backend's first-page notice means the current GitHub account has
-// not starred SimRepo.
 const STAR_REQUIRED_MESSAGE = "Star SimRepo on GitHub to view more than three similar repositories.";
 
 function getErrorMessage(raw) {
@@ -203,9 +200,6 @@ function getErrorMessage(raw) {
     }
     if (raw === "This repository is not covered by the similar-repositories dataset yet.") {
         return "This repository got popular too recently! It will be included in the dataset soon.";
-    }
-    if (raw.includes("Only the first page of similar repositories")) {
-        return STAR_REQUIRED_MESSAGE;
     }
     return raw;
 }
@@ -219,30 +213,36 @@ function escapeHtml(text) {
         .replaceAll("'", '&#39;');
 }
 
-function getErrorHtml(message) {
-    if (message === STAR_REQUIRED_MESSAGE) {
+function getErrorHtml(message, code) {
+    if (code === 'star-required') {
         return '<a class="simrepo-star-link" href="https://github.com/Mubelotix/SimRepo" target="_blank" rel="noopener noreferrer">Star SimRepo on GitHub</a> to view more than three similar repositories.';
+    }
+    if (code === 'star-required-rate-limit') {
+        return 'You\'ve reached the limit for similar-repositories lookups. <a class="simrepo-star-link" href="https://github.com/Mubelotix/SimRepo" target="_blank" rel="noopener noreferrer">Star SimRepo on GitHub</a> to increase your usage limits.';
     }
     return escapeHtml(message);
 }
 
 // Show an error, but keep already-loaded items intact when paginating ("view
 // more"): replace the section only on the first page, otherwise append a notice.
-function renderError(message, page) {
-    const display = getErrorMessage(message);
+function renderError(message, page, code = null) {
+    const display = code === 'star-required' ? STAR_REQUIRED_MESSAGE : getErrorMessage(message);
+    if (code === 'star-required' || code === 'star-required-rate-limit') {
+        void reportEvent('star-required', { context: 'repository', page });
+    }
 
     if (page > 1 && similarReposSection) {
         const viewMore = similarReposSection.querySelector('#similar-repos-view-more');
         const note = document.createElement('div');
         note.className = 'text-small color-fg-muted mt-2';
-        note.innerHTML = getErrorHtml(display);
+        note.innerHTML = getErrorHtml(display, code);
         if (viewMore) {
             viewMore.closest('div').insertAdjacentElement('beforebegin', note);
         } else {
             similarReposSection.appendChild(note);
         }
     } else {
-        renderSection(getErrorContainerHtml(display));
+        renderSection(getErrorContainerHtml(display, code));
     }
     setupSettingsListener();
 }
@@ -494,7 +494,7 @@ export async function loadMoreRepos(resetPage = false) {
             console.log('No similar repos found');
 
             if (response.status === "error" && response.message) {
-                renderError(response.message, page);
+                renderError(response.message, page, response.code);
             } else {
                 renderError("No similar repositories found. Try on older repositories.", page);
             }
