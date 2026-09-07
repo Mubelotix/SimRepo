@@ -15,6 +15,16 @@ aside>div[aria-label="Explore repositories"]>div {
     cursor: pointer;
 }
 
+.simrepo-star-link {
+    color: var(--fgColor-accent, #0969da);
+    text-decoration: underline;
+    text-underline-offset: .05rem;
+}
+
+.simrepo-star-link:hover {
+    text-decoration: none;
+}
+
 #similar-repos-container .loading-spinner {
     width: .9rem;
     height: .9rem;

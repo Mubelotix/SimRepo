@@ -187,14 +187,16 @@ function getErrorContainerHtml(error = "No similar repositories found.") {
         ${SECTION_HEADER_HTML}
 
         <div class="text-small color-fg-muted">
-            ${error}
+            ${getErrorHtml(error)}
         </div>
     </div>`;
 }
 
 // Turn a raw error (e.g. from the backend or background) into a user-friendly
-// message. Overwrites the backend's "only the first page" notice, which only
-// fires for extensions the server doesn't recognize as an official install.
+// message. The backend's first-page notice means the current GitHub account has
+// not starred SimRepo.
+const STAR_REQUIRED_MESSAGE = "Star SimRepo on GitHub to view more than three similar repositories.";
+
 function getErrorMessage(raw) {
     if (typeof raw !== 'string') {
         return "No similar repositories found. Try on older repositories.";
@@ -203,9 +205,25 @@ function getErrorMessage(raw) {
         return "This repository got popular too recently! It will be included in the dataset soon.";
     }
     if (raw.includes("Only the first page of similar repositories")) {
-        return "Your SimRepo extension isn't recognized as an official install. Please make sure you installed it from an official store to view more than three similar repositories.";
+        return STAR_REQUIRED_MESSAGE;
     }
     return raw;
+}
+
+function escapeHtml(text) {
+    return text
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+}
+
+function getErrorHtml(message) {
+    if (message === STAR_REQUIRED_MESSAGE) {
+        return '<a class="simrepo-star-link" href="https://github.com/Mubelotix/SimRepo" target="_blank" rel="noopener noreferrer">Star SimRepo on GitHub</a> to view more than three similar repositories.';
+    }
+    return escapeHtml(message);
 }
 
 // Show an error, but keep already-loaded items intact when paginating ("view
@@ -217,7 +235,7 @@ function renderError(message, page) {
         const viewMore = similarReposSection.querySelector('#similar-repos-view-more');
         const note = document.createElement('div');
         note.className = 'text-small color-fg-muted mt-2';
-        note.textContent = display;
+        note.innerHTML = getErrorHtml(display);
         if (viewMore) {
             viewMore.closest('div').insertAdjacentElement('beforebegin', note);
         } else {
@@ -275,6 +293,7 @@ function restoreContainer() {
             c = document.querySelector('#similar-repos-container');
             setSection(c);
             setupSettingsListener();
+            setupCallback();
             keepContainerAtBottom();
         }
         return;
@@ -346,6 +365,12 @@ function setupCallback() {
 async function getRepoName() {
     const parts = window.location.pathname.split('/').filter(Boolean);
     return parts.length >= 2 ? `${parts[0]}/${parts[1]}` : null;
+}
+
+function getGithubUserId() {
+    const avatar = document.querySelector('img[data-testid="github-avatar"]');
+    const match = avatar?.src.match(/\/u\/(\d+)(?:[/?#]|$)/);
+    return match?.[1] || null;
 }
 
 export async function loadMoreRepos(resetPage = false) {
@@ -432,14 +457,20 @@ export async function loadMoreRepos(resetPage = false) {
 
     let page = nextPage;
     nextPage += 1;
+    const githubUserId = getGithubUserId();
 
     try {
         loading = true;
-        let response = await getSimilarReposV2(repoName, page);
+        let response = await getSimilarReposV2(repoName, page, githubUserId);
         loading = false;
 
         if (response.status === "success" && response.data !== undefined) {
             console.log('💈 Found similar repos for repo:', repoName, ', data:', response.data);
+
+            if (response.data.length === 0) {
+                renderError("No more similar repositories found.", page);
+                return;
+            }
 
             if (repoName != await getRepoName()) {
                 console.log('💈 Repo changed during fetch, aborting update.');
@@ -454,6 +485,7 @@ export async function loadMoreRepos(resetPage = false) {
                 } else {
                     innerContainer.insertAdjacentHTML('beforeend', getContainerInnerHtml(response.data));
                 }
+                sectionHtml = similarReposSection?.outerHTML ?? sectionHtml;
             } else {
                 renderSection(getContainerHtml(response.data));
                 setupCallback();

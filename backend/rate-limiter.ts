@@ -14,21 +14,9 @@ const MAX_REPOS_PER_DAY = 25;
 const MAX_SIMILAR_REPOS_PER_HOUR = 5;
 const MAX_SIMILAR_REPOS_PER_DAY = 7;
 
-// Higher per-IP limits for /similar-repos requests that come from the official
-// SimRepo browser extension (identified by its Origin header).
-const MAX_SIMILAR_REPOS_PER_HOUR_EXTENSION = 40;
-const MAX_SIMILAR_REPOS_PER_DAY_EXTENSION = 65;
-
-// Origin headers of the official SimRepo browser extension (Chrome and Firefox).
-export const EXTENSION_ORIGINS = new Set([
-  "chrome-extension://jieoogmcigenidbkgnkaakagdnlnieap",
-  "moz-extension://c157d40e-631c-4a1a-b63b-04a6f331eea8",
-]);
-
-export function isExtensionOrigin(origin: string | undefined): boolean {
-  if (!origin) return false;
-  return EXTENSION_ORIGINS.has(origin.toLowerCase());
-}
+// Higher limits for /similar-repos requests from users who starred SimRepo.
+const MAX_SIMILAR_REPOS_PER_HOUR_STARRED = 40;
+const MAX_SIMILAR_REPOS_PER_DAY_STARRED = 70;
 
 // Human-readable message sent when a non-whitelisted client is throttled.
 // Deliberately avoids exposing the exact numeric limits.
@@ -40,20 +28,19 @@ export const RATE_LIMIT_MESSAGE =
   "CDN proxies are not rate-limited, so it's safe to embed chart images directly in " +
   "your READMEs.";
 
-// Message sent when a non-whitelisted client is throttled on /similar-repos.
-// Points to the browser extension, which fetches recommendations through a
-// separate (non-rate-limited) pipeline. Deliberately avoids the exact limits.
+// Message sent when a client is throttled on /similar-repos. Deliberately avoids
+// exposing the exact limits.
 export const SIMILAR_REPOS_RATE_LIMIT_MESSAGE =
-  "You've reached the limit for similar-repositories lookups on the website. " +
-  "Install the SimRepo browser extension to keep exploring similar repositories " +
-  "without limits.";
+  "You've reached the limit for similar-repositories lookups. " +
+  "Star SimRepo on GitHub to increase your usage limits.";
 
-// The window buckets per IP. We only keep events for the daily window since it is
-// the largest; the hourly total is derived from the same list.
+// The window buckets per rate-limit key. We only keep events for the daily window
+// since it is the largest; the hourly total is derived from the same list.
 const ipEvents = new Map<string, { ts: number; count: number }[]>();
 
-// Request timestamps for the /similar-repos endpoint, keyed by IP. Only kept for
-// the daily window; the hourly total is derived from the same list.
+// Request timestamps for the /similar-repos endpoint, keyed by IP or GitHub user
+// ID. Only kept for the daily window; the hourly total is derived from the same
+// list.
 const similarRepoEvents = new Map<string, number[]>();
 
 // --- Whitelist ---
@@ -147,19 +134,20 @@ export function tryFetchRepos(ip: string, count: number): boolean {
 }
 
 /**
- * Register an attempt to fetch similar repos for the given IP.
+ * Register an attempt to fetch similar repos for the given rate-limit key.
  * Returns true if allowed (consuming the quota) or false if it would exceed a limit.
- * Whitelisted IPs are handled by the caller and never reach here. Requests from
- * a recognized browser extension (`isExtension`) get a higher quota.
+ * Whitelisted IPs are handled by the caller and never reach here. Starred users
+ * (`isStarred`) get a higher quota. The key is an IP for anonymous requests and
+ * a GitHub user ID for authenticated requests.
  */
-export function tryFetchSimilarRepos(ip: string, isExtension = false): boolean {
+export function tryFetchSimilarRepos(key: string, isStarred = false): boolean {
   const now = Date.now();
-  const events = (similarRepoEvents.get(ip) ?? []).filter((ts) => now - ts < DAY_MS);
-  similarRepoEvents.set(ip, events);
+  const events = (similarRepoEvents.get(key) ?? []).filter((ts) => now - ts < DAY_MS);
+  similarRepoEvents.set(key, events);
 
   const hourly = events.filter((ts) => now - ts < HOUR_MS).length;
-  const maxPerHour = isExtension ? MAX_SIMILAR_REPOS_PER_HOUR_EXTENSION : MAX_SIMILAR_REPOS_PER_HOUR;
-  const maxPerDay = isExtension ? MAX_SIMILAR_REPOS_PER_DAY_EXTENSION : MAX_SIMILAR_REPOS_PER_DAY;
+  const maxPerHour = isStarred ? MAX_SIMILAR_REPOS_PER_HOUR_STARRED : MAX_SIMILAR_REPOS_PER_HOUR;
+  const maxPerDay = isStarred ? MAX_SIMILAR_REPOS_PER_DAY_STARRED : MAX_SIMILAR_REPOS_PER_DAY;
   if (hourly >= maxPerHour || events.length >= maxPerDay) {
     return false;
   }

@@ -101,8 +101,12 @@ async function getClosestN(ids, offset = 0, limit = 10) {
 
 // v2 model: similar repositories for a single repo, served by the site's
 // /similar-repos endpoint. Returns the SimilarRepo[] array (or throws).
-async function getSimilarReposV2(repo, page = 1) {
-    const url = `https://simrepo.dera.page/similar-repos?repo=${encodeURIComponent(repo)}&page=${page}`;
+async function getSimilarReposV2(repo, page = 1, githubUserId = null) {
+    const params = new URLSearchParams({ repo, page: String(page) });
+    if (githubUserId) {
+        params.set('user_id', githubUserId);
+    }
+    const url = `https://simrepo.dera.page/similar-repos?${params}`;
     const response = await fetch(url, {
         method: "GET",
         headers: { "Accept": "application/json" },
@@ -134,8 +138,9 @@ async function handleGetSimilarReposV2Message(message, sender, sendResponse) {
 
     const repo = message.repo;
     const page = Number(message.page) || 1;
+    const githubUserId = message.githubUserId || null;
 
-    const cacheKey = `cache:getSimilarReposV2:${repo}:${page}`;
+    const cacheKey = `cache:getSimilarReposV2:${repo}:${page}:${githubUserId || 'anonymous'}`;
 
     // Check cache first
     chrome.storage.local.get([cacheKey], async (result) => {
@@ -153,7 +158,7 @@ async function handleGetSimilarReposV2Message(message, sender, sendResponse) {
 
         let repos;
         try {
-            repos = await getSimilarReposV2(repo, page);
+            repos = await getSimilarReposV2(repo, page, githubUserId);
         } catch (error) {
             console.error('Error fetching similar repos (v2):', error);
             sendResponse({ status: "error", message: error.message });

@@ -35,10 +35,14 @@ import {
   isGithubCamoUserAgent,
   tryFetchRepos,
   tryFetchSimilarRepos,
-  isExtensionOrigin,
   RATE_LIMIT_MESSAGE,
   SIMILAR_REPOS_RATE_LIMIT_MESSAGE,
 } from "./rate-limiter.js";
+import {
+  isCachedGithubUserStarred,
+  normalizeGithubUserId,
+  refreshGithubUserStarred,
+} from "./stargazers.js";
 
 const FRONTEND_DIR = process.env.FRONTEND_DIR || "/app/www";
 
@@ -180,18 +184,16 @@ const startServer = async () => {
   // Similar repositories for a single repo, from the similar_repos table.
   // Paginated: every page returns at most MAX_SIMILAR_REPOS (3) recommendations,
   // and a "page" query param selects which page to fetch (page 1 by default).
-  // Untrusted website requests may only query the first page; requests from the
-  // official browser extension (identified by its Origin header) may paginate
-  // through all results. Rate-limited per IP (5/hour, 7/day) so a single visitor
-  // can't hammer the lookup; requests from the extension get a higher quota
-  // (40/hour, 65/day). The frontend points rate-limited visitors at the browser
-  // extension instead.
-  app.get("/similar-repos", (c) => {
+  // Unstarred or anonymous requests may only query the first page. Users who
+  // starred SimRepo may paginate through all results and get a higher quota.
+  // Anonymous requests are rate-limited by IP; requests carrying a GitHub user ID
+  // are rate-limited by that ID once it is known in the stargazer cache.
+  app.get("/similar-repos", async (c) => {
     const repo = (c.req.query("repo") ?? "").trim();
     if (!repo) {
       return c.text("Repo name required", 400);
     }
-    const isExtension = isExtensionOrigin(c.req.header("Origin"));
+    const githubUserId = normalizeGithubUserId(c.req.query("user_id"));
     let page = 1;
     const rawPage = c.req.query("page");
     if (rawPage !== undefined && rawPage !== "") {
@@ -201,16 +203,31 @@ const startServer = async () => {
       }
       page = parsed;
     }
-    if (!isExtension && page > 1) {
-      return c.text(
-        `Only the first page of similar repositories is available on the website (more will be allowed in the future)`,
-        400
-      );
-    }
 
     const ip = c.req.header("X-Real-IP") ?? "";
-    if (ip && !isWhitelisted(ip) && !tryFetchSimilarRepos(ip, isExtension)) {
+    const whitelisted = isWhitelisted(ip);
+    const cachedStarred = isCachedGithubUserStarred(githubUserId);
+    let isStarred = cachedStarred;
+
+    // Unknown IDs must pass the IP limiter before they can trigger a GitHub
+    // refresh. Known stargazers avoid the refresh and use their user-ID bucket.
+    if (cachedStarred) {
+      if (!tryFetchSimilarRepos(`github:${githubUserId}`, true)) {
+        return c.text(SIMILAR_REPOS_RATE_LIMIT_MESSAGE, 429);
+      }
+    } else if (ip && !whitelisted && !tryFetchSimilarRepos(`ip:${ip}`, false)) {
       return c.text(SIMILAR_REPOS_RATE_LIMIT_MESSAGE, 429);
+    }
+
+    if (githubUserId && !cachedStarred) {
+      isStarred = await refreshGithubUserStarred(githubUserId);
+    }
+
+    if (!isStarred && page > 1) {
+      return c.text(
+        `Only the first page of similar repositories is available unless you have starred SimRepo on GitHub`,
+        400
+      );
     }
 
     return c.json({

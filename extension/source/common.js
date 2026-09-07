@@ -11,9 +11,9 @@ export function getSimilarRepos(repoIds, offset = 0, limit = 10) {
 
 // v2 model: fetch similar repositories for a single repo name from the site's
 // /similar-repos endpoint, which paginates by `page` (a fixed number per page).
-export function getSimilarReposV2(repo, page = 1) {
+export function getSimilarReposV2(repo, page = 1, githubUserId = null) {
     return new Promise((resolve, reject) => {
-        chrome.runtime.sendMessage({ type: 'getSimilarReposV2', repo, page }, (response) => {
+        chrome.runtime.sendMessage({ type: 'getSimilarReposV2', repo, page, githubUserId }, (response) => {
             if (chrome.runtime.lastError) {
                 return reject(chrome.runtime.lastError);
             }
