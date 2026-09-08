@@ -1,10 +1,9 @@
 import { useState } from "react"
-import { useRouter } from "next/router"
 import RepoSearchInput from "./RepoSearchInput"
 import { GITHUB_REPO_URL_REG } from "../helpers/consts"
+import { buildRepoHref } from "../helpers/urls"
 
 export default function NavInput() {
-    const router = useRouter()
     const [navInput, setNavInput] = useState("")
 
     const submit = () => {
@@ -18,12 +17,12 @@ export default function NavInput() {
 
         const parts = raw.split("/").filter(Boolean)
         const name = parts.length === 1 ? `${parts[0]}/${parts[0]}` : `${parts[0]}/${parts[1]}`
-        router.push(`/#${name}`)
+        window.location.assign(buildRepoHref(name))
     }
 
     const navigateToRepo = (repoName: string) => {
         setNavInput(repoName)
-        router.push(`/#${repoName}`)
+        window.location.assign(buildRepoHref(repoName))
     }
 
     return (

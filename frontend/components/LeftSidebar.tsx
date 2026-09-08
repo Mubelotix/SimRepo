@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react"
 import { useAppStore } from "../store"
 import { REPO_DATA_API_URL } from "@shared/common/config"
 import { formatNumber } from "../helpers/format"
+import { buildRepoHref } from "../helpers/urls"
 
 type Tab = "weekly" | "alltime" | "random"
 
@@ -51,7 +52,6 @@ const LeftSidebar: React.FC = () => {
     const handleClick = (e: React.MouseEvent, repoName: string) => {
         e.preventDefault()
         store.actions.setRepos([repoName])
-        window.location.hash = repoName
     }
 
     if (failed) {
@@ -117,7 +117,7 @@ const LeftSidebar: React.FC = () => {
                             return (
                                 <li key={item.name} className="relative group">
                                     <a
-                                        href={`/#${item.name}`}
+                                        href={buildRepoHref(item.name)}
                                         onClick={(e) => handleClick(e, item.name)}
                                         className="flex items-center gap-2 py-1 text-sm cursor-pointer"
                                     >

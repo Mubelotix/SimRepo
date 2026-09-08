@@ -3,6 +3,7 @@ import React from "react"
 import { useAppStore } from "../store"
 import { formatNumber } from "../helpers/format"
 import { FaSpinner } from "react-icons/fa"
+import { buildRepoHref } from "../helpers/urls"
 
 const EmptyState: React.FC = () => {
     const store = useAppStore()
@@ -10,7 +11,6 @@ const EmptyState: React.FC = () => {
     const handleRepoClick = (e: React.MouseEvent, repoName: string) => {
         e.preventDefault()
         store.actions.setRepos([repoName])
-        window.location.hash = repoName
     }
 
     return (
@@ -28,7 +28,7 @@ const EmptyState: React.FC = () => {
                         {store.trustedBy.map((repo) => (
                             <li key={repo.name}>
                                 <a
-                                    href={`#${repo.name}`}
+                                    href={buildRepoHref(repo.name)}
                                     onClick={(e) => handleRepoClick(e, repo.name)}
                                     className="flex flex-row justify-center items-center gap-2 px-3 py-1.5 text-sm text-dark bg-gray-100 rounded-lg shadow-sm hover:bg-gray-200"
                                 >

@@ -25,4 +25,15 @@ const nextConfig = {
     turbopack: {},
 }
 
+if (process.env.NODE_ENV === "development") {
+    nextConfig.rewrites = async () => ({
+        afterFiles: [
+            {
+                source: "/:owner/:repo",
+                destination: "/",
+            },
+        ],
+    })
+}
+
 module.exports = nextConfig

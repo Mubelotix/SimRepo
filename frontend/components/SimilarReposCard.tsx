@@ -56,7 +56,6 @@ const SimilarReposCard: React.FC = () => {
         e.preventDefault()
         countEvent("similar-repo-click", { source: repo, target: repoName })
         store.actions.setRepos([repoName])
-        window.location.hash = repoName
     }
 
     const handleExtensionClick = (e: React.MouseEvent) => {

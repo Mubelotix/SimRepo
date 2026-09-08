@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { ChartMode, ChartStyle, LegendPosition } from "@shared/types/chart";
-import { parseChartStyle } from "@shared/packages/chart-style";
-import { useRouter } from "next/router";
 import { REPO_DATA_API_URL } from "@shared/common/config";
+import { useRouter } from "next/router";
+import { buildChartHref, isChartRoute, parseChartUrl } from "../helpers/urls";
 
 export interface TrustedByRepo {
     name: string;
@@ -82,72 +82,53 @@ export const AppStateProvider: React.FC<{
     }, []);
 
     const router = useRouter();
+    const routerEvents = router.events;
+    const [urlInitialized, setUrlInitialized] = useState(false);
+
     useEffect(() => {
-        const fetchData = () => {
-            const hash = router.asPath.split("#")[1] || '';
-            const params = hash.split("&").filter((i) => Boolean(i));
-            const repos: string[] = [];
-            let chartMode: ChartMode = "Date";
-            let chartStyle: ChartStyle = "xkcd";
-            let useLogScale = false;
-            let legendPosition: LegendPosition = "top-left";
-
-            const validLegendPositions: LegendPosition[] = ["top-left", "bottom-right"];
-
-            for (const value of params) {
-                if (value.startsWith("type=")) {
-                    // Preferred format: type=timeline or type=date
-                    const typeValue = value.split("=")[1].toLowerCase();
-                    if (typeValue === "date") {
-                        chartMode = "Date";
-                    } else if (typeValue === "timeline") {
-                        chartMode = "Timeline";
-                    }
-                } else if (value === "date" || value === "Date") {
-                    // Backward compatibility: naked date parameter
-                    chartMode = "Date";
-                } else if (value === "timeline" || value === "Timeline") {
-                    // Backward compatibility: naked timeline parameter
-                    chartMode = "Timeline";
-                } else if (value.startsWith("style=")) {
-                    chartStyle = parseChartStyle(value.split("=")[1]);
-                } else if (value === "logscale" || value === "LogScale") {
-                    useLogScale = true;
-                } else if (value.startsWith("legend=")) {
-                    const position = value.split("=")[1] as LegendPosition;
-                    if (validLegendPositions.includes(position)) {
-                        legendPosition = position;
-                    }
-                } else {
-                    repos.push(value);
-                }
+        const syncFromUrl = () => {
+            const url = new URL(window.location.href);
+            if (!isChartRoute(url)) {
+                setUrlInitialized(false);
+                setState((prev) => ({
+                    ...prev,
+                    isFetching: false,
+                    repos: [],
+                    chartMode: "Date",
+                    chartStyle: "xkcd",
+                    useLogScale: false,
+                    legendPosition: "top-left",
+                }));
+                return;
             }
-
+            const urlState = parseChartUrl(url);
             setState((prev) => ({
                 ...prev,
                 isFetching: false,
-                repos,
-                chartMode,
-                chartStyle,
-                useLogScale,
-                legendPosition,
+                ...urlState,
             }));
+            setUrlInitialized(true);
         };
 
-        // Fetch data and set initial state
-        fetchData();
+        syncFromUrl();
+        window.addEventListener("popstate", syncFromUrl);
+        routerEvents.on("routeChangeComplete", syncFromUrl);
 
-        // Listen for hash changes using Next.js router
-        const handleHashChange = () => {
-            fetchData();
-        };
-        router.events.on("hashChangeComplete", handleHashChange);
-
-        // Cleanup the event listener
         return () => {
-            router.events.off("hashChangeComplete", handleHashChange);
+            window.removeEventListener("popstate", syncFromUrl);
+            routerEvents.off("routeChangeComplete", syncFromUrl);
         };
-    }, [router.asPath]);
+    }, [routerEvents]);
+
+    const { repos, chartMode, chartStyle, useLogScale, legendPosition } = state;
+    useEffect(() => {
+        if (!urlInitialized) return;
+        const href = buildChartHref({ repos, chartMode, chartStyle, useLogScale, legendPosition });
+        const currentHref = `${window.location.pathname}${window.location.search}`;
+        if (currentHref !== href) {
+            window.history.replaceState(null, "", href);
+        }
+    }, [urlInitialized, repos, chartMode, chartStyle, useLogScale, legendPosition]);
 
     const actions = useMemo<AppStateContextProps["actions"]>(() => ({
         addRepo: (repo: string) => {

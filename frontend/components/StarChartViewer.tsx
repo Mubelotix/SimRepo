@@ -17,7 +17,6 @@ interface Notice {
     message: string
 }
 
-const VALID_LEGEND_POSITIONS: LegendPosition[] = ["top-left", "bottom-right"]
 import utils from "@shared/common/utils"
 
 interface State {
@@ -67,7 +66,7 @@ function StarChartViewer({ compact = false }: StarChartViewerProps) {
 
             try {
                 const { data, missing } = await getRepoData(notCachedRepos)
-                // Keep missing repos in the store (and thus in the URL hash) so the
+                // Keep missing repos in the store (and thus in the URL) so the
                 // page stays stable and the notice below remains visible, instead of
                 // silently resetting to the empty state.
                 setState((prevState) => {
@@ -131,7 +130,7 @@ function StarChartViewer({ compact = false }: StarChartViewerProps) {
     }, [store.repos, state.chartMode, state.repoCacheMap])
 
     // Fetch repo data when the repo list changes (and on mount). The store already
-    // parses the URL hash into store.repos, so this is the single source of fetches;
+    // parses the URL into store.repos, so this is the single source of fetches;
     // fetchReposData skips the network for already-cached repos.
     useEffect(() => {
         if (store.repos.length > 0) {
@@ -140,42 +139,16 @@ function StarChartViewer({ compact = false }: StarChartViewerProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [store.repos])
 
-    // Keep local display options (chartMode/legend/logscale) in sync with the URL
-    // hash without triggering a refetch. Switching modes re-transforms cached data
-    // (fetchReposData only hits the network for repos not yet in the cache).
+    // Keep local display options in sync with the store without triggering a refetch.
     useEffect(() => {
-        const syncFromHash = () => {
-            const hash = window.location.hash
-            const alignTimeline = hash.includes("timeline") || hash.includes("Timeline")
-            const useLogScale = hash.includes("logscale") || hash.includes("LogScale")
-
-            let legendPosition: LegendPosition = "top-left"
-            const legendRegex = new RegExp(`legend=(${VALID_LEGEND_POSITIONS.join("|")})`)
-            const legendMatch = hash.match(legendRegex)
-            if (legendMatch) {
-                const position = legendMatch[1] as LegendPosition
-                if (VALID_LEGEND_POSITIONS.includes(position)) {
-                    legendPosition = position
-                }
-            }
-
-            const styleMatch = hash.match(/style=(\w+)/)
-            const chartStyle = parseChartStyle(styleMatch?.[1])
-
-            setState(prev => ({
-                ...prev,
-                chartMode: alignTimeline ? "Timeline" : "Date",
-                useLogScale,
-                legendPosition,
-                chartStyle,
-            }))
-        }
-
-        syncFromHash()
-
-        window.addEventListener("hashchange", syncFromHash)
-        return () => window.removeEventListener("hashchange", syncFromHash)
-    }, [])
+        setState((prev) => ({
+            ...prev,
+            chartMode: store.chartMode,
+            useLogScale: store.useLogScale,
+            legendPosition: store.legendPosition,
+            chartStyle: store.chartStyle,
+        }))
+    }, [store.chartMode, store.useLogScale, store.legendPosition, store.chartStyle])
 
     const handleCopyLinkBtnClick = async () => {
         try {

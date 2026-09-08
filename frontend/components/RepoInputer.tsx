@@ -29,63 +29,17 @@ export default function RepoInputer({ setChartVisibility }: RepoInputerProps) {
         setChartVisibility(store.state.repos.length > 0)
     }, [store.state.repos, setChartVisibility])
 
-    
+    // Sync local state when store repos change (e.g. from a URL or sidebar click).
     useEffect(() => {
-        const hash = window.location.hash;
-        if (hash) {
-           
-            const reposFromHash = hash.substring(1).split('&');
-            setState(prev => ({ ...prev, repos: reposFromHash.map(name => ({ name, visible: true })) }));
-
-        }
-    }, []);
-
-    
-
-    // Sync local state when store repos change (e.g. from sidebar click)
-    useEffect(() => {
-        const localNames = state.repos.map(r => r.name)
-        const newRepos = store.state.repos.filter(name => !localNames.includes(name))
-        if (newRepos.length > 0) {
-            setState(prev => ({
-                ...prev,
-                repos: [
-                    ...prev.repos,
-                    ...newRepos.map(name => ({ name, visible: true }))
-                ]
-            }))
-        }
+        setState((prev) => {
+            const activeRepos = store.state.repos.map((repo) => {
+                const existing = prev.repos.find((item) => item.name === repo)
+                return existing ? { ...existing, visible: true } : { name: repo, visible: true }
+            })
+            const hiddenRepos = prev.repos.filter((repo) => !store.state.repos.includes(repo.name) && !repo.visible)
+            return { ...prev, repos: [...activeRepos, ...hiddenRepos] }
+        })
     }, [store.state.repos])
-
-    useEffect(() => {
-        const handleWatch = () => {
-            for (const r of state.repos) {
-                if (r.visible && !store.state.repos.includes(r.name)) {
-                    setState((prev) => ({
-                        ...prev,
-                        repos: prev.repos.filter((repo) => repo.name !== r.name)
-                    }))
-                }
-            }
-
-            let hash = ""
-            if (store.state.repos.length > 0) {
-                const chartModeParam = store.state.chartMode === "Date" ? "date" : "timeline"
-                hash = `#${store.state.repos.join("&")}&type=${chartModeParam}`
-                if (store.state.useLogScale) {
-                    hash += "&logscale"
-                }
-                hash += `&legend=${store.state.legendPosition}`
-                if (store.state.chartStyle === "github") {
-                    hash += "&style=github"
-                }
-            }
-            // Sync location hash only right here
-            window.location.hash = hash
-        }
-
-        handleWatch()
-    }, [store.state.repos, store.state.chartMode, store.state.useLogScale, store.state.legendPosition, store.state.chartStyle, state.repos])
 
     const addRepos = (rawRepos: string) => {
         for (const rawRepo of rawRepos.split(",")) {

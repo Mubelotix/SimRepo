@@ -452,11 +452,15 @@ const startServer = async () => {
     serveStatic({
       root: FRONTEND_DIR,
       // Next.js "output: export" emits .html files. Map extensionless routes
-      // (e.g. /v1-vs-v2) to their .html file, since serveStatic does not.
-      rewriteRequestPath: (path) => {
-        if (path === "/") return "/index.html";
-        if (!path.includes(".")) return `${path}.html`;
-        return path;
+      // (e.g. /v1-vs-v2) to their .html file, since serveStatic does not. Repo
+      // paths are handled by the homepage client app, so fall back to its HTML.
+      rewriteRequestPath: (requestPath) => {
+        if (requestPath === "/") return "/index.html";
+        const isTwoSegmentPath = requestPath.split("/").filter(Boolean).length === 2;
+        const staticPath = path.join(FRONTEND_DIR, requestPath);
+        if (isTwoSegmentPath && !fs.existsSync(staticPath)) return "/index.html";
+        if (!requestPath.includes(".")) return `${requestPath}.html`;
+        return requestPath;
       },
     })
   );

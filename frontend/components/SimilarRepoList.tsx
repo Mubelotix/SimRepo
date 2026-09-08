@@ -2,6 +2,7 @@ import React from "react"
 import { SimilarRepo } from "@shared/types/chart"
 import { formatNumber } from "../helpers/format"
 import { languageColor } from "../helpers/language-colors"
+import { buildRepoHref } from "../helpers/urls"
 
 interface SimilarRepoListProps {
     repos: SimilarRepo[]
@@ -23,7 +24,7 @@ export default function SimilarRepoList({ repos, onItemClick, repoUrl, showScore
                 return (
                     <li key={item.repo}>
                         <a
-                            href={repoUrl ? repoUrl(item.repo) : `/#${item.repo}`}
+                            href={repoUrl ? repoUrl(item.repo) : buildRepoHref(item.repo)}
                             onClick={(e) => onItemClick?.(e, item.repo)}
                             className="block text-sm cursor-pointer group rounded-md border px-3 py-2.5 transition-colors hover:bg-gray-50"
                             style={{ borderColor: "rgb(209, 217, 224)" }}

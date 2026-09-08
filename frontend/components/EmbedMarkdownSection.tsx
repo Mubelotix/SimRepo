@@ -5,6 +5,7 @@ import toast from "../helpers/toast"
 import { SketchStarIcon } from "./SketchIcons"
 import { SITE_URL } from "../helpers/consts"
 import { countEvent } from "../helpers/analytics"
+import { buildChartHref } from "../helpers/urls"
 
 const CodeBlock: React.FC<{ title: string; onCopy: () => void; children: React.ReactNode }> = ({ title, onCopy, children }) => (
     <div className="w-full bg-gray-100 text-dark rounded-md shadow overflow-hidden">
@@ -41,17 +42,7 @@ const EmbedChart: React.FC = () => {
         return params
     }
 
-    const buildLink = () => {
-        const parts = [...store.repos]
-        if (store.chartMode === "Timeline") parts.push("type=timeline")
-        if (store.useLogScale) parts.push("logscale")
-        if (store.legendPosition === "bottom-right") parts.push("legend=bottom-right")
-        if (store.chartStyle === "github") parts.push("style=github")
-        return parts.join("&")
-    }
-
-    const currentUrl =
-        typeof window !== "undefined" ? `${window.location.href.split("#")[0]}#${buildLink()}` : ""
+    const currentUrl = typeof window !== "undefined" ? `${window.location.origin}${buildChartHref(store)}` : ""
     const svgUrl = `${SITE_URL}/svg?${buildQueryParams()}`
     const darkSvgUrl = `${SITE_URL}/svg?${buildQueryParams("dark")}`
 
