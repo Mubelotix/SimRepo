@@ -4,7 +4,7 @@
   "packageManager": "pnpm@9.15.4",
   "type": "module",
   "scripts": {
-    "dev": "tsx main.ts",
+    "dev": "tsx watch main.ts",
     "build": "tsc --project ./"
   },
   "dependencies": {
