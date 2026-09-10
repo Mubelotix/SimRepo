@@ -51,6 +51,7 @@ const TRUSTED_BY_PATH = path.join(process.cwd(), "data", "trusted-by.json");
 
 const SVG_HEADERS = {
   "Content-Type": "image/svg+xml;charset=utf-8",
+  "X-Robots-Tag": "noindex",
   "Cache-Control": "public, s-maxage=86400, max-age=86400",
 } as const;
 
