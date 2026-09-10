@@ -106,7 +106,7 @@ async function getSimilarReposV2(repo, page = 1, githubUserId = null) {
     if (githubUserId) {
         params.set('user_id', githubUserId);
     }
-    const url = `http://localhost:8080/similar-repos?${params}`;
+    const url = `https://simrepo.dera.page/similar-repos?${params}`;
     const response = await fetch(url, {
         method: "GET",
         headers: { "Accept": "application/json" },
