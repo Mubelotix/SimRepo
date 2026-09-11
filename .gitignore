@@ -18,8 +18,6 @@ dist
 # production
 /build
 extension/distribution
-sitemap*.xml
-robots.txt
 
 # misc
 .DS_Store

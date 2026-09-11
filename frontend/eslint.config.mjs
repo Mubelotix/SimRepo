@@ -5,7 +5,7 @@ import nextTs from "eslint-config-next/typescript"
 export default defineConfig([
   ...nextVitals,
   ...nextTs,
-  globalIgnores([".next/**", "out/**", "next-env.d.ts", "next.config.js", "tailwind.config.js", "postcss.config.js", "next-sitemap.config.js", ".prettierrc.js"]),
+  globalIgnores([".next/**", "out/**", "next-env.d.ts", "next.config.js", "tailwind.config.js", "postcss.config.js", ".prettierrc.js"]),
   {
     rules: {
       "react-hooks/set-state-in-effect": "off",

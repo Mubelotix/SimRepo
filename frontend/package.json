@@ -7,7 +7,7 @@
     "packageManager": "pnpm@9.15.4",
     "scripts": {
         "dev": "next dev",
-        "build": "next build && next-sitemap",
+        "build": "next build",
         "start": "pnpm dlx serve out",
         "lint": "eslint .",
         "prettier": "prettier --write ."
@@ -30,7 +30,6 @@
         "dayjs": "^1.11.22",
         "html-to-image": "^1.11.13",
         "next": "^16.3.1",
-        "next-sitemap": "^4.2.3",
         "postcss": "^8.5.26",
         "react": "^19.2.8",
         "react-dom": "^19.2.8",

@@ -10,7 +10,5 @@ plans
 *.sqlite-wal
 *.tsbuildinfo
 .next
-sitemap*.xml
-robots.txt
 next-env.d.ts
 frontend/.next
