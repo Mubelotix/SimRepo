@@ -6,6 +6,8 @@ import { reportEvent } from './analytics.js';
 
 const MAX_BATCH_REPO_IDS = 120;
 const DEFAULT_STARS_TO_LOAD = 30;
+const DEFAULT_CACHE_DURATION_MINUTES = 90;
+const MAX_CACHE_DURATION_MINUTES = 24 * 60;
 
 function getStarsToLoad(options) {
     const requested = Number(options.homepageStarsToLoad);
@@ -13,6 +15,19 @@ function getStarsToLoad(options) {
         return DEFAULT_STARS_TO_LOAD;
     }
     return Math.min(Math.max(1, Math.floor(requested)), MAX_BATCH_REPO_IDS);
+}
+
+function getCacheDurationMs(options) {
+    const requested = Number(options.homepageCacheDuration);
+    if (!Number.isFinite(requested)) {
+        return DEFAULT_CACHE_DURATION_MINUTES * 60 * 1000;
+    }
+    return Math.min(Math.max(0, requested), MAX_CACHE_DURATION_MINUTES) * 60 * 1000;
+}
+
+function getHomepageCacheKey(login, githubUserId, starsToLoad) {
+    const userKey = encodeURIComponent(githubUserId || login);
+    return `cache:homepageRecommendations:${userKey}:${starsToLoad}`;
 }
 
 export async function initHome() {
@@ -132,6 +147,21 @@ function getRandomSubsetInOrder(array, count) {
 
 async function run(container, options, starsToLoad) {
     let login = document.querySelector('meta[name="user-login"]').getAttribute('content');
+    const githubUserId = getGithubUserId();
+    const cacheKey = getHomepageCacheKey(login, githubUserId, starsToLoad);
+    const cacheDurationMs = getCacheDurationMs(options);
+
+    const cachedResult = await new Promise((resolve) => {
+        chrome.storage.local.get([cacheKey], resolve);
+    });
+    const cached = cachedResult[cacheKey];
+    const cacheAge = cached?.timestamp ? Date.now() - cached.timestamp : Infinity;
+    if (cached && Array.isArray(cached.data) && cacheAge >= 0 && cacheAge < cacheDurationMs) {
+        console.log('Serving homepage recommendations from cache');
+        renderRecommendations(container, options, cached.data);
+        return;
+    }
+
     console.log("User login:", login);
 
     let after = null;
@@ -173,13 +203,24 @@ async function run(container, options, starsToLoad) {
 
     console.log("Collected stars:", stars);
 
-    let response = await getSimilarRepos(Array.from(stars), 0.5, getGithubUserId());
+    let response = await getSimilarRepos(Array.from(stars), 0.5, githubUserId);
     if (response.status !== "success") {
         throw new Error(response.message || "Repo not included in the dataset yet");
     }
 
-    let recommendations = Array.isArray(response.data) ? response.data : [];
-    console.log('💈 Found similar repos for homepage:', response);
+    const recommendations = Array.isArray(response.data) ? response.data : [];
+    chrome.storage.local.set({
+        [cacheKey]: {
+            data: recommendations,
+            timestamp: Date.now(),
+        },
+    });
+
+    renderRecommendations(container, options, recommendations);
+}
+
+function renderRecommendations(container, options, recommendations) {
+    console.log('💈 Found similar repos for homepage:', recommendations);
     if (options.homepagePoolSize > 1) {
         recommendations = getRandomSubsetInOrder(recommendations, options.homepageCount);
         console.log('💈 Created a subset of', options.homepageCount, 'repositories');

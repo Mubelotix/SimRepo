@@ -48,6 +48,22 @@ async function reportRateLimitEvent(repo, page) {
 
 const BATCH_RECOMMENDATIONS_URL = "https://simrepo.dera.page/similar-repos/batch";
 const DEFAULT_RANK_PROBABILITY = 0.5;
+const DEFAULT_BATCH_CACHE_DURATION_MINUTES = 90;
+const MAX_BATCH_CACHE_DURATION_MINUTES = 24 * 60;
+
+async function getBatchCacheDurationMs() {
+    try {
+        const options = await optionsStorage.getAll();
+        const minutes = Number(options.homepageCacheDuration);
+        if (!Number.isFinite(minutes)) {
+            return DEFAULT_BATCH_CACHE_DURATION_MINUTES * 60 * 1000;
+        }
+        return Math.min(Math.max(0, minutes), MAX_BATCH_CACHE_DURATION_MINUTES) * 60 * 1000;
+    } catch (error) {
+        console.error("Failed to read recommendation cache settings:", error);
+        return DEFAULT_BATCH_CACHE_DURATION_MINUTES * 60 * 1000;
+    }
+}
 
 async function getBatchSimilarRepos(ids, rankProbability = DEFAULT_RANK_PROBABILITY, githubUserId = null) {
     const params = new URLSearchParams();
@@ -195,7 +211,9 @@ async function handleGetSimilarReposMessage(message, sender, sendResponse) {
     // Check cache first
     chrome.storage.local.get([cacheKey], async (result) => {
         const cached = result[cacheKey];
-        if (cached) {
+        const cacheDurationMs = await getBatchCacheDurationMs();
+        const cacheAge = cached?.timestamp ? Date.now() - cached.timestamp : Infinity;
+        if (cached && cacheAge >= 0 && cacheAge < cacheDurationMs) {
             console.log('Serving from cache');
             sendResponse({ status: 'success', cached: cached.timestamp, data: cached.data });
             return;

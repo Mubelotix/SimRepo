@@ -13,6 +13,7 @@ const optionsStorage = new OptionsSync({
         homepageCount: 25,
         homepageStarsToLoad: 30,
         homepagePoolSize: 3.0,
+        homepageCacheDuration: 90,
         // homepageShowArchived: true,
         homepageRedirectToFeed: false,
         homepageHideChangelog: true,

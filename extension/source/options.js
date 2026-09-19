@@ -59,6 +59,12 @@ const schema = {
                     minimum: 1.0,
                     maximum: 10.0,
                 },
+                cacheDuration: {
+                    type: "integer",
+                    description: "How long to reuse homepage recommendations before fetching again, in minutes",
+                    minimum: 0,
+                    maximum: 1440,
+                },
                 //   type: "boolean",
                 //   description: "Whether to include archived repositories in the homepage recommendations",
                 // },
@@ -122,6 +128,9 @@ async function defaultCode() {
                 case "homepage.poolSize":
                     value = options.homepagePoolSize;
                     break;
+                case "homepage.cacheDuration":
+                    value = options.homepageCacheDuration;
+                    break;
                 case "homepage.redirectToFeed":
                     value = options.homepageRedirectToFeed;
                     break;
@@ -183,6 +192,7 @@ async function saveIfChanged() {
                 homepageCount: parsed.homepage?.count ?? optionsStorage.defaults.homepageCount,
                 homepageStarsToLoad: parsed.homepage?.starsToLoad ?? optionsStorage.defaults.homepageStarsToLoad,
                 homepagePoolSize: parsed.homepage?.poolSize ?? optionsStorage.defaults.homepagePoolSize,
+                homepageCacheDuration: parsed.homepage?.cacheDuration ?? optionsStorage.defaults.homepageCacheDuration,
                 homepageRedirectToFeed: parsed.homepage?.redirectToFeed ?? optionsStorage.defaults.homepageRedirectToFeed,
                 homepageHideChangelog: parsed.homepage?.hideChangelog ?? optionsStorage.defaults.homepageHideChangelog,
                 metricsEnabled: parsed.analytics?.enabled ?? optionsStorage.defaults.metricsEnabled,
