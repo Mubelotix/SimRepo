@@ -294,8 +294,14 @@ const XYChart = (
             .attr("pointer-events", "all")
             .on("mouseover", (event, d) => {
                 if (window === undefined) return
-                const nodes = event.currentTarget.parentNode.childNodes || []
-                const i = [...nodes].indexOf(event.target)
+                const currentTarget = event.currentTarget as Element | null
+                const parent = currentTarget?.parentElement
+                if (!parent) return
+                const nodes = [...parent.children]
+                const target = event.target as Element | null
+                if (!target) return
+                const i = nodes.indexOf(target)
+                if (i < 0) return
                 const xyGroupIndex = Number(select(nodes[i].parentElement).attr("xy-group-index"))
                 select(nodes[i]).attr("r", dotHoverSize)
 
@@ -337,9 +343,15 @@ const XYChart = (
                 tooltip.show()
             })
             .on("mouseout", (event, d) => {
-                const nodes = event.currentTarget.parentNode.childNodes || []
+                const currentTarget = event.currentTarget as Element | null
+                const parent = currentTarget?.parentElement
+                if (!parent) return
+                const nodes = [...parent.children]
                 if (!nodes.length) return
-                const i = [...nodes].indexOf(event.target)
+                const target = event.target as Element | null
+                if (!target) return
+                const i = nodes.indexOf(target)
+                if (i < 0) return
                 select(nodes[i]).attr("r", dotInitSize)
                 tooltip.hide()
             })
