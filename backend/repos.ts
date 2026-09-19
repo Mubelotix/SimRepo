@@ -283,6 +283,79 @@ function parseTopics(topics: string | null): string[] {
   }
 }
 
+interface SimilarRepoCandidate {
+  id: number;
+  score: number;
+}
+
+interface SimilarRepoMetaRow {
+  name: string;
+  owner: string;
+  stars_total: number;
+  description: string | null;
+  language: string | null;
+  license: string | null;
+  homepage: string | null;
+  forks_count: number;
+  open_issues_count: number;
+  topics: string;
+  rank: number;
+  logo_url: string | null;
+  archived: number;
+}
+
+function loadSimilarCandidates(
+  d: DatabaseSync,
+  repoId: number,
+): SimilarRepoCandidate[] | null {
+  const repoRow = d
+    .prepare("SELECT id FROM repos WHERE id = ?")
+    .get(repoId) as { id: number } | undefined;
+  if (!repoRow) return null;
+
+  return (d
+    .prepare("SELECT similar_repo, score FROM similar_repos WHERE repo = ?")
+    .all(repoRow.id) as { similar_repo: number; score: Uint8Array | null }[])
+    .map((candidate) => {
+      const buf = candidate.score ? Buffer.from(candidate.score) : null;
+      return {
+        id: candidate.similar_repo,
+        score: buf && buf.length >= 4 ? buf.readFloatLE(0) : 0,
+      };
+    })
+    .sort((a, b) => b.score - a.score);
+}
+
+function buildSimilarRepo(
+  candidate: SimilarRepoCandidate,
+  row: SimilarRepoMetaRow,
+): SimilarRepo {
+  return {
+    repo: row.name,
+    score: candidate.score,
+    logoUrl: row.logo_url ?? "",
+    meta: {
+      owner: row.owner,
+      description: row.description,
+      language: row.language,
+      license: row.license,
+      homepage: row.homepage,
+      stars_total: row.stars_total,
+      forks_count: row.forks_count,
+      open_issues_count: row.open_issues_count,
+      topics: parseTopics(row.topics),
+      rank: row.rank,
+      archived: !!row.archived,
+    },
+  };
+}
+
+const SIMILAR_REPO_META_SQL = `
+    SELECT name, owner, stars_total, description, language, license, homepage,
+           forks_count, open_issues_count, topics, rank, logo_url, archived
+    FROM repos WHERE id = ?
+  `;
+
 /**
  * Fetch up to `limit` most similar repositories to `repoName`, skipping the
  * first `offset` candidates, from the similar_repos table. Scores are stored as
@@ -297,67 +370,108 @@ export function fetchSimilarRepos(repoName: string, offset: number, limit: numbe
     .get(repoName) as { id: number } | undefined;
   if (!repoRow) return null;
 
-  const candidates = d
-    .prepare("SELECT similar_repo, score FROM similar_repos WHERE repo = ?")
-    .all(repoRow.id) as { similar_repo: number; score: Uint8Array | null }[];
-
+  const candidates = loadSimilarCandidates(d, repoRow.id) ?? [];
   if (candidates.length === 0) return [];
 
-  const similar = candidates
-    .map((c) => {
-      const buf = c.score ? Buffer.from(c.score) : null;
-      return {
-        id: c.similar_repo,
-        score: buf && buf.length >= 4 ? buf.readFloatLE(0) : 0,
-      };
-    })
-    .sort((a, b) => b.score - a.score)
-    .slice(offset, offset + limit);
-
-  const metaStmt = d.prepare(`
-    SELECT name, owner, stars_total, description, language, license, homepage,
-           forks_count, open_issues_count, topics, rank, logo_url, archived
-    FROM repos WHERE id = ?
-  `);
+  const similar = candidates.slice(offset, offset + limit);
+  const metaStmt = d.prepare(SIMILAR_REPO_META_SQL);
 
   const results: SimilarRepo[] = [];
   for (const s of similar) {
-    const row = metaStmt.get(s.id) as
-      | {
-          name: string;
-          owner: string;
-          stars_total: number;
-          description: string | null;
-          language: string | null;
-          license: string | null;
-          homepage: string | null;
-          forks_count: number;
-          open_issues_count: number;
-          topics: string;
-          rank: number;
-          logo_url: string | null;
-          archived: number;
-        }
-      | undefined;
+    const row = metaStmt.get(s.id) as SimilarRepoMetaRow | undefined;
     if (!row) continue;
-    results.push({
-      repo: row.name,
-      score: s.score,
-      logoUrl: row.logo_url ?? "",
-      meta: {
-        owner: row.owner,
-        description: row.description,
-        language: row.language,
-        license: row.license,
-        homepage: row.homepage,
-        stars_total: row.stars_total,
-        forks_count: row.forks_count,
-        open_issues_count: row.open_issues_count,
-        topics: parseTopics(row.topics),
-        rank: row.rank,
-        archived: !!row.archived,
-      },
-    });
+    results.push(buildSimilarRepo(s, row));
+  }
+
+  return results;
+}
+
+function normalizedRandom(random: () => number): number {
+  const value = random();
+  if (!Number.isFinite(value)) return 0;
+  return Math.min(Math.max(value, 0), 1 - Number.EPSILON);
+}
+
+function randomIndex(length: number, random: () => number): number {
+  return Math.min(length - 1, Math.floor(normalizedRandom(random) * length));
+}
+
+/**
+ * Select a zero-based recommendation rank using a geometric distribution. The
+ * common `rankProbability` factor is omitted from the weights and the finite
+ * candidate list is normalized so every selection is valid.
+ */
+export function selectWeightedIndex(
+  length: number,
+  rankProbability: number,
+  random: () => number = Math.random,
+): number {
+  if (!Number.isInteger(length) || length < 1) {
+    throw new RangeError("Candidate list must not be empty");
+  }
+  if (!Number.isFinite(rankProbability) || rankProbability <= 0 || rankProbability > 1) {
+    throw new RangeError("Rank probability must be greater than 0 and at most 1");
+  }
+
+  const decay = 1 - rankProbability;
+  let totalWeight = 0;
+  let weight = 1;
+  for (let i = 0; i < length; i++) {
+    totalWeight += weight;
+    weight *= decay;
+  }
+
+  let target = normalizedRandom(random) * totalWeight;
+  weight = 1;
+  for (let i = 0; i < length; i++) {
+    if (target < weight || i === length - 1) return i;
+    target -= weight;
+    weight *= decay;
+  }
+
+  return length - 1;
+}
+
+/**
+ * Build a batch of unique recommendations by sampling one input repository and
+ * then one of its ordered candidates for every result. Sources without a row or
+ * without candidates are ignored; if the union of candidate rows is exhausted,
+ * fewer than `limit` results are returned.
+ */
+export function fetchBatchSimilarRepos(
+  repoIds: number[],
+  limit: number,
+  rankProbability: number,
+  random: () => number = Math.random,
+): SimilarRepo[] {
+  if (limit <= 0 || repoIds.length === 0) return [];
+
+  const d = getDb();
+  const candidatePools: SimilarRepoCandidate[][] = [];
+  for (const repoId of new Set(repoIds)) {
+    const candidates = loadSimilarCandidates(d, repoId);
+    if (candidates && candidates.length > 0) candidatePools.push(candidates);
+  }
+
+  const metaStmt = d.prepare(SIMILAR_REPO_META_SQL);
+  const seen = new Set<number>();
+  const results: SimilarRepo[] = [];
+
+  while (results.length < limit) {
+    const availablePools = candidatePools.filter((pool) =>
+      pool.some((candidate) => !seen.has(candidate.id))
+    );
+    if (availablePools.length === 0) break;
+
+    const pool = availablePools[randomIndex(availablePools.length, random)];
+    const availableCandidates = pool.filter((candidate) => !seen.has(candidate.id));
+    const candidate = availableCandidates[
+      selectWeightedIndex(availableCandidates.length, rankProbability, random)
+    ];
+    seen.add(candidate.id);
+
+    const row = metaStmt.get(candidate.id) as SimilarRepoMetaRow | undefined;
+    if (row) results.push(buildSimilarRepo(candidate, row));
   }
 
   return results;

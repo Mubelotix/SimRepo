@@ -8,7 +8,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_REPOS_PER_HOUR = 10;
 const MAX_REPOS_PER_DAY = 25;
 
-// Per-IP limits for the /similar-repos endpoint, expressed in number of
+// Per-IP limits for the /similar-repos endpoints, expressed in number of
 // requests (each request counts once, regardless of how many recommendations it
 // returns).
 const MAX_SIMILAR_REPOS_PER_HOUR = 5;
@@ -41,7 +41,7 @@ export const STARRED_SIMILAR_REPOS_RATE_LIMIT_MESSAGE =
 // since it is the largest; the hourly total is derived from the same list.
 const ipEvents = new Map<string, { ts: number; count: number }[]>();
 
-// Request timestamps for the /similar-repos endpoint, keyed by IP or GitHub user
+// Request timestamps for the /similar-repos endpoints, keyed by IP or GitHub user
 // ID. Only kept for the daily window; the hourly total is derived from the same
 // list.
 const similarRepoEvents = new Map<string, number[]>();

@@ -18,13 +18,22 @@ import {
   fixJsdomSvgCasing,
   getBase64Image,
 } from "./utils.js";
-import { CHART_SIZES, MAX_REPOS_PER_REQUEST, MAX_SIMILAR_REPOS } from "./const.js";
+import {
+  CHART_SIZES,
+  DEFAULT_BATCH_RANK_PROBABILITY,
+  MAX_BATCH_REPO_IDS,
+  MAX_BATCH_SIMILAR_REPOS,
+  MAX_BATCH_SIMILAR_REPOS_UNAUTHENTICATED,
+  MAX_REPOS_PER_REQUEST,
+  MAX_SIMILAR_REPOS,
+} from "./const.js";
 import {
   fetchRepoData,
   searchRepos,
   fetchTrustedBy,
   fetchLeaderboard,
   fetchSimilarRepos,
+  fetchBatchSimilarRepos,
   resolveRepoId,
   type TrustedByEntry,
   type LeaderboardData,
@@ -68,6 +77,88 @@ function checkRateLimit(c: Context, count: number): Response | null {
   if (!ip || isWhitelisted(ip)) return null;
   if (tryFetchRepos(ip, count)) return null;
   return c.text(RATE_LIMIT_MESSAGE, 429);
+}
+
+interface SimilarReposAccess {
+  isStarred: boolean;
+}
+
+// Resolve the shared similar-repositories access policy. Unknown user IDs are
+// checked against the IP bucket before refreshing the stargazer cache so callers
+// cannot bypass anonymous limits by submitting arbitrary IDs.
+async function checkSimilarReposAccess(c: Context): Promise<SimilarReposAccess | Response> {
+  const githubUserId = normalizeGithubUserId(c.req.query("user_id"));
+  const ip = c.req.header("X-Real-IP") ?? "";
+  const whitelisted = isWhitelisted(ip);
+  const cachedStarred = isCachedGithubUserStarred(githubUserId);
+  let isStarred = cachedStarred;
+
+  if (cachedStarred) {
+    if (!tryFetchSimilarRepos(`github:${githubUserId}`, true)) {
+      return c.text(STARRED_SIMILAR_REPOS_RATE_LIMIT_MESSAGE, 429, {
+        [SIMILAR_REPOS_ERROR_HEADER]: "rate-limited",
+      });
+    }
+  } else if (ip && !whitelisted && !tryFetchSimilarRepos(`ip:${ip}`, false)) {
+    return c.text(SIMILAR_REPOS_RATE_LIMIT_MESSAGE, 429, {
+      [SIMILAR_REPOS_ERROR_HEADER]: "star-required-rate-limit",
+    });
+  }
+
+  if (githubUserId && !cachedStarred) {
+    isStarred = await refreshGithubUserStarred(githubUserId);
+  }
+
+  return { isStarred };
+}
+
+interface BatchSimilarReposRequest {
+  repoIds: number[];
+  rankProbability: number;
+}
+
+export function parseBatchSimilarReposRequest(
+  value: unknown,
+): BatchSimilarReposRequest | string {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return "Request body must be a JSON object";
+  }
+
+  const body = value as Record<string, unknown>;
+  if (!Array.isArray(body.repo_ids) || body.repo_ids.length === 0) {
+    return "repo_ids must be a non-empty array of positive integers";
+  }
+  if (body.repo_ids.length > MAX_BATCH_REPO_IDS) {
+    return `Too many repo ids: max ${MAX_BATCH_REPO_IDS} per request`;
+  }
+
+  const repoIds = body.repo_ids as unknown[];
+  if (!repoIds.every((id) => Number.isSafeInteger(id) && (id as number) > 0)) {
+    return "repo_ids must be a non-empty array of positive integers";
+  }
+
+  const rankProbability = body.rank_probability === undefined
+    ? DEFAULT_BATCH_RANK_PROBABILITY
+    : body.rank_probability;
+  if (
+    typeof rankProbability !== "number" ||
+    !Number.isFinite(rankProbability) ||
+    rankProbability <= 0 ||
+    rankProbability > 1
+  ) {
+    return "rank_probability must be a number greater than 0 and at most 1";
+  }
+
+  return {
+    repoIds: repoIds as number[],
+    rankProbability,
+  };
+}
+
+function getBatchSimilarReposLimit(isStarred: boolean): number {
+  return isStarred
+    ? MAX_BATCH_SIMILAR_REPOS
+    : MAX_BATCH_SIMILAR_REPOS_UNAUTHENTICATED;
 }
 
 const startServer = async () => {
@@ -197,7 +288,6 @@ const startServer = async () => {
     if (!repo) {
       return c.text("Repo name required", 400);
     }
-    const githubUserId = normalizeGithubUserId(c.req.query("user_id"));
     let page = 1;
     const rawPage = c.req.query("page");
     if (rawPage !== undefined && rawPage !== "") {
@@ -208,30 +298,10 @@ const startServer = async () => {
       page = parsed;
     }
 
-    const ip = c.req.header("X-Real-IP") ?? "";
-    const whitelisted = isWhitelisted(ip);
-    const cachedStarred = isCachedGithubUserStarred(githubUserId);
-    let isStarred = cachedStarred;
+    const access = await checkSimilarReposAccess(c);
+    if (access instanceof Response) return access;
 
-    // Unknown IDs must pass the IP limiter before they can trigger a GitHub
-    // refresh. Known stargazers avoid the refresh and use their user-ID bucket.
-    if (cachedStarred) {
-      if (!tryFetchSimilarRepos(`github:${githubUserId}`, true)) {
-        return c.text(STARRED_SIMILAR_REPOS_RATE_LIMIT_MESSAGE, 429, {
-          [SIMILAR_REPOS_ERROR_HEADER]: "rate-limited",
-        });
-      }
-    } else if (ip && !whitelisted && !tryFetchSimilarRepos(`ip:${ip}`, false)) {
-      return c.text(SIMILAR_REPOS_RATE_LIMIT_MESSAGE, 429, {
-        [SIMILAR_REPOS_ERROR_HEADER]: "star-required-rate-limit",
-      });
-    }
-
-    if (githubUserId && !cachedStarred) {
-      isStarred = await refreshGithubUserStarred(githubUserId);
-    }
-
-    if (!isStarred && page > 1) {
+    if (!access.isStarred && page > 1) {
       return c.text(
         `Only the first page of similar repositories is available unless you have starred SimRepo on GitHub`,
         400,
@@ -251,6 +321,35 @@ const startServer = async () => {
     }
 
     return c.json({ repos: similarRepos });
+  });
+
+  // Batch recommendations for a list of repository IDs. Each result samples one
+  // input repository and then one of its ranked candidates using a geometric
+  // rank distribution. Anonymous callers receive three results; starred users
+  // receive the full batch size.
+  app.post("/similar-repos/batch", async (c) => {
+    let body: unknown;
+    try {
+      body = await c.req.json();
+    } catch {
+      return c.text("Invalid JSON body", 400);
+    }
+
+    const parsed = parseBatchSimilarReposRequest(body);
+    if (typeof parsed === "string") {
+      return c.text(parsed, 400);
+    }
+
+    const access = await checkSimilarReposAccess(c);
+    if (access instanceof Response) return access;
+
+    const limit = getBatchSimilarReposLimit(access.isStarred);
+    const repos = fetchBatchSimilarRepos(
+      parsed.repoIds,
+      limit,
+      parsed.rankProbability,
+    );
+    return c.json({ repos });
   });
 
   // Sidebar leaderboard (top repos + star-count pyramid), sourced from
