@@ -4,8 +4,20 @@ import { formatNumber, getSimilarRepos, loadingSpinner, setupSettingsListener } 
 import { optionsStorage } from "./options-storage.js";
 import { reportEvent } from './analytics.js';
 
+const MAX_BATCH_REPO_IDS = 120;
+const DEFAULT_STARS_TO_LOAD = 30;
+
+function getStarsToLoad(options) {
+    const requested = Number(options.homepageStarsToLoad);
+    if (!Number.isFinite(requested)) {
+        return DEFAULT_STARS_TO_LOAD;
+    }
+    return Math.min(Math.max(1, Math.floor(requested)), MAX_BATCH_REPO_IDS);
+}
+
 export async function initHome() {
     let options = await optionsStorage.getAll();
+    const starsToLoad = getStarsToLoad(options);
 
     if (options.homepageHideChangelog) {
         hideGitHubChangelog();
@@ -38,14 +50,14 @@ export async function initHome() {
 
     aside.appendChild(outerContainer);
 
-    container.innerHTML = getLoadingHtml(options.homepageStarsToLoad);
+    container.innerHTML = getLoadingHtml(starsToLoad);
     container.style.height = 'unset';
     container.style.overflow = 'unset';
 
     setupSettingsListener();
 
     try {
-        await run(container, options);
+        await run(container, options, starsToLoad);
     } catch (error) {
         console.error("Error during homepage recommendations:", error);
         container.innerHTML = `<div class="color-fg-muted">Failed to load recommendations. Please try again later or <a href="https://github.com/Mubelotix/SimRepo/issues">open an issue</a>.<br/>Details: <code>${error.message}</code></div>`;
@@ -78,6 +90,12 @@ function hideGitHubChangelog() {
     }
 }
 
+function getGithubUserId() {
+    const avatar = document.querySelector('img[data-testid="github-avatar"]');
+    const match = avatar?.src.match(/\/u\/(\d+)(?:[/?#]|$)/);
+    return match?.[1] || null;
+}
+
 export async function initStarsList() {
     let documentHtml = document.documentElement.innerHTML;
     let regex = /details-user-list-(\d+)-unstarred/g;
@@ -92,7 +110,11 @@ export async function initStarsList() {
 
     console.log("Collected stars:", stars);
 
-    let response = await getSimilarRepos(Array.from(stars), 0, 20);
+    let response = await getSimilarRepos(
+        Array.from(stars).slice(0, MAX_BATCH_REPO_IDS),
+        0.5,
+        getGithubUserId(),
+    );
     console.log('💈 Found similar repos for homepage:', response);
 }
 
@@ -108,14 +130,14 @@ function getRandomSubsetInOrder(array, count) {
     return sortedIndices.map(i => array[i]);
 }
 
-async function run(container, options) {
+async function run(container, options, starsToLoad) {
     let login = document.querySelector('meta[name="user-login"]').getAttribute('content');
     console.log("User login:", login);
 
     let after = null;
     let stars = new Set();
 
-    while (stars.size < options.homepageStarsToLoad) {
+    while (stars.size < starsToLoad) {
         let url = `https://github.com/${login}?tab=stars`;
         if (after) {
             url += `&after=${after}`;
@@ -131,7 +153,7 @@ async function run(container, options) {
             let id = matches[1];
             if (id) {
                 stars.add(Number(id));
-                if (stars.size >= options.homepageStarsToLoad) {
+                if (stars.size >= starsToLoad) {
                     break;
                 }
             }
@@ -151,18 +173,24 @@ async function run(container, options) {
 
     console.log("Collected stars:", stars);
 
-    let recommendationCount = Math.round(options.homepageCount * options.homepagePoolSize);
-    let response = await getSimilarRepos(Array.from(stars), 0, recommendationCount);
+    let response = await getSimilarRepos(Array.from(stars), 0.5, getGithubUserId());
+    if (response.status !== "success") {
+        throw new Error(response.message || "Repo not included in the dataset yet");
+    }
+
+    let recommendations = Array.isArray(response.data) ? response.data : [];
     console.log('💈 Found similar repos for homepage:', response);
     if (options.homepagePoolSize > 1) {
-        response.data = getRandomSubsetInOrder(response.data, options.homepageCount);
+        recommendations = getRandomSubsetInOrder(recommendations, options.homepageCount);
         console.log('💈 Created a subset of', options.homepageCount, 'repositories');
+    } else {
+        recommendations = recommendations.slice(0, options.homepageCount);
     }
 
     let innerHtml = '';
-    for (let i = 0; i < response.data.length; i++) {
-        const last = i === response.data.length - 1;
-        innerHtml += getHtml(response.data[i], last);
+    for (let i = 0; i < recommendations.length; i++) {
+        const last = i === recommendations.length - 1;
+        innerHtml += getHtml(recommendations[i], last);
     }
 
     console.log("Container for recommendations:", container);
@@ -188,31 +216,50 @@ function getLoadingHtml(latestStars) {
     </div>`
 }
 
+function escapeHtml(value) {
+    return String(value ?? "")
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+}
+
 function getHtml(result, lasts) {
-    let repo = result.payload;
+    const fullName = String(result.repo ?? "");
+    const separator = fullName.indexOf('/');
+    const owner = separator === -1 ? "" : fullName.slice(0, separator);
+    const repoName = separator === -1 ? fullName : fullName.slice(separator + 1);
+    const meta = result.meta ?? {};
+    const logoUrl = String(result.logoUrl || `https://github.com/${owner}.png?size=40`);
+    const avatarUrl = logoUrl.includes('?') ? `${logoUrl}&s=40` : `${logoUrl}?s=40`;
+    const language = meta.language ? String(meta.language) : "";
+    const score = Number(result.score);
+    const scoreText = Number.isFinite(score) ? score.toFixed(2) : "";
+
     return `
     <div ${lasts ? 'class="pt-3"' : 'class="py-3 border-bottom"'}>
         <div class="Truncate d-flex flex-justify-between">
             <span style="word-wrap:normal;max-width: 300px;" class="Truncate-text ws-normal flex-1">
-            <img src="https://avatars.githubusercontent.com/u/${repo.owner.id}?s=40&amp;v=4" alt="@${repo.owner.login} profile" size="20" height="20" width="20" class="avatar avatar-small circle box-shadow-none mr-1">
-            <a href="/${repo.full_name}" class="Link color-fg-default text-bold">${repo.owner.login} <span class="color-fg-muted text-light">/</span> ${repo.name}</a></span>
+            <img src="${escapeHtml(avatarUrl)}" alt="@${escapeHtml(owner)} profile" size="20" height="20" width="20" class="avatar avatar-small circle box-shadow-none mr-1">
+            <a href="/${escapeHtml(fullName)}" class="Link color-fg-default text-bold">${escapeHtml(owner)} <span class="color-fg-muted text-light">/</span> ${escapeHtml(repoName)}</a></span>
         </div>
         <p class="text-small color-fg-muted mt-2">
-            ${repo.description}
+            ${escapeHtml(meta.description)}
         </p>
 
         <div class="color-fg-muted d-inline-block mr-4 mt-1 f6">
             ${octicons.star.toSVG()}
-            ${formatNumber(repo.stargazers_count)}
+            ${formatNumber(meta.stars_total ?? 0)}
         </div>
-        <div class="color-fg-muted d-inline-block mr-4 mt-1 f6">
+        <div class="color-fg-muted d-inline-block mr-4 mt-1 f6" title="Similarity score">
             ${octicons.flame.toSVG()}
-            ${Math.floor(result.score * 100)}%
+            ${escapeHtml(scoreText)}
         </div>
         <div class="color-fg-muted d-inline-block f6 mt-1">
             <span class="">
-            <span class="repo-language-color" style="background-color: ${GH_LANG_COLORS[repo.language]}"></span>
-            <span itemprop="programmingLanguage">${repo.language}</span>
+            <span class="repo-language-color" style="background-color: ${escapeHtml(GH_LANG_COLORS[language] || '')}"></span>
+            <span itemprop="programmingLanguage">${escapeHtml(language)}</span>
             </span>
         </div>
     </div>`
