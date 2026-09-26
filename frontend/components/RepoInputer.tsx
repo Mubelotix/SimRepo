@@ -24,6 +24,7 @@ export default function RepoInputer({ setChartVisibility }: RepoInputerProps) {
         repo: "",
         repos: []
     })
+    const [autoSelectSingleSearchResult, setAutoSelectSingleSearchResult] = useState(false)
 
     useEffect(() => {
         setChartVisibility(store.state.repos.length > 0)
@@ -99,6 +100,14 @@ export default function RepoInputer({ setChartVisibility }: RepoInputerProps) {
         setState((prev) => ({ ...prev, repo: "" }))
     }
 
+    useEffect(() => {
+        const query = new URLSearchParams(window.location.search).get("q")
+        if (!query) return
+
+        setState((prev) => (prev.repo === "" ? { ...prev, repo: query } : prev))
+        setAutoSelectSingleSearchResult(true)
+    }, [])
+
     const handleAddRepoBtnClick = () => {
         if (store.isFetching) {
             return
@@ -173,9 +182,13 @@ export default function RepoInputer({ setChartVisibility }: RepoInputerProps) {
             <div className="w-auto sm:w-full grow max-w-3xl 2xl:max-w-4xl mt-4 relative">
                 <RepoSearchInput
                     value={state.repo}
-                    onChange={(value) => setState((prev) => ({ ...prev, repo: value }))}
+                    onChange={(value) => {
+                        setAutoSelectSingleSearchResult(false)
+                        setState((prev) => ({ ...prev, repo: value }))
+                    }}
                     onSelect={handleRepoSelect}
                     onSubmit={handleRepoSubmit}
+                    autoSelectSingleMatch={autoSelectSingleSearchResult}
                     placeholder={state.repos.length > 0 ? "...add next repository" : undefined}
                     buttonLabel="View star history"
                     className="shadow-inner border border-solid border-black rounded"

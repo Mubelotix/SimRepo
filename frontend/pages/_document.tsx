@@ -49,6 +49,7 @@ class MyDocument extends Document {
     return (
       <Html lang="en"> {/* Set your desired language here */}
         <Head>
+          <link rel="search" type="application/opensearchdescription+xml" title="GitHub Star History" href="/opensearch.xml" />
           <script dangerouslySetInnerHTML={{ __html: legacyHashRedirect }} />
         </Head>
         <body>

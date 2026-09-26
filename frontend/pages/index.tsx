@@ -25,6 +25,7 @@ const Index: NextPage = () => {
             <Head>
                 <title>{metadata.title}</title>
                 <meta name="description" content={metadata.description} />
+                <link rel="canonical" href={SITE_URL} />
 
                 {/* Open Graph / Facebook */}
                 <meta property="og:type" content="website" />

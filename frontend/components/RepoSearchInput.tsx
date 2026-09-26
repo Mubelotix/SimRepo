@@ -29,6 +29,7 @@ interface RepoSearchInputProps {
     buttonLabel?: string
     className?: string
     inputClassName?: string
+    autoSelectSingleMatch?: boolean
 }
 
 export default function RepoSearchInput({
@@ -40,6 +41,7 @@ export default function RepoSearchInput({
     buttonLabel,
     className = "",
     inputClassName = "",
+    autoSelectSingleMatch = false,
 }: RepoSearchInputProps) {
     const [suggestions, setSuggestions] = useState<Suggestion[]>([])
     const [showSuggestions, setShowSuggestions] = useState(false)
@@ -85,15 +87,24 @@ export default function RepoSearchInput({
                 setSuggestions(list)
                 setShowSuggestions(list.length > 0)
                 setHighlightIndex(-1)
+                if (autoSelectSingleMatch && list.length === 1 && inputElRef.current?.value.trim() === query) {
+                    selectSuggestion(list[0].name)
+                }
             } catch {
                 closeSuggestions()
             }
         }, 200)
     }
 
+    useEffect(() => {
+        runSearch(value)
+        // Fetch suggestions whenever the controlled value changes, including when
+        // it is initialized from an OpenSearch `?q=` URL.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [value, autoSelectSingleMatch])
+
     const handleInputChange = (value: string) => {
         onChange(value)
-        runSearch(value)
     }
 
     const handlePaste = (event: React.ClipboardEvent<HTMLInputElement>) => {
@@ -105,7 +116,6 @@ export default function RepoSearchInput({
         const nextStr = value.slice(Math.max(inputEl.selectionStart || 0, inputEl.selectionEnd || 0))
         const combined = `${prevStr}${text}${nextStr}`
         onChange(combined)
-        runSearch(combined)
     }
 
     const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
