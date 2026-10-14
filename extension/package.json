@@ -54,6 +54,9 @@
     "@parcel/resolver-default": {
         "packageExports": true
     },
+    "@parcel/bundler-default": {
+        "disableSharedBundles": true
+    },
     "targets": {
         "default": {
             "source": "source/manifest.json",

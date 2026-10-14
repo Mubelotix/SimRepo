@@ -17,20 +17,18 @@ function setSection(section) {
 }
 
 function findSidebar() {
-    return (
-        // New Github sidebar (2026/07~).
-        document.querySelector(
-            '[data-component="SplitPageLayout.Pane"] ' +
-            '[class*="CodeViewSidebar-module__borderGrid__"]'
-        ) ||
-        // Previous Github sidebar.
-        document.querySelector(
-          'rails-partial[data-partial-name="codeViewRepoRoute.Sidebar"] .BorderGrid'
-        ) ||
-        document.querySelector('.Layout-sidebar > div') ||
-        document.querySelector('.Layout-sidebar') ||
-        document.querySelector('[data-testid="repository-sidebar"]')
-    );
+    const headings = Array.from(document.querySelectorAll('h2'));
+    const about = headings.filter(heading => heading.textContent.trim() === 'About');
+    const anchor = headings.find(heading => heading.textContent.trim() === 'Languages') ||
+        headings.find(heading => heading.querySelector('a')?.textContent.trim() === 'Contributors' ||
+            heading.textContent.trim() === 'Contributors');
+    if (!anchor) return null;
+
+    // Sidebar sections share a parent; their generated class names can change.
+    for (let parent = anchor.parentElement; parent && parent !== document.body; parent = parent.parentElement) {
+        if (about.some(heading => parent.contains(heading))) return parent;
+    }
+    return null;
 }
 
 // Render a fresh section, either replacing the current one or inserting a new
@@ -71,7 +69,7 @@ const forkIcon = octicons['repo-forked'].toSVG({ class: 'simrepo-fork' }).replac
 
 function getHtml(owner, repo, fullname, description, language, stars, forks, archived, similarity) {
     return `
-<div class="Box d-flex p-3 width-full public source">
+<div class="Box d-flex p-2 width-full public source">
     <div class="pinned-item-list-item-content">
         <div class="d-flex width-full position-relative">
             <div class="flex-1">
