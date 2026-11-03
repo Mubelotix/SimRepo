@@ -7,61 +7,49 @@ import { reportEvent } from './analytics.js';
 var loading = false;
 var nextPage = 1;
 var similarReposSection = null;
-var similarReposSidebar = null;
-// Snapshot of the section HTML we most recently rendered, so we can recreate it
-// if GitHub React fully removes our node from the DOM.
-var sectionHtml = null;
-
-function setSection(section) {
-    similarReposSection = section;
-}
+var sectionPath = null;
 
 function findSidebar() {
-    const headings = Array.from(document.querySelectorAll('h2'));
-    const about = headings.filter(heading => heading.textContent.trim() === 'About');
-    const anchor = headings.find(heading => heading.textContent.trim() === 'Languages') ||
-        headings.find(heading => heading.querySelector('a')?.textContent.trim() === 'Contributors' ||
-            heading.textContent.trim() === 'Contributors');
-    if (!anchor) return null;
+    // Inspect GitHub's section titles, not its generated CSS classes. README
+    // headings can have the same titles, so never use them as sidebar anchors.
+    const headings = Array.from(document.querySelectorAll('h2')).filter((heading) => {
+        if (heading.closest('article, [itemprop="text"], #readme, [data-testid="readme"], nav, header, footer, #similar-repos-container')) return false;
+        const title = heading.textContent.replace(/\s+/g, ' ').trim();
+        return /^(Releases|Contributors|Languages)(?:\s*[\d,.kKmM+]+(?:\s*\([\d,.kKmM+]+\))?)?$/.test(title);
+    });
 
-    // Sidebar sections share a parent; their generated class names can change.
-    for (let parent = anchor.parentElement; parent && parent !== document.body; parent = parent.parentElement) {
-        if (about.some(heading => parent.contains(heading))) return parent;
+    for (const heading of headings) {
+        // The nearest shared parent also handles layouts with extra wrappers
+        // around individual sections. Never climb into the overall page.
+        let sidebar = heading.parentElement.parentElement;
+        while (sidebar && !sidebar.matches('main, body, html')) {
+            if (headings.some((other) => other !== heading && sidebar.contains(other))) return sidebar;
+            sidebar = sidebar.parentElement;
+        }
     }
-    return null;
+    // Some repositories have only one of these sections.
+    const sidebar = headings[0]?.parentElement.parentElement;
+    return sidebar && !sidebar.matches('main, body, html') ? sidebar : null;
 }
 
-// Render a fresh section, either replacing the current one or inserting a new
-// one, and keep tracking the new element so GitHub's re-renders can't orphan it.
-// If the current section was detached from the DOM by GitHub while we were
-// fetching, fall back to inserting a fresh section into a live sidebar instead
-// of replacing (and losing) a node that is no longer displayed.
+// Keep the actual node, even before the sidebar exists or after GitHub removes
+// it. Retrying can then reattach it without snapshots or rebinding listeners.
 function renderSection(html) {
-    if (similarReposSection && similarReposSection.isConnected) {
-        similarReposSection.outerHTML = html;
-    } else if (similarReposSidebar && similarReposSidebar.isConnected) {
-        similarReposSidebar.insertAdjacentHTML('beforeend', html);
-    } else {
-        const sidebar = findSidebar();
-        if (!sidebar) {
-            console.warn('💈 SimRepo: no sidebar mount point to render the section');
-            return;
-        }
-        similarReposSidebar = sidebar;
-        sidebar.insertAdjacentHTML('beforeend', html);
-    }
-    setSection(document.querySelector('#similar-repos-container'));
-    sectionHtml = html;
-    keepContainerAtBottom();
+    const template = document.createElement('template');
+    template.innerHTML = html;
+    const section = template.content.firstElementChild;
+    similarReposSection?.replaceWith(section);
+    similarReposSection = section;
+    sectionPath = window.location.pathname;
+    setupCallback();
+    restoreContainer();
 }
 
 // Disable the section entirely (github should not restore it later).
 function removeSection() {
-    if (similarReposSection) {
-        similarReposSection.remove();
-        setSection(null);
-        sectionHtml = null;
-    }
+    similarReposSection?.remove();
+    similarReposSection = null;
+    sectionPath = null;
 }
 
 // See https://github.com/Mubelotix/SimRepo/issues/25
@@ -137,11 +125,9 @@ function getContainerInnerHtml(results) {
     return innerHtml;
 }
 
-// Match the new (2026) Github sidebar section markup (e.g. the "Releases"
-// section). Use stable class names only — never GitHub's hashed CSS-module
-// classes, which change on every deploy. Styling lives in content.css.
+// Styling lives in content.css; no GitHub CSS-module classes are needed.
 const SECTION_HEADER_HTML = `
-    <h2 class="prc-Heading-Heading SidebarSection-module__sectionHeading" data-variant="small" data-component="Heading">
+    <h2>
         <span>Similar repositories</span>
         <a href="#" id="simrepo-settings-btn" class="Link--secondary" title="Settings" aria-label="SimRepo settings">
             ${octicons.gear.toSVG()}
@@ -152,7 +138,7 @@ function getContainerHtml(results) {
     let innerHtml = getContainerInnerHtml(results);
 
     return `
-    <div class="SidebarSection-module__sidebarSection" id="similar-repos-container">
+    <div id="similar-repos-container">
         ${SECTION_HEADER_HTML}
 
         <div id="similar-repos-inner-container">${innerHtml}</div>
@@ -165,7 +151,7 @@ function getContainerHtml(results) {
 
 function getLoadingContainerHtml() {
     return `
-    <div class="SidebarSection-module__sidebarSection" id="similar-repos-container">
+    <div id="similar-repos-container">
         ${SECTION_HEADER_HTML}
 
         <div class="d-flex align-items-center justify-content-star mt-3">
@@ -181,7 +167,7 @@ function getLoadingContainerHtml() {
 
 function getErrorContainerHtml(error = "No similar repositories found.", code = null) {
     return `
-    <div class="SidebarSection-module__sidebarSection" id="similar-repos-container">
+    <div id="similar-repos-container">
         ${SECTION_HEADER_HTML}
 
         <div class="text-small color-fg-muted">
@@ -244,80 +230,26 @@ function renderError(message, page, code = null, repoName = null) {
             similarReposSection.dataset.simrepoRepo = repoName;
         }
         similarReposSection.dataset.simrepoTerminal = code === 'not-in-dataset' ? 'not-in-dataset' : '';
-        sectionHtml = similarReposSection.outerHTML;
     }
-    setupSettingsListener();
 }
 
-let containerObserver = null;
-
-// Keep the "Similar repositories" section at the bottom of the sidebar. GitHub
-// re-renders and appends its own sections asynchronously, and occasionally
-// replaces the entire sidebar element. So:
-//   - if our section was dropped into a detached sidebar, re-insert it into a
-//     live one (findSidebar) and re-attach the observer;
-//   - otherwise, move it to the end whenever GitHub inserts anything after it.
-function keepContainerAtBottom() {
-    const container = document.querySelector('#similar-repos-container');
-    if (!container || !container.parentElement) return;
-
-    const sidebar = container.parentElement;
-    if (containerObserver && containerObserver.__sidebar === sidebar) {
-        return; // already watching this parent
-    }
-    if (containerObserver) {
-        containerObserver.disconnect();
-        containerObserver = null;
-    }
-
-    containerObserver = new MutationObserver(() => {
-        restoreContainer();
-    });
-    containerObserver.__sidebar = sidebar;
-    containerObserver.observe(sidebar, { childList: true });
-}
-
-// Make sure the section is present in a live sidebar, at the bottom. Handles:
-//   - section fully removed by React: recreate it from the stored snapshot;
-//   - section moved into a detached/wrong parent: re-insert it into a live
-//     sidebar;
-//   - section present but not last: move it to the end.
+// The same retry handles initial rendering, removal, replacement and ordering.
 function restoreContainer() {
-    const live = findSidebar();
-    if (!live || !live.isConnected) return;
-
-    let c = document.querySelector('#similar-repos-container');
-
-    if (!c) {
-        // Removed entirely — recreate from the snapshot.
-        if (sectionHtml) {
-            live.insertAdjacentHTML('beforeend', sectionHtml);
-            c = document.querySelector('#similar-repos-container');
-            setSection(c);
-            setupSettingsListener();
-            setupCallback();
-            keepContainerAtBottom();
-        }
+    if (!similarReposSection) return;
+    if (sectionPath !== window.location.pathname) {
+        removeSection();
         return;
     }
-
-    if (!live.contains(c)) {
-        live.appendChild(c);
-        setSection(document.querySelector('#similar-repos-container'));
-        keepContainerAtBottom();
-        return;
-    }
-
-    if (c !== c.parentElement.lastElementChild) {
-        c.parentElement.appendChild(c);
+    const sidebar = findSidebar();
+    if (sidebar && (similarReposSection.parentElement !== sidebar || sidebar.lastElementChild !== similarReposSection)) {
+        sidebar.appendChild(similarReposSection);
     }
 }
 
-// Safety net for GitHub's async sidebar re-renders.
-setInterval(restoreContainer, 2000);
+setInterval(restoreContainer, 1000);
 
 function setupCallback() {
-    const viewMoreLink = document.querySelector('#similar-repos-view-more');
+    const viewMoreLink = similarReposSection.querySelector('#similar-repos-view-more');
     if (viewMoreLink) {
         viewMoreLink.addEventListener('click', async () => {
             reportEvent('see-more', { context: 'repository' });
@@ -331,17 +263,14 @@ function setupCallback() {
         });
     }
 
-    const container = document.querySelector('#similar-repos-container');
-    if (container) {
-        container.addEventListener('click', (event) => {
-            const link = event.target.closest('a[href^="/"]');
-            if (link) {
-                reportEvent('recommended-repo-click', { context: 'repository', repo: link.getAttribute('href') });
-            }
-        });
-    }
+    similarReposSection.addEventListener('click', (event) => {
+        const link = event.target.closest('a[href^="/"]');
+        if (link) {
+            reportEvent('recommended-repo-click', { context: 'repository', repo: link.getAttribute('href') });
+        }
+    });
 
-    setupSettingsListener();
+    setupSettingsListener(similarReposSection);
 }
 
 async function getRepoName() {
@@ -359,6 +288,7 @@ export async function loadMoreRepos(resetPage = false) {
     let options = await optionsStorage.getAll();
     if (!options.similarEnabled) {
         console.log("Similar repositories are disabled");
+        removeSection();
         return;
     }
 
@@ -374,33 +304,17 @@ export async function loadMoreRepos(resetPage = false) {
     if (container) {
         // Adopt a section left behind by a previous content-script instance.
         similarReposSection = container;
-        similarReposSidebar = container.parentElement;
-        sectionHtml = container.outerHTML;
+        sectionPath = window.location.pathname;
         if (
             container.dataset.simrepoRepo === repoName &&
             container.dataset.simrepoTerminal === 'not-in-dataset'
         ) {
-            keepContainerAtBottom();
-            setupSettingsListener();
+            restoreContainer();
             return;
         }
     }
     if (!container) {
-        const sidebar = findSidebar();
-
-        if (!sidebar) {
-            console.warn('💈 SimRepo: no sidebar mount point (new GitHub layout)');
-            return;
-        }
-
-        sidebar.insertAdjacentHTML('beforeend', getLoadingContainerHtml());
-        sectionHtml = getLoadingContainerHtml();
-        setupSettingsListener();
-        similarReposSidebar = sidebar;
-        setSection(document.querySelector('#similar-repos-container'));
-        // Github appends sidebar sections asynchronously.
-        // Move SimRepo back to the bottom whenever that happens.
-        keepContainerAtBottom();
+        renderSection(getLoadingContainerHtml());
     }
     similarReposSection.dataset.simrepoRepo = repoName;
     delete similarReposSection.dataset.simrepoTerminal;
@@ -410,7 +324,6 @@ export async function loadMoreRepos(resetPage = false) {
     if (isPrivate) {
         if (options.similarShowUnavailable) {
             renderSection(getErrorContainerHtml("Unavailable for private repositories."));
-            setupSettingsListener();
         } else {
             removeSection();
         }
@@ -440,17 +353,15 @@ export async function loadMoreRepos(resetPage = false) {
                 return;
             }
 
-            let innerContainer = document.getElementById("similar-repos-inner-container");
+            let innerContainer = similarReposSection?.querySelector('#similar-repos-inner-container');
             if (innerContainer) {
                 if (page === 1) {
                     innerContainer.innerHTML = getContainerInnerHtml(response.data);
                 } else {
                     innerContainer.insertAdjacentHTML('beforeend', getContainerInnerHtml(response.data));
                 }
-                sectionHtml = similarReposSection?.outerHTML ?? sectionHtml;
             } else {
                 renderSection(getContainerHtml(response.data));
-                setupCallback();
             }
         } else {
             console.log('No similar repos found');
