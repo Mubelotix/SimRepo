@@ -29,6 +29,22 @@ const schema = {
             },
             required: [],
         },
+        readmeChart: {
+            type: "object",
+            description: "Settings for automatically adding a Star History chart to repository READMEs.",
+            properties: {
+                enabled: {
+                    type: "boolean",
+                    description: "Add a Star History chart to READMEs when chart data is available",
+                },
+                style: {
+                    type: "string",
+                    description: "Chart style",
+                    enum: ["xkcd", "github"],
+                },
+            },
+            required: [],
+        },
         homepage: {
             type: "object",
             description: "Settings for homepage recommendations",
@@ -108,6 +124,12 @@ async function defaultCode() {
                 case "similar.showUnavailable":
                     value = options.similarShowUnavailable;
                     break;
+                case "readmeChart.enabled":
+                    value = options.readmeChartEnabled;
+                    break;
+                case "readmeChart.style":
+                    value = options.readmeChartStyle;
+                    break;
                 case "homepage.enabled":
                     value = options.homepageEnabled;
                     break;
@@ -179,6 +201,8 @@ async function saveIfChanged() {
                 optionsYaml: doc,
                 similarEnabled: parsed.similar?.enabled ?? optionsStorage.defaults.similarEnabled,
                 similarShowUnavailable: parsed.similar?.showUnavailable ?? optionsStorage.defaults.similarShowUnavailable,
+                readmeChartEnabled: parsed.readmeChart?.enabled ?? optionsStorage.defaults.readmeChartEnabled,
+                readmeChartStyle: parsed.readmeChart?.style ?? optionsStorage.defaults.readmeChartStyle,
                 homepageEnabled: parsed.homepage?.enabled ?? optionsStorage.defaults.homepageEnabled,
                 homepageCount: parsed.homepage?.count ?? optionsStorage.defaults.homepageCount,
                 homepageStarsToLoad: parsed.homepage?.starsToLoad ?? optionsStorage.defaults.homepageStarsToLoad,
