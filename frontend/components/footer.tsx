@@ -13,7 +13,7 @@ const Footer = () => {
                     </span>
                 </div>
                 <div className="text-xs leading-8 flex flex-row flex-nowrap justify-end items-center gap-3">
-                    <a className="link" href="https://github.com/sponsors/Mubelotix" target="_blank" rel="noopener noreferrer" onClick={() => countEvent("donate-click")}>
+                    <a className="link" href="https://github.com/sponsors/Mubelotix?utm_source=simrepo" target="_blank" rel="noopener" referrerPolicy="origin" onClick={() => countEvent("donate-click")}>
                         Donate
                     </a>
                     <a className="link" href={EXTENSION_STORE_URL} target="_blank" rel="noopener noreferrer" onClick={(e) => {

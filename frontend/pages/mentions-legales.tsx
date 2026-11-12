@@ -33,7 +33,7 @@ const Legal: NextPage = () => {
                                 <h2 className="text-base font-semibold text-neutral-900 mb-2">Éditeur du site</h2>
                                 <p>
                                     Le site GitHub Star History est édité par{" "}
-                                    <a className="link-action" target="_blank" rel="noopener noreferrer" href="https://github.com/Mubelotix">
+                                    <a className="link-action" target="_blank" rel="noopener" referrerPolicy="origin" href="https://github.com/Mubelotix?utm_source=simrepo">
                                         @Mubelotix
                                     </a>.
                                 </p>
@@ -42,7 +42,7 @@ const Legal: NextPage = () => {
                                     <a className="link-action" href="mailto:mubelotix@gmail.com">mubelotix@gmail.com</a>
                                     <br />
                                     Directeur de la publication :{" "}
-                                    <a className="link-action" target="_blank" rel="noopener noreferrer" href="https://github.com/Mubelotix">
+                                    <a className="link-action" target="_blank" rel="noopener" referrerPolicy="origin" href="https://github.com/Mubelotix?utm_source=simrepo">
                                         @Mubelotix
                                     </a>
                                 </p>
@@ -77,17 +77,17 @@ const Legal: NextPage = () => {
                                 <p>
                                     L&apos;ensemble des contenus présents sur ce site (textes, code, éléments graphiques) est, sauf
                                     mention contraire sur GitHub, la propriété de{" "}
-                                    <a className="link-action" target="_blank" rel="noopener noreferrer" href="https://github.com/Mubelotix">
+                                    <a className="link-action" target="_blank" rel="noopener" referrerPolicy="origin" href="https://github.com/Mubelotix?utm_source=simrepo">
                                         @Mubelotix
                                     </a>. Toute reproduction non autorisée est interdite.
                                 </p>
                                 <p className="mt-2">
                                     Le code du site est ouvert et publié sur{" "}
-                                    <a className="link-action" target="_blank" rel="noopener noreferrer" href="https://github.com/Mubelotix/simrepo">
+                                    <a className="link-action" target="_blank" rel="noopener" referrerPolicy="origin" href="https://github.com/Mubelotix/simrepo?utm_source=simrepo">
                                         GitHub
                                     </a>{" "}
                                     : une partie est licenciée sous MIT, l&apos;autre partie sous GPLv3 (voir{" "}
-                                    <a className="link-action" target="_blank" rel="noopener noreferrer" href="https://github.com/Mubelotix/simrepo">
+                                    <a className="link-action" target="_blank" rel="noopener" referrerPolicy="origin" href="https://github.com/Mubelotix/simrepo?utm_source=simrepo">
                                         le dépôt
                                     </a>{" "}
                                     pour le détail). Les données fournies par le serveur ne sont quant à elles pas licenciées :

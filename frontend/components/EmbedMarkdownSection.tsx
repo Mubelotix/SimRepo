@@ -138,14 +138,14 @@ const EmbedChart: React.FC = () => {
             <p className="leading-8 mb-3">
                 <SketchStarIcon size={18} /> Show real-time chart on {repoText}{" "}
                 {singleRepo ? (
-                    <a className="link-mono" href={`https://github.com/${singleRepo}/blob/HEAD/README.md`} target="_blank">
+                    <a className="link-mono" href={`https://github.com/${singleRepo}/blob/HEAD/README.md?utm_source=simrepo`} target="_blank" rel="noopener" referrerPolicy="origin">
                         README.md
                     </a>
                 ) : (
                     <span className="font-mono text-gray-500">README.md</span>
                 )}{" "}
                 with the following code (
-                <a className="link-mono" href="https://github.com/Mubelotix/simrepo?tab=readme-ov-file#sparkles-star-history-sparkles" target="_blank">
+                <a className="link-mono" href="https://github.com/Mubelotix/simrepo?tab=readme-ov-file&utm_source=simrepo#sparkles-star-history-sparkles" target="_blank" rel="noopener" referrerPolicy="origin">
                     example
                 </a>
                 ):

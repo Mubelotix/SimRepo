@@ -32,7 +32,7 @@ const Header: React.FC = () => {
               }}>
                 <span className="text-white -2">Extension</span>
               </a>
-              <a href="https://github.com/sponsors/Mubelotix" target="_blank" rel="noopener noreferrer" className="header-link text-base" onClick={() => countEvent("donate-click")}>
+              <a href="https://github.com/sponsors/Mubelotix?utm_source=simrepo" target="_blank" rel="noopener" referrerPolicy="origin" className="header-link text-base" onClick={() => countEvent("donate-click")}>
                 <span className="text-white -2">Donate</span>
               </a>
             </div>

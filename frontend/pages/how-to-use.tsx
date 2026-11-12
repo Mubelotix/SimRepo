@@ -32,7 +32,7 @@ const HowToUse: NextPage = () => {
                             GitHub stars are a useful signal when choosing a tool, but the raw count alone won&apos;t tell you if a
                             project is gaining traction, in decline, or simply dormant. SimRepo&apos;s Star History shows you how a project&apos;s
                             stars grow over the years - and it&apos;s free and{" "}
-                            <a className="link-action" target="_blank" rel="noopener noreferrer" href="https://github.com/Mubelotix/simrepo">
+                            <a className="link-action" target="_blank" rel="noopener" referrerPolicy="origin" href="https://github.com/Mubelotix/simrepo?utm_source=simrepo">
                                 open-source
                             </a>
                             .

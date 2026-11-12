@@ -108,7 +108,7 @@ export default function RepoStatsCard() {
                                     )}
                                     <div className="min-w-0">
                                         <h2 className="text-xl font-bold text-neutral-800">
-                                            <a href={`https://github.com/${repo}`} target="_blank" rel="noopener" className="hover:underline">
+                                            <a href={`https://github.com/${repo}?utm_source=simrepo`} target="_blank" rel="noopener" referrerPolicy="origin" className="hover:underline">
                                                 {repo}
                                             </a>
                                         </h2>
@@ -123,9 +123,10 @@ export default function RepoStatsCard() {
                                             </a>
                                         ) : (
                                             <a
-                                                href={`https://github.com/${repo}`}
+                                                href={`https://github.com/${repo}?utm_source=simrepo`}
                                                 target="_blank"
                                                 rel="noopener"
+                                                referrerPolicy="origin"
                                                 className="text-xs text-neutral-400 hover:text-neutral-600 hover:underline"
                                             >
                                                 github.com/{repo}
@@ -165,9 +166,10 @@ export default function RepoStatsCard() {
                                         {meta.topics.slice(0, 8).map((t) => (
                                             <a
                                                 key={t}
-                                                href={`https://github.com/topics/${encodeURIComponent(t)}`}
+                                                href={`https://github.com/topics/${encodeURIComponent(t)}?utm_source=simrepo`}
                                                 target="_blank"
                                                 rel="noopener"
+                                                referrerPolicy="origin"
                                                 className="px-2 py-0.5 text-xs bg-neutral-100 border border-neutral-200 rounded-full text-neutral-600 hover:text-neutral-900 hover:bg-neutral-200"
                                             >
                                                 {t}

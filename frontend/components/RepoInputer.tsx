@@ -215,7 +215,7 @@ export default function RepoInputer({ setChartVisibility }: RepoInputerProps) {
                             >
                                 {item.name}
                             </span>
-                            <a href={`https://github.com/${item.name}`} target="_blank" className="flex items-center text-gray-400 hover:text-green-600">
+                            <a href={`https://github.com/${item.name}?utm_source=simrepo`} target="_blank" rel="noopener" referrerPolicy="origin" className="flex items-center text-gray-400 hover:text-green-600">
                                 <SketchExternalLinkIcon />
                             </a>
                         </div>

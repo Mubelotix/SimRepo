@@ -36,7 +36,7 @@ const Privacy: NextPage = () => {
                             <section>
                                 <h2 className="text-base font-semibold text-neutral-900 mb-2">1. Who is responsible for your data</h2>
                                 <p>
-                                    <a className="link-action" target="_blank" rel="noopener noreferrer" href="https://github.com/Mubelotix">
+                                    <a className="link-action" target="_blank" rel="noopener" referrerPolicy="origin" href="https://github.com/Mubelotix?utm_source=simrepo">
                                         @Mubelotix
                                     </a>{" "}
                                     operates GitHub Star History and is the data controller for the processing
@@ -110,7 +110,7 @@ const Privacy: NextPage = () => {
                                         understanding traffic and keeping the site reliable and secure, done in the least
                                         intrusive way possible (anonymized/aggregated). Analytics is handled by the
                                         privacy-friendly, self-hosted{" "}
-                                        <a className="link-action" target="_blank" rel="noopener noreferrer" href="https://github.com/umami-software/umami">
+                                        <a className="link-action" target="_blank" rel="noopener" referrerPolicy="origin" href="https://github.com/umami-software/umami?utm_source=simrepo">
                                             Umami software
                                         </a>
                                         . When the &quot;Do Not Track&quot; (DNT) signal is set in your browser, analytics are

@@ -25,9 +25,10 @@ const GitHubStarButton = () => {
     return (
         <a
             className="flex items-center gap-1.5 hover:opacity-80 transition-opacity"
-            href="https://github.com/Mubelotix/simrepo"
+            href="https://github.com/Mubelotix/simrepo?utm_source=simrepo"
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noopener"
+            referrerPolicy="origin"
             aria-label="Star Mubelotix/simrepo on GitHub"
             style={{ fontFamily: '"xkcd", cursive' }}
         >
