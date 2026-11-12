@@ -5,7 +5,6 @@ const optionsStorage = new OptionsSync({
         optionsYaml: "",
 
         similarEnabled: true,
-        similarCount: 5,
         similarShowUnavailable: true,
         // similarShowArchived: true,
 
