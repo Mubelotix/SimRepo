@@ -256,7 +256,10 @@ async function loadReadmeChart(message) {
         signal: AbortSignal.timeout(30000),
     });
     if (!response.ok || !response.headers.get('Content-Type')?.includes('image/svg+xml')) {
-        throw new Error(`Chart unavailable (HTTP ${response.status})`);
+        const error = new Error(`Chart unavailable (HTTP ${response.status})`);
+        error.httpStatus = response.status;
+        error.code = response.headers.get('X-SimRepo-Error');
+        throw error;
     }
     const bytes = new Uint8Array(await response.arrayBuffer());
     if (bytes.length > 5 * 1024 * 1024) throw new Error('Chart image is too large');
@@ -271,7 +274,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'loadReadmeChart') {
         loadReadmeChart(message).then(
             (dataUrl) => sendResponse({ status: 'success', dataUrl }),
-            (error) => sendResponse({ status: 'error', message: error.message }),
+            (error) => sendResponse({ status: 'error', httpStatus: error.httpStatus, code: error.code, message: error.message }),
         );
         return true;
     }

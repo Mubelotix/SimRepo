@@ -60,6 +60,12 @@ aside>div[aria-label="Explore repositories"]>div {
     cursor: pointer;
 }
 
+.simrepo-readme-rate-limit {
+    margin: var(--base-size-8, 8px) 0;
+    color: var(--fgColor-muted, var(--color-fg-muted));
+    font-size: 12px;
+}
+
 #similar-repos-container h2 {
     display: flex;
     align-items: center;

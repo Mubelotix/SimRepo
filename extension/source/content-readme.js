@@ -19,6 +19,30 @@ function getGitHubTheme() {
     return theme?.startsWith('dark') ? 'dark' : theme?.startsWith('light') ? 'light' : mode;
 }
 
+function showChartRateLimit(image, repo, code) {
+    const section = image.closest(`#${CHART_CONTAINER_ID}`);
+    if (!section) return;
+    const readme = section.parentElement;
+    readme.dataset.simrepoChartUnavailable = repo;
+
+    const notice = document.createElement('p');
+    notice.className = 'simrepo-readme-rate-limit';
+    notice.setAttribute('role', 'status');
+    notice.textContent = 'Star History is rate limited. ';
+    if (code === 'star-required-rate-limit') {
+        const link = document.createElement('a');
+        link.className = 'simrepo-star-link';
+        link.href = 'https://github.com/Mubelotix/SimRepo';
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = 'Star SimRepo on GitHub';
+        notice.append(link, ' to increase your usage limits.');
+    } else {
+        notice.append('Please try again later.');
+    }
+    section.replaceChildren(notice);
+}
+
 async function updateChartImage(image, repo, style) {
     const theme = getGitHubTheme();
     if (image.dataset.theme === theme) return;
@@ -33,6 +57,10 @@ async function updateChartImage(image, repo, style) {
             });
         });
         if (!image.isConnected || image.dataset.theme !== theme) return;
+        if (response?.httpStatus === 429) {
+            showChartRateLimit(image, repo, response.code);
+            return;
+        }
         if (response?.status !== 'success') throw new Error(response?.message || 'Chart unavailable');
         image.src = response.dataUrl;
     } catch {
