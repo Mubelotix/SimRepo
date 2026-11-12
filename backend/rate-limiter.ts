@@ -11,12 +11,12 @@ const MAX_REPOS_PER_DAY = 25;
 // Per-IP limits for the /similar-repos endpoints, expressed in number of
 // requests (each request counts once, regardless of how many recommendations it
 // returns).
-const MAX_SIMILAR_REPOS_PER_HOUR = 5;
-const MAX_SIMILAR_REPOS_PER_DAY = 7;
+const MAX_SIMILAR_REPOS_PER_HOUR = 8;
+const MAX_SIMILAR_REPOS_PER_DAY = 12;
 
 // Higher limits for /similar-repos requests from users who starred SimRepo.
-const MAX_SIMILAR_REPOS_PER_HOUR_STARRED = 40;
-const MAX_SIMILAR_REPOS_PER_DAY_STARRED = 70;
+const MAX_SIMILAR_REPOS_PER_HOUR_STARRED = 60;
+const MAX_SIMILAR_REPOS_PER_DAY_STARRED = 100;
 
 // Human-readable message sent when a non-whitelisted client is throttled.
 // Deliberately avoids exposing the exact numeric limits.

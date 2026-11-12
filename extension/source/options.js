@@ -18,11 +18,6 @@ const schema = {
                     type: "boolean",
                     description: "Whether to show similar repositories",
                 },
-                count: {
-                    type: "integer",
-                    description: "Number of similar items to show",
-                    minimum: 1,
-                },
                 showUnavailable: {
                     type: "boolean",
                     description: "Whether to show a notice when similar repositories are unavailable (e.g. private or not in the dataset)",
@@ -110,9 +105,6 @@ async function defaultCode() {
                 case "similar.enabled":
                     value = options.similarEnabled;
                     break;
-                case "similar.count":
-                    value = options.similarCount;
-                    break;
                 case "similar.showUnavailable":
                     value = options.similarShowUnavailable;
                     break;
@@ -186,7 +178,6 @@ async function saveIfChanged() {
             await optionsStorage.set({
                 optionsYaml: doc,
                 similarEnabled: parsed.similar?.enabled ?? optionsStorage.defaults.similarEnabled,
-                similarCount: parsed.similar?.count ?? optionsStorage.defaults.similarCount,
                 similarShowUnavailable: parsed.similar?.showUnavailable ?? optionsStorage.defaults.similarShowUnavailable,
                 homepageEnabled: parsed.homepage?.enabled ?? optionsStorage.defaults.homepageEnabled,
                 homepageCount: parsed.homepage?.count ?? optionsStorage.defaults.homepageCount,
