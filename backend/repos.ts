@@ -489,7 +489,7 @@ export interface TrustedByEntry {
 }
 
 /**
- * Resolve a fixed list of repo names into lightweight trust indicators (icon +
+ * Resolve repo names into lightweight trust indicators (icon +
  * current star count) for the homepage "Trusted by" section. Repos missing from
  * the dataset fall back to the GitHub owner avatar with unknown star count.
  */
