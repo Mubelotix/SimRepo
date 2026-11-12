@@ -1,10 +1,51 @@
 import { optionsStorage } from './options-storage.js';
+import octicons from '@primer/octicons';
+import { isPrivateRepo } from './common.js';
 
 const CHART_CONTAINER_ID = 'simrepo-readme-chart';
 const DUPLICATE_CHART_HOSTS = ['star-history.dera.page', 'star-history.com'];
+const systemColorScheme = window.matchMedia('(prefers-color-scheme: dark)');
 
 let observer = null;
+let themeObserver = null;
 let scheduled = false;
+
+function getGitHubTheme() {
+    const { colorMode, lightTheme, darkTheme } = document.documentElement.dataset;
+    const mode = colorMode === 'light' || colorMode === 'dark'
+        ? colorMode
+        : systemColorScheme.matches ? 'dark' : 'light';
+    const theme = mode === 'dark' ? darkTheme : lightTheme;
+    return theme?.startsWith('dark') ? 'dark' : theme?.startsWith('light') ? 'light' : mode;
+}
+
+async function updateChartImage(image, repo, style) {
+    const theme = getGitHubTheme();
+    if (image.dataset.theme === theme) return;
+    image.dataset.theme = theme;
+    try {
+        // GitHub blocks third-party image URLs. Fetch with the extension's host
+        // permission and embed a data URL, which GitHub explicitly permits.
+        const response = await new Promise((resolve, reject) => {
+            chrome.runtime.sendMessage({ type: 'loadReadmeChart', repo, style, theme }, (result) => {
+                if (chrome.runtime.lastError) reject(chrome.runtime.lastError);
+                else resolve(result);
+            });
+        });
+        if (!image.isConnected || image.dataset.theme !== theme) return;
+        if (response?.status !== 'success') throw new Error(response?.message || 'Chart unavailable');
+        image.src = response.dataUrl;
+    } catch {
+        if (image.isConnected && image.dataset.theme === theme) image.dispatchEvent(new Event('error'));
+    }
+}
+
+function updateChartTheme() {
+    const section = document.getElementById(CHART_CONTAINER_ID);
+    const image = section?.querySelector('img');
+    if (!image) return;
+    void updateChartImage(image, section.dataset.repo, section.dataset.style);
+}
 
 function getRepoName() {
     const parts = window.location.pathname.split('/').filter(Boolean);
@@ -37,44 +78,49 @@ function makeChartSection(repo, style, readme) {
     section.id = CHART_CONTAINER_ID;
     section.className = 'simrepo-readme-chart';
     section.dataset.repo = repo;
+    section.dataset.style = style;
     section.setAttribute('aria-label', 'Star History');
 
     const heading = document.createElement('h2');
-    heading.textContent = `${hasEmojiInHeading(readme) ? '⭐ ' : ''}Star History`;
+    const title = document.createElement('span');
+    title.textContent = `${hasEmojiInHeading(readme) ? '⭐ ' : ''}Star History`;
+
+    const settingsButton = document.createElement('button');
+    settingsButton.type = 'button';
+    settingsButton.className = 'simrepo-readme-settings Link--secondary';
+    settingsButton.title = 'Settings';
+    settingsButton.setAttribute('aria-label', 'SimRepo settings');
+    settingsButton.innerHTML = octicons.gear.toSVG();
+    settingsButton.addEventListener('click', () => {
+        chrome.runtime.sendMessage({ type: 'openOptionsPage' });
+    });
+    heading.append(title, settingsButton);
 
     const link = document.createElement('a');
     link.href = `https://star-history.dera.page/#${repo}`;
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
 
-    const picture = document.createElement('picture');
-    const darkSource = document.createElement('source');
-    const darkParams = new URLSearchParams({ repos: repo, style, theme: 'dark' });
-    darkSource.media = '(prefers-color-scheme: dark)';
-    darkSource.srcset = `https://simrepo.dera.page/svg?${darkParams.toString()}`;
-
     const image = document.createElement('img');
-    const lightParams = new URLSearchParams({ repos: repo, style });
-    image.src = `https://simrepo.dera.page/svg?${lightParams.toString()}`;
     image.alt = `Star History Chart for ${repo}`;
     image.loading = 'lazy';
     image.addEventListener('error', () => {
         readme.dataset.simrepoChartUnavailable = repo;
         section.remove();
     }, { once: true });
+    void updateChartImage(image, repo, style);
 
-    picture.append(darkSource, image);
-    link.append(picture);
+    link.append(image);
     section.append(heading, link);
     return section;
 }
 
 async function addReadmeChart() {
     const repo = getRepoName();
-    if (!repo) return;
+    if (!repo || isPrivateRepo()) return;
 
     const options = await optionsStorage.getAll();
-    if (!options.readmeChartEnabled) return;
+    if (!options.readmeChartEnabled || isPrivateRepo() || repo !== getRepoName()) return;
 
     const readme = findReadme();
     if (!readme || containsExistingChart(readme)) return;
@@ -98,6 +144,14 @@ function scheduleChart() {
 }
 
 export function initReadmeChart() {
+    if (!themeObserver) {
+        themeObserver = new MutationObserver(updateChartTheme);
+        themeObserver.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['data-color-mode', 'data-light-theme', 'data-dark-theme'],
+        });
+        systemColorScheme.addEventListener('change', updateChartTheme);
+    }
     if (!observer && document.body) {
         observer = new MutationObserver(scheduleChart);
         observer.observe(document.body, { childList: true, subtree: true });

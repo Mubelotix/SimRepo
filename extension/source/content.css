@@ -44,6 +44,20 @@ aside>div[aria-label="Explore repositories"]>div {
 
 .simrepo-readme-chart h2 {
     margin-top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--base-size-8, 8px);
+}
+
+.simrepo-readme-settings {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 4px;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
 }
 
 #similar-repos-container h2 {

@@ -2,6 +2,7 @@ import { loadMoreRepos } from './content-repo.js';
 import { initHome, initStarsList } from './content-stars.js';
 import { reportRepoVisit } from './analytics.js';
 import { initReadmeChart } from './content-readme.js';
+import { isPrivateRepo } from './common.js';
 
 console.log('💈 Content script loaded for', chrome.runtime.getManifest().name);
 
@@ -18,8 +19,7 @@ async function init() {
 }
 
 async function reportVisitedRepo() {
-    const isPrivate = document.querySelector('.Label.Label--secondary')?.textContent.trim() === 'Private';
-    if (isPrivate) {
+    if (isPrivateRepo()) {
         return;
     }
 
