@@ -1,6 +1,6 @@
 import GH_LANG_COLORS from 'gh-lang-colors';
 import octicons from "@primer/octicons";
-import { getSimilarReposV2, formatNumber, loadingSpinner, setupSettingsListener } from './common.js';
+import { getSimilarReposV2, formatNumber, loadingSpinner, setupSettingsListener, isPrivateRepo } from './common.js';
 import { optionsStorage } from './options-storage.js';
 import { reportEvent } from './analytics.js';
 
@@ -320,8 +320,7 @@ export async function loadMoreRepos(resetPage = false) {
     delete similarReposSection.dataset.simrepoTerminal;
 
     // Don't fetch if private
-    const isPrivate = document.querySelector('.Label.Label--secondary')?.textContent.trim() === 'Private';
-    if (isPrivate) {
+    if (isPrivateRepo()) {
         if (options.similarShowUnavailable) {
             renderSection(getErrorContainerHtml("Unavailable for private repositories."));
         } else {

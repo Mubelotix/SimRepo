@@ -245,7 +245,39 @@ async function handleGetSimilarReposMessage(message, sender, sendResponse) {
     });
 }
 
+async function loadReadmeChart(message) {
+    if (typeof message.repo !== 'string' || !/^[\w.-]+\/[\w.-]+$/.test(message.repo) ||
+        !['xkcd', 'github'].includes(message.style) || !['light', 'dark'].includes(message.theme)) {
+        throw new Error('Invalid chart parameters');
+    }
+    const params = new URLSearchParams({ repos: message.repo, style: message.style, theme: message.theme });
+    const response = await fetch(`https://simrepo.dera.page/svg?${params}`, {
+        credentials: 'omit',
+        signal: AbortSignal.timeout(30000),
+    });
+    if (!response.ok || !response.headers.get('Content-Type')?.includes('image/svg+xml')) {
+        const error = new Error(`Chart unavailable (HTTP ${response.status})`);
+        error.httpStatus = response.status;
+        error.code = response.headers.get('X-SimRepo-Error');
+        throw error;
+    }
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    if (bytes.length > 5 * 1024 * 1024) throw new Error('Chart image is too large');
+    let binary = '';
+    for (let offset = 0; offset < bytes.length; offset += 32768) {
+        binary += String.fromCharCode(...bytes.subarray(offset, offset + 32768));
+    }
+    return `data:image/svg+xml;base64,${btoa(binary)}`;
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === 'loadReadmeChart') {
+        loadReadmeChart(message).then(
+            (dataUrl) => sendResponse({ status: 'success', dataUrl }),
+            (error) => sendResponse({ status: 'error', httpStatus: error.httpStatus, code: error.code, message: error.message }),
+        );
+        return true;
+    }
     if (message.type === 'openOptionsPage') {
         chrome.runtime.openOptionsPage();
         return;

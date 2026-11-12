@@ -42,6 +42,30 @@ aside>div[aria-label="Explore repositories"]>div {
     border-top: var(--borderWidth-thin, 1px) solid var(--borderColor-default, var(--color-border-default));
 }
 
+.simrepo-readme-chart h2 {
+    margin-top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--base-size-8, 8px);
+}
+
+.simrepo-readme-settings {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 4px;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+.simrepo-readme-rate-limit {
+    margin: var(--base-size-8, 8px) 0;
+    color: var(--fgColor-muted, var(--color-fg-muted));
+    font-size: 12px;
+}
+
 #similar-repos-container h2 {
     display: flex;
     align-items: center;
@@ -55,6 +79,12 @@ aside>div[aria-label="Explore repositories"]>div {
 
 #simrepo-settings-btn .octicon {
     vertical-align: bottom;
+}
+
+.simrepo-readme-chart img {
+    display: block;
+    width: 100%;
+    height: auto;
 }
 
 @keyframes rotation {

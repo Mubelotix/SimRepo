@@ -1,3 +1,10 @@
+export function isPrivateRepo() {
+    const visibility = document.querySelector('meta[name="octolytics-dimension-repository_public"]');
+    return visibility?.content === 'false' ||
+        Array.from(document.querySelectorAll('.Label.Label--secondary'))
+            .some((label) => ['Private', 'Internal'].includes(label.textContent.trim()));
+}
+
 export function getSimilarRepos(repoIds, rankProbability = 0.5, githubUserId = null) {
     return new Promise((resolve, reject) => {
         chrome.runtime.sendMessage({ type: 'getSimilarRepos', repoIds, rankProbability, githubUserId }, (response) => {
