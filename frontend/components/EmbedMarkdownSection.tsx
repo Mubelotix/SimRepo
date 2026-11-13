@@ -6,6 +6,7 @@ import { SketchStarIcon } from "./SketchIcons"
 import { SITE_URL } from "../helpers/consts"
 import { countEvent } from "../helpers/analytics"
 import { buildChartHref } from "../helpers/urls"
+import { REPO_DATA_API_URL } from "@shared/common/config"
 
 const CodeBlock: React.FC<{ title: string; onCopy: () => void; children: React.ReactNode }> = ({ title, onCopy, children }) => (
     <div className="w-full bg-gray-100 text-dark rounded-md shadow overflow-hidden">
@@ -24,6 +25,34 @@ const CodeBlock: React.FC<{ title: string; onCopy: () => void; children: React.R
 const EmbedChart: React.FC = () => {
     const store = useAppStore()
     const [singleRepo, setSingleRepo] = useState<string | null>(null)
+    const [resolvedRepos, setResolvedRepos] = useState<{ key: string; ids: string[] } | null>(null)
+    const [failedRepoKey, setFailedRepoKey] = useState<string | null>(null)
+    const repoKey = store.repos.join(",")
+
+    useEffect(() => {
+        const controller = new AbortController()
+        setFailedRepoKey(null)
+        const resolveIds = async () => {
+            try {
+                const ids = await Promise.all(store.repos.map(async (repo) => {
+                    if (/^[1-9]\d*$/.test(repo)) return repo
+                    const response = await fetch(`${REPO_DATA_API_URL}/repo-id?repo=${encodeURIComponent(repo)}`, { signal: controller.signal })
+                    if (!response.ok) throw new Error("Repository ID unavailable")
+                    const data = await response.json()
+                    if (!Number.isSafeInteger(data.id) || data.id <= 0) throw new Error("Invalid repository ID")
+                    return String(data.id)
+                }))
+                if (!controller.signal.aborted) setResolvedRepos({ key: repoKey, ids })
+            } catch {
+                // Do not offer name-based embeds while ID resolution is unavailable.
+                if (!controller.signal.aborted) setFailedRepoKey(repoKey)
+            }
+        }
+        void resolveIds()
+        return () => controller.abort()
+    }, [store.repos, repoKey])
+
+    const embedRepos = resolvedRepos?.key === repoKey ? resolvedRepos.ids : null
 
     useEffect(() => {
         setSingleRepo(store.repos.length === 1 ? store.repos[0] : null)
@@ -33,7 +62,7 @@ const EmbedChart: React.FC = () => {
 
     const buildQueryParams = (theme?: string) => {
         const type = store.chartMode === "Date" ? "date" : "timeline"
-        let params = `repos=${store.repos.join(",")}`
+        let params = `repos=${embedRepos?.join(",") ?? ""}`
         if (type === "timeline") params += `&type=timeline`
         if (theme) params += `&theme=${theme}`
         if (store.useLogScale) params += `&logscale`
@@ -42,7 +71,7 @@ const EmbedChart: React.FC = () => {
         return params
     }
 
-    const currentUrl = typeof window !== "undefined" ? `${window.location.origin}${buildChartHref(store)}` : ""
+    const currentUrl = typeof window !== "undefined" ? `${window.location.origin}${buildChartHref({ ...store, repos: embedRepos ?? [] })}` : ""
     const svgUrl = `${SITE_URL}/svg?${buildQueryParams()}`
     const darkSvgUrl = `${SITE_URL}/svg?${buildQueryParams("dark")}`
 
@@ -132,6 +161,8 @@ const EmbedChart: React.FC = () => {
             {tag("</a>")}
         </>
     )
+
+    if (!embedRepos) return <p className="text-center text-gray-500 mb-12">{failedRepoKey === repoKey ? "Could not resolve repository IDs. Reload to try again." : "Preparing embed links…"}</p>
 
     return (
         <div className="w-full h-auto mb-12 px-3 mx-auto max-w-4xl flex flex-col justify-start items-center">

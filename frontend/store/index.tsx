@@ -86,7 +86,9 @@ export const AppStateProvider: React.FC<{
     const [urlInitialized, setUrlInitialized] = useState(false);
 
     useEffect(() => {
-        const syncFromUrl = () => {
+        let generation = 0;
+        const syncFromUrl = async () => {
+            const currentGeneration = ++generation;
             const url = new URL(window.location.href);
             if (!isChartRoute(url)) {
                 setUrlInitialized(false);
@@ -102,6 +104,21 @@ export const AppStateProvider: React.FC<{
                 return;
             }
             const urlState = parseChartUrl(url);
+            if (urlState.repos.some((repo) => /^[1-9]\d*$/.test(repo))) {
+                setUrlInitialized(false);
+                try {
+                    urlState.repos = await Promise.all(urlState.repos.map(async (repo) => {
+                        if (!/^[1-9]\d*$/.test(repo)) return repo;
+                        const response = await fetch(`${REPO_DATA_API_URL}/repo-id?repo=${encodeURIComponent(repo)}`);
+                        if (!response.ok) return repo;
+                        const data = await response.json();
+                        return data.repo ?? repo;
+                    }));
+                } catch {
+                    // Keep unresolved IDs so the chart request can report missing data.
+                }
+                if (generation !== currentGeneration) return;
+            }
             setState((prev) => ({
                 ...prev,
                 isFetching: false,
@@ -115,6 +132,7 @@ export const AppStateProvider: React.FC<{
         routerEvents.on("routeChangeComplete", syncFromUrl);
 
         return () => {
+            generation++;
             window.removeEventListener("popstate", syncFromUrl);
             routerEvents.off("routeChangeComplete", syncFromUrl);
         };

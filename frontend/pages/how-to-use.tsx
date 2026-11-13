@@ -154,6 +154,7 @@ const HowToUse: NextPage = () => {
                         <section>
                             <h2 className="text-base font-semibold text-neutral-900 mb-2">How to embed a live star history chart inside your GitHub project README.md</h2>
                             <p>Copy the markdown snippet and paste it into your README.md:</p>
+                            <p>Generated links use GitHub repository IDs so they keep working after a rename or transfer. Existing name-based links are still supported.</p>
                             <ul className="list-disc list-inside space-y-1 mt-2">
                                 <li>
                                     <strong>Light theme</strong>: plain markdown with broad support.

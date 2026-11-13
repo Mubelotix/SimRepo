@@ -168,6 +168,8 @@ function buildAttributes(
 }
 
 interface RepoRow {
+  id: number;
+  name: string;
   logo_url: string | null;
   points: Buffer | null;
   owner: string;
@@ -203,17 +205,21 @@ export interface RepoStarResult {
  */
 export function fetchRepoData(repos: string[]): RepoStarResult {
   const d = getDb();
-  const stmt = d.prepare(`
-    SELECT logo_url, points, owner, stars_total, description, language, license,
+  const select = `
+    SELECT id, name, logo_url, points, owner, stars_total, description, language, license,
            homepage, forks_count, open_issues_count, created_at, archived, size,
            topics, stars, new_stars, forks, pushes, rank, total_repos
-    FROM repos WHERE lower(name) = lower(?)
-  `);
+    FROM repos
+  `;
+  const stmt = d.prepare(`${select} WHERE lower(name) = lower(?)`);
+  const byId = d.prepare(`${select} WHERE id = ?`);
   const found: RepoData[] = [];
   const missing: string[] = [];
 
   for (const repo of repos) {
-    const row = stmt.get(repo) as RepoRow | undefined;
+    const row = (/^[1-9]\d*$/.test(repo) && Number.isSafeInteger(Number(repo))
+      ? byId.get(Number(repo))
+      : stmt.get(repo)) as RepoRow | undefined;
     if (!row || !row.points) {
       missing.push(repo);
       continue;
@@ -249,7 +255,7 @@ export function fetchRepoData(repos: string[]): RepoStarResult {
       percentiles,
     };
     found.push({
-      repo,
+      repo: row.name,
       starRecords,
       logoUrl: row.logo_url ?? "",
       meta,
@@ -271,6 +277,14 @@ export function resolveRepoId(repoName: string): number | null {
     .prepare("SELECT id FROM repos WHERE lower(name) = lower(?)")
     .get(repoName) as { id: number } | undefined;
   return row?.id ?? null;
+}
+
+/** Resolve an immutable GitHub repository ID to its current dataset name. */
+export function resolveRepoName(repoId: string): string | null {
+  if (!/^[1-9]\d*$/.test(repoId) || !Number.isSafeInteger(Number(repoId))) return null;
+  const row = getDb().prepare("SELECT name FROM repos WHERE id = ?")
+    .get(Number(repoId)) as { name: string } | undefined;
+  return row?.name ?? null;
 }
 
 function parseTopics(topics: string | null): string[] {

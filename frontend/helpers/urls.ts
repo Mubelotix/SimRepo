@@ -65,8 +65,9 @@ export function isChartRoute(url: URL): boolean {
 
 export function parseChartUrl(url: URL): ChartUrlState {
     const repo = decodeRepoPath(url.pathname)
-    if (repo) {
-        const values = [repo, ...url.searchParams.getAll("compare")]
+    const queryRepos = url.searchParams.get("repos")
+    if (repo || queryRepos) {
+        const values = [...(repo ? [repo] : queryRepos!.split(",").filter(Boolean)), ...url.searchParams.getAll("compare")]
         const type = url.searchParams.get("type")
         const style = url.searchParams.get("style")
         const legend = url.searchParams.get("legend")
@@ -87,11 +88,14 @@ const encodeQueryValue = (value: string) => encodeURIComponent(value).replace(/%
 export function buildChartHref(state: Pick<ChartUrlState, "repos" | "chartMode" | "chartStyle" | "useLogScale" | "legendPosition">): string {
     if (state.repos.length === 0) return "/"
 
+    const usesIds = state.repos.some((repo) => /^[1-9]\d*$/.test(repo))
     const [owner, repo] = state.repos[0].split("/")
-    if (!owner || !repo) return "/"
+    if (!usesIds && (!owner || !repo)) return "/"
 
-    const path = `/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`
-    const query = state.repos.slice(1).map((comparison) => `compare=${encodeQueryValue(comparison)}`)
+    const path = usesIds ? "/" : `/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`
+    const query = usesIds
+        ? [`repos=${state.repos.map(encodeQueryValue).join(",")}`]
+        : state.repos.slice(1).map((comparison) => `compare=${encodeQueryValue(comparison)}`)
     if (state.chartMode === "Timeline") query.push("type=timeline")
     if (state.useLogScale) query.push("logscale")
     if (state.legendPosition === "bottom-right") query.push("legend=bottom-right")

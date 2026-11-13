@@ -35,6 +35,7 @@ import {
   fetchSimilarRepos,
   fetchBatchSimilarRepos,
   resolveRepoId,
+  resolveRepoName,
   type LeaderboardData,
 } from "./repos.js";
 import { parseChartStyle } from "../shared/packages/chart-style.js";
@@ -246,11 +247,12 @@ const startServer = async () => {
     return c.json({ repos });
   });
 
-  // Resolve a repo name to its GitHub numeric repository id (used to query the
-  // v1 Qdrant recommendation engine). Lightweight single-row lookup from
+  // Resolve a name or numeric GitHub repository ID to its ID and current name.
+  // Used by embeds and the v1 Qdrant comparison page. Lightweight lookups from
   // repos.sqlite; NOT rate-limited (mirrors /repo-search).
   app.get("/repo-id", (c) => {
-    const repo = (c.req.query("repo") ?? "").trim();
+    const identifier = (c.req.query("repo") ?? "").trim();
+    const repo = resolveRepoName(identifier) ?? identifier;
     if (!repo) {
       return c.text("Repo name required", 400);
     }
@@ -384,10 +386,11 @@ const startServer = async () => {
     if (!reposParam) {
       return c.text("Repo name required", 400);
     }
-    const repos = reposParam.split(",").filter(Boolean);
-    if (repos.length > MAX_REPOS_PER_REQUEST) {
+    const identifiers = reposParam.split(",").filter(Boolean);
+    if (identifiers.length > MAX_REPOS_PER_REQUEST) {
       return c.text(`Too many repos: max ${MAX_REPOS_PER_REQUEST} per request`, 400);
     }
+    const repos = identifiers.map((repo) => resolveRepoName(repo) ?? repo);
 
     // Landscape1 card: previously returned a 1200x630 SVG with radar chart and
     // attributes, but it required live GitHub API metadata. That call has been
