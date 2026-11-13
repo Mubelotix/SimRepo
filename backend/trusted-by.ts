@@ -3,7 +3,7 @@ import path from "node:path";
 import logger from "./logger.js";
 
 const DOMAIN = "star-history.dera.page";
-const CHECK_INTERVAL_MS = 60_000;
+const CHECK_INTERVAL_MS = 2 * 60_000;
 const README_NAMES = ["README.md", "readme.md", "Readme.md", "README.rst", "README"];
 
 export class TrustedByStore {
