@@ -12,7 +12,10 @@
         }
     },
     "icons": {
-        "128": "icon.png"
+        "16": "../../frontend/public/assets/logo-icon-16.png",
+        "32": "../../frontend/public/assets/logo-icon-32.png",
+        "48": "../../frontend/public/assets/logo-icon-48.png",
+        "128": "../../frontend/public/assets/logo-icon-128.png"
     },
     "permissions": [
         "storage"
