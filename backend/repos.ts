@@ -267,9 +267,7 @@ export function fetchRepoData(repos: string[]): RepoStarResult {
 
 /**
  * Resolve a repo name (e.g. "torvalds/linux") to its GitHub numeric repository id
- * as stored in repos.sqlite. The id doubles as the Qdrant point id used by the
- * v1 (browser-extension) recommendation engine, so this is what the comparison
- * page needs to query Qdrant's recommend endpoint for a given repo.
+ * as stored in repos.sqlite for stable embed URLs.
  */
 export function resolveRepoId(repoName: string): number | null {
   const d = getDb();

@@ -14,8 +14,7 @@ interface SimilarRepoListProps {
     showScore?: "percent" | "raw"
 }
 
-// Shared layout for a list of similar-repository recommendations. Used by the
-// homepage sidebar (SimilarReposCard) and the v1-vs-v2 comparison page.
+// Layout for the homepage sidebar's similar-repository recommendations.
 export default function SimilarRepoList({ repos, onItemClick, repoUrl, showScore }: SimilarRepoListProps) {
     return (
         <ul className="space-y-3">

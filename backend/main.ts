@@ -248,7 +248,7 @@ const startServer = async () => {
   });
 
   // Resolve a name or numeric GitHub repository ID to its ID and current name.
-  // Used by embeds and the v1 Qdrant comparison page. Lightweight lookups from
+  // Used by embeds. Lightweight lookups from
   // repos.sqlite; NOT rate-limited (mirrors /repo-search).
   app.get("/repo-id", (c) => {
     const identifier = (c.req.query("repo") ?? "").trim();
@@ -551,7 +551,7 @@ const startServer = async () => {
     serveStatic({
       root: FRONTEND_DIR,
       // Next.js "output: export" emits .html files. Map extensionless routes
-      // (e.g. /v1-vs-v2) to their .html file, since serveStatic does not. Repo
+      // (e.g. /privacy) to their .html file, since serveStatic does not. Repo
       // paths are handled by the homepage client app, so fall back to its HTML.
       rewriteRequestPath: (requestPath) => {
         if (requestPath === "/") return "/index.html";
