@@ -13,7 +13,9 @@ function fixture(t: TestContext) {
 }
 
 const readme = (body: string, status = 200) =>
-  (async () => new Response(body, { status })) as typeof fetch;
+  (async (_url, options) => options?.method === "HEAD"
+    ? new Response(null)
+    : new Response(body, { status })) as typeof fetch;
 
 test("candidates are normalized, deduplicated and hidden until verified", async (t) => {
   const { store, filename } = fixture(t);
@@ -35,7 +37,8 @@ test("unverified entries come first, then the oldest verification", async (t) =>
   await store.verifyOldest(readme("star-history.dera.page"), 200);
   store.observe(["c/repo", "a/repo"]);
   const requested: string[] = [];
-  const fetchImpl = (async (url) => {
+  const fetchImpl = (async (url, options) => {
+    if (options?.method === "HEAD") return new Response(null);
     requested.push(String(url));
     return new Response("star-history.dera.page");
   }) as typeof fetch;
@@ -94,7 +97,8 @@ test("common README filenames are tried in order until one exists", async (t) =>
   for (const [index, filename] of filenames.entries()) {
     store.observe(["owner/repo"]);
     const requested: string[] = [];
-    await store.verifyOldest((async (url) => {
+    await store.verifyOldest((async (url, options) => {
+      if (options?.method === "HEAD") return new Response(null);
       const file = String(url).split("/").at(-1)!;
       requested.push(file);
       return file === filename
@@ -111,17 +115,53 @@ test("all missing README filenames remove a repo, but fallback errors retain it"
   store.observe(["owner/repo"]);
   await store.verifyOldest(readme("star-history.dera.page"), 100);
   const saved = readFileSync(filename, "utf8");
-  await assert.rejects(store.verifyOldest((async (url) =>
-    String(url).endsWith("/README.md")
+  await assert.rejects(store.verifyOldest((async (url, options) =>
+    options?.method === "HEAD" ? new Response(null) : String(url).endsWith("/README.md")
       ? new Response("not found", { status: 404 })
       : new Response("unavailable", { status: 503 })
   ) as typeof fetch));
   assert.equal(readFileSync(filename, "utf8"), saved);
   const requested: string[] = [];
-  await store.verifyOldest((async (url) => {
+  await store.verifyOldest((async (url, options) => {
+    if (options?.method === "HEAD") return new Response(null);
     requested.push(String(url));
     return new Response("not found", { status: 404 });
   }) as typeof fetch);
   assert.equal(requested.length, 5);
+  assert.deepEqual(JSON.parse(readFileSync(filename, "utf8")), {});
+});
+
+test("renames replace the old name and merge an existing canonical entry", async (t) => {
+  const { store, filename } = fixture(t);
+  store.observe(["old/repo", "new/repo"]);
+  await store.verifyOldest(readme("star-history.dera.page"), 100);
+  const requested: string[] = [];
+  await store.verifyOldest((async (url, options) => {
+    requested.push(String(url));
+    if (options?.method === "HEAD") {
+      const response = new Response(null);
+      Object.defineProperties(response, {
+        redirected: { value: true },
+        url: { value: "https://github.com/New/Repo" },
+      });
+      return response;
+    }
+    return new Response("star-history.dera.page");
+  }) as typeof fetch, 200);
+  assert.deepEqual(requested, [
+    "https://github.com/old/repo",
+    "https://raw.githubusercontent.com/new/repo/HEAD/README.md",
+  ]);
+  assert.deepEqual(JSON.parse(readFileSync(filename, "utf8")), { "new/repo": 200 });
+});
+
+test("repository lookup failures preserve the old name; 404 removes it", async (t) => {
+  const { store, filename } = fixture(t);
+  store.observe(["old/repo"]);
+  await store.verifyOldest(readme("star-history.dera.page"), 100);
+  const saved = readFileSync(filename, "utf8");
+  await assert.rejects(store.verifyOldest((async () => new Response(null, { status: 429 })) as typeof fetch));
+  assert.equal(readFileSync(filename, "utf8"), saved);
+  await store.verifyOldest((async () => new Response(null, { status: 404 })) as typeof fetch);
   assert.deepEqual(JSON.parse(readFileSync(filename, "utf8")), {});
 });

@@ -62,23 +62,40 @@ export class TrustedByStore {
     if (!oldest) return;
     const [name] = oldest;
 
+    // The raw host silently serves old names, whereas repo pages redirect.
+    const repository = await fetchImpl(`https://github.com/${name}`, {
+      method: "HEAD",
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (repository.status === 404) {
+      this.repos.delete(name);
+      this.save();
+      return;
+    }
+    if (!repository.ok) throw new Error(`GitHub repository lookup for ${name}: ${repository.status}`);
+    const canonicalName = repository.redirected
+      ? new URL(repository.url).pathname.slice(1).toLowerCase()
+      : name;
+
     for (const filename of README_NAMES) {
-      const response = await fetchImpl(`https://raw.githubusercontent.com/${name}/HEAD/${filename}`, {
+      const response = await fetchImpl(`https://raw.githubusercontent.com/${canonicalName}/HEAD/${filename}`, {
         signal: AbortSignal.timeout(15_000),
       });
       if (response.status === 404) continue;
       if (!response.ok) throw new Error(`GitHub README fetch for ${name}: ${response.status}`);
 
       const readme = await response.text();
+      this.repos.delete(name);
       if (readme.toLowerCase().includes(DOMAIN)) {
-        this.repos.set(name, now);
+        this.repos.set(canonicalName, now);
       } else {
-        this.repos.delete(name);
+        this.repos.delete(canonicalName);
       }
       this.save();
       return;
     }
     this.repos.delete(name);
+    this.repos.delete(canonicalName);
     this.save();
   }
 
