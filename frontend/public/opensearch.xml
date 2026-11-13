@@ -3,5 +3,5 @@
     <ShortName>GitHub Star History</ShortName>
     <Description>Search GitHub repositories on GitHub Star History</Description>
     <InputEncoding>UTF-8</InputEncoding>
-    <Url type="text/html" method="get" template="https://star-history.dera.page?q={searchTerms}" />
+    <Url type="text/html" method="get" template="https://simrepo.dera.page?q={searchTerms}" />
 </OpenSearchDescription>

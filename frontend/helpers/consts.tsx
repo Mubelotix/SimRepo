@@ -4,4 +4,4 @@ export const ANIMATION_DURATION = 1000
 
 export const MIN_CHART_WIDTH = 600
 
-export const SITE_URL = "https://star-history.dera.page"
+export const SITE_URL = "https://simrepo.dera.page"

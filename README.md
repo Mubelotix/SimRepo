@@ -1,6 +1,6 @@
 <div align="center">
 
-<img width="80px" src="https://star-history.dera.page/assets/logo-icon.png" alt="SimRepo's logo" />
+<img width="80px" src="https://simrepo.dera.page/assets/logo-icon.png" alt="SimRepo's logo" />
 
 # :sparkles: SimRepo :sparkles:
  
@@ -15,13 +15,13 @@
 
 ## ⭐ Star History
 
-👇 **THIS** is a **live** chart. Head towards [**star-history.dera.page**](https://star-history.dera.page) to get started.
+👇 **THIS** is a **live** chart. Head towards [**simrepo.dera.page**](https://simrepo.dera.page) to get started.
 
-<a href="https://star-history.dera.page/#Mubelotix/SimRepo">
+<a href="https://simrepo.dera.page/#Mubelotix/SimRepo">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://star-history.dera.page/svg?repos=Mubelotix/SimRepo&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://star-history.dera.page/svg?repos=Mubelotix/SimRepo" />
-   <img alt="Star History Chart" src="https://star-history.dera.page/svg?repos=Mubelotix/SimRepo" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://simrepo.dera.page/svg?repos=Mubelotix/SimRepo&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://simrepo.dera.page/svg?repos=Mubelotix/SimRepo" />
+   <img alt="Star History Chart" src="https://simrepo.dera.page/svg?repos=Mubelotix/SimRepo" />
  </picture>
 </a>
 
@@ -60,7 +60,7 @@ SimRepo enhances GitHub by showing similar projects in a repository's sidebar.
 
 <!-- ## 🌠 Screenshots
 
-<a href="https://star-history.dera.page"><img width="800px" src="https://user-images.githubusercontent.com/24653555/154391264-312b448b-f851-41bf-bb8d-4c21ec6795b6.gif" />
+<a href="https://simrepo.dera.page"><img width="800px" src="https://user-images.githubusercontent.com/24653555/154391264-312b448b-f851-41bf-bb8d-4c21ec6795b6.gif" />
 </a> -->
 
 ## 🏗 Development

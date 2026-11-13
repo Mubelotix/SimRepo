@@ -3,7 +3,7 @@ import octicons from '@primer/octicons';
 import { isPrivateRepo } from './common.js';
 
 const CHART_CONTAINER_ID = 'simrepo-readme-chart';
-const DUPLICATE_CHART_HOSTS = ['star-history.dera.page', 'star-history.com'];
+const DUPLICATE_CHART_HOSTS = ['simrepo.dera.page', 'star-history.dera.page', 'star-history.com'];
 const systemColorScheme = window.matchMedia('(prefers-color-scheme: dark)');
 
 let observer = null;
@@ -125,7 +125,7 @@ function makeChartSection(repo, style, readme) {
     heading.append(title, settingsButton);
 
     const link = document.createElement('a');
-    link.href = `https://star-history.dera.page/#${repo}`;
+    link.href = `https://simrepo.dera.page/#${repo}`;
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
 

@@ -17,6 +17,17 @@ const readme = (body: string, status = 200) =>
     ? new Response(null)
     : new Response(body, { status })) as typeof fetch;
 
+test("verification accepts both current and legacy embed hostnames", async (t) => {
+  const { store } = fixture(t);
+  for (const domain of ["simrepo.dera.page", "star-history.dera.page"]) {
+    store.observe(["owner/repo"]);
+    await store.verifyOldest(readme(`https://${domain.toUpperCase()}/svg?repos=owner/repo`), 100);
+    assert.deepEqual(store.verified(), ["owner/repo"]);
+    await store.verifyOldest(readme("no chart embed"), 200);
+    assert.deepEqual(store.verified(), []);
+  }
+});
+
 test("candidates are normalized, deduplicated and hidden until verified", async (t) => {
   const { store, filename } = fixture(t);
   store.observe([" Owner/Repo ", "owner/repo", "invalid", "../bad/repo", "x/repo?query"]);

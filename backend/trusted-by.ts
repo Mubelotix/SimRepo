@@ -2,7 +2,8 @@ import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import logger from "./logger.js";
 
-const DOMAIN = "star-history.dera.page";
+// Existing README embeds remain valid after the hostname migration.
+const DOMAINS = ["simrepo.dera.page", "star-history.dera.page"];
 const CHECK_INTERVAL_MS = 2 * 60_000;
 const README_NAMES = ["README.md", "readme.md", "Readme.md", "README.rst", "README"];
 
@@ -86,7 +87,7 @@ export class TrustedByStore {
 
       const readme = await response.text();
       this.repos.delete(name);
-      if (readme.toLowerCase().includes(DOMAIN)) {
+      if (DOMAINS.some((domain) => readme.toLowerCase().includes(domain))) {
         this.repos.set(canonicalName, now);
       } else {
         this.repos.delete(canonicalName);

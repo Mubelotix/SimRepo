@@ -13,12 +13,12 @@ export const drawWatermark = (selection: D3Selection, chartWidth: number, chartH
         .style("fill", "#666666")
         .attr("transform", `translate(${chartWidth - 50},${chartHeight + 40})`)
         .attr("text-anchor", "middle")
-        .text("star-history.dera.page")
+        .text("simrepo.dera.page")
 
     const scale = WATERMARK_SIZE / WATERMARK_VIEWBOX
     selection
         .append("g")
-        .attr("transform", `translate(${chartWidth - 162},${chartHeight + 19}) scale(${scale})`)
+        .attr("transform", `translate(${chartWidth - 145},${chartHeight + 19}) scale(${scale})`)
         .append("path")
         .attr("d", watermarkStarPath)
         .attr("fill", "#eac54f")
