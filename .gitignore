@@ -45,7 +45,7 @@ token.env
 
 # generated files
 backend/data/*
-!backend/data/trusted-by.json
+backend/state/
 extension/.parcel-cache
 
 *.sqlite*

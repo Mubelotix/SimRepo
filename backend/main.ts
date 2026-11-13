@@ -35,7 +35,6 @@ import {
   fetchSimilarRepos,
   fetchBatchSimilarRepos,
   resolveRepoId,
-  type TrustedByEntry,
   type LeaderboardData,
 } from "./repos.js";
 import { parseChartStyle } from "../shared/packages/chart-style.js";
@@ -53,10 +52,9 @@ import {
   normalizeGithubUserId,
   refreshGithubUserStarred,
 } from "./stargazers.js";
+import { TrustedByStore } from "./trusted-by.js";
 
 const FRONTEND_DIR = process.env.FRONTEND_DIR || "/app/www";
-
-const TRUSTED_BY_PATH = path.join(process.cwd(), "data", "trusted-by.json");
 
 const SVG_HEADERS = {
   "Content-Type": "image/svg+xml;charset=utf-8",
@@ -163,6 +161,8 @@ function getBatchSimilarReposLimit(isStarred: boolean): number {
 
 const startServer = async () => {
   const app = new Hono();
+  const trustedBy = new TrustedByStore();
+  trustedBy.start();
   app.use(cors({ exposeHeaders: [SIMILAR_REPOS_ERROR_HEADER] }));
   app.use(compress());
 
@@ -200,25 +200,10 @@ const startServer = async () => {
     }, 200);
   });
 
-  // Lightweight, fixed dataset for the homepage "Trusted by" list. Resolved once
-  // from repos.sqlite at program start (then memoized), so it never touches the
-  // per-IP chart rate limit. Not rate-limited: it is a small, stable payload.
-  let trustedByCache: TrustedByEntry[] | null = null;
-  const getTrustedBy = (): TrustedByEntry[] => {
-    if (trustedByCache) return trustedByCache;
-    let list: string[] = [];
-    try {
-      list = JSON.parse(fs.readFileSync(TRUSTED_BY_PATH, "utf-8"));
-    } catch (err) {
-      logger.warn(`Failed to load trusted-by list from ${TRUSTED_BY_PATH}: ${err}`);
-    }
-    trustedByCache = fetchTrustedBy(list);
-    return trustedByCache;
-  };
-
+  // Serve only README-verified candidates, enriched from the immutable dataset.
   app.get("/trusted-by", (c) => {
     return c.json(
-      { repos: getTrustedBy() },
+      { repos: fetchTrustedBy(trustedBy.verified()) },
       200,
       { "Cache-Control": "public, s-maxage=3600, max-age=3600" }
     );
@@ -412,6 +397,17 @@ const startServer = async () => {
       return c.text("OG cards are unavailable: GitHub API access has been disabled", 503);
     }
     const chartStyle = parseChartStyle(style);
+
+    // Observe before the rendered SVG cache lookup, including cache hits and
+    // repositories not yet present in our dataset. A request is only a candidate;
+    // README verification is what makes it eligible for the public list.
+    if (isGithubCamoUserAgent(c.req.header("User-Agent"))) {
+      try {
+        trustedBy.observe(repos);
+      } catch (error) {
+        logger.warn(`Failed to record trusted-by candidates: ${error}`);
+      }
+    }
 
     // --- Star history chart params (only relevant when style is not set) ---
     const theme = c.req.query("theme") ?? "";
