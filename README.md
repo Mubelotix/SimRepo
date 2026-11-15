@@ -17,7 +17,7 @@
 
 👇 **THIS** is a **live** chart. Head towards [**simrepo.dera.page**](https://simrepo.dera.page) to get started.
 
-<a href="https://simrepo.dera.page/#Mubelotix/SimRepo">
+<a href="https://simrepo.dera.page/Mubelotix/SimRepo">
  <picture>
    <source media="(prefers-color-scheme: dark)" srcset="https://simrepo.dera.page/svg?repos=Mubelotix/SimRepo&theme=dark" />
    <source media="(prefers-color-scheme: light)" srcset="https://simrepo.dera.page/svg?repos=Mubelotix/SimRepo" />
