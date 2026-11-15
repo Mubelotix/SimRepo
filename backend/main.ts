@@ -54,6 +54,7 @@ import {
   refreshGithubUserStarred,
 } from "./stargazers.js";
 import { TrustedByStore } from "./trusted-by.js";
+import { githubIpRanges } from "./github-ip-ranges.js";
 
 const FRONTEND_DIR = process.env.FRONTEND_DIR || "/app/www";
 
@@ -162,13 +163,13 @@ function getBatchSimilarReposLimit(isStarred: boolean): number {
 
 const startServer = async () => {
   const app = new Hono();
+  githubIpRanges.start();
   const trustedBy = new TrustedByStore();
   trustedBy.start();
   app.use(cors({ exposeHeaders: [SIMILAR_REPOS_ERROR_HEADER] }));
   app.use(compress());
 
-  // GitHub Camo requests should come from an IP range configured in the
-  // rate-limit whitelist. Report unexpected source addresses without changing
+  // Report Camo addresses absent from GitHub's published web/hooks ranges without changing
   // the request response or rate-limit behavior.
   app.use(async (c, next) => {
     const ip = c.req.header("X-Real-IP") ?? "";

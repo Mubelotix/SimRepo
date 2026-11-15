@@ -57,7 +57,7 @@ EXPOSE 8080
 
 # NOTE: the repo dataset is large and gitignored, so bind-mount it at runtime:
 #   -v <host>/repos.sqlite:/app/repos.sqlite
-# Persist the writable README-discovery JSON file separately:
+# Persist writable README-discovery and GitHub IP-range JSON caches:
 #   -v <host>/simrepo-state:/app/backend/state
 # Override its filename with TRUSTED_BY_PATH if needed.
 

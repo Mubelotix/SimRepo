@@ -1,5 +1,4 @@
-import { BlockList, isIPv6 } from "node:net";
-import logger from "./logger.js";
+import { githubIpRanges } from "./github-ip-ranges.js";
 
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -48,46 +47,8 @@ const similarRepoEvents = new Map<string, number[]>();
 
 // --- Whitelist ---
 
-// Configured in RATE_LIMIT_WHITELIST_IPS as a comma-separated list of IPs that are
-// either fully qualified (e.g. "192.168.1.1") or CIDR ranges (e.g. "10.0.0.0/8",
-// "2001:db8::/32").
-const whitelist = new BlockList();
-
-function addWhitelistEntry(entry: string): void {
-  const trimmed = entry.trim();
-  if (!trimmed) return;
-
-  const slash = trimmed.indexOf("/");
-  if (slash === -1) {
-    // Fully qualified IP (v4 or v6). addAddress needs an explicit family for v6.
-    whitelist.addAddress(trimmed, isIPv6(trimmed) ? "ipv6" : "ipv4");
-    logger.info(`rate limit: whitelisted IP ${trimmed}`);
-    return;
-  }
-
-  const address = trimmed.slice(0, slash);
-  const prefix = Number(trimmed.slice(slash + 1));
-  if (Number.isNaN(prefix)) {
-    logger.warn(`rate limit: ignoring invalid whitelist entry "${trimmed}"`);
-    return;
-  }
-
-  // net.BlockList requires adding v4 vs v6 subnets separately, and v6 subnets need
-  // an explicit family (otherwise it throws ERR_INVALID_ADDRESS).
-  whitelist.addSubnet(address, prefix, isIPv6(address) ? "ipv6" : "ipv4");
-  logger.info(`rate limit: whitelisted subnet ${trimmed}`);
-}
-
-const whitelistEnv = process.env.RATE_LIMIT_WHITELIST_IPS;
-if (whitelistEnv) {
-  whitelistEnv.split(",").forEach(addWhitelistEntry);
-} else {
-  logger.info("rate limit: no whitelist configured (RATE_LIMIT_WHITELIST_IPS unset)");
-}
-
 export function isWhitelisted(ip: string): boolean {
-  if (!ip) return false;
-  return whitelist.check(ip);
+  return githubIpRanges.has(ip);
 }
 
 export function isGithubCamoUserAgent(userAgent: string | undefined): boolean {
