@@ -1,4 +1,5 @@
 import { D3Selection, LegendPosition } from "../types"
+import { measureXkcdText } from "./measureXkcdText"
 
 interface DrawLegendConfig {
     items: {
@@ -16,7 +17,7 @@ interface DrawLegendConfig {
 const drawLegend = (selection: D3Selection, { items, strokeColor, backgroundColor, legendPosition, chartWidth, chartHeight }: DrawLegendConfig) => {
     const legendXPadding = 7
     const legendYPadding = 6
-    const xkcdCharWidth = 7
+    const fontSize = 15
     const xkcdCharHeight = 20
     const colorBlockWidth = 8
     const logoSize = 14
@@ -24,17 +25,11 @@ const drawLegend = (selection: D3Selection, { items, strokeColor, backgroundColo
     const legend = selection.append("svg")
     const backgroundLayer = legend.append("svg")
     const textLayer = legend.append("svg")
-    let maxTextLength = 0
     // If repos have more than one unique owner, draw logo before legend.
     const shouldDrawLogo = new Set(items.map((i) => i.text.split("/")[0])).size > 1
 
-    // Calculate background dimensions first
-    items.forEach((item) => {
-        maxTextLength = Math.max(item.text.length, maxTextLength)
-    })
-
-    let bboxWidth = maxTextLength * (xkcdCharWidth + 0.5) + colorBlockWidth + legendXPadding
-    const backgroundWidth = Math.max(bboxWidth + legendXPadding * 2, maxTextLength * xkcdCharWidth + colorBlockWidth + legendXPadding * 2 + 6 + (shouldDrawLogo ? legendXPadding + logoSize : 0))
+    const maxTextWidth = Math.max(0, ...items.map((item) => measureXkcdText(item.text, fontSize)))
+    const backgroundWidth = Math.ceil(maxTextWidth) + colorBlockWidth + legendXPadding * 2 + 6 + (shouldDrawLogo ? legendXPadding + logoSize : 0)
     const backgroundHeight = items.length * xkcdCharHeight + legendYPadding * 2
 
     // Calculate position based on legendPosition
@@ -79,17 +74,16 @@ const drawLegend = (selection: D3Selection, { items, strokeColor, backgroundColo
         // draw text
         textLayer
             .append("text")
-            .style("font-size", "15px")
+            .style("font-size", `${fontSize}px`)
             .style("fill", strokeColor)
+            // Keep SVG image rendering consistent with the font metrics used
+            // for layout, even when the browser rounds individual advances.
+            .attr("textLength", measureXkcdText(item.text, fontSize))
+            .attr("lengthAdjust", "spacingAndGlyphs")
             .attr("x", legendX + legendXPadding + colorBlockWidth + (shouldDrawLogo ? legendXPadding + logoSize : 0) + 6)
             .attr("y", legendY + 12 + xkcdCharHeight * i + 8)
             .text(item.text)
     })
-
-    // Update bboxWidth with actual width if possible
-    if (textLayer.node()?.getBBox) {
-        bboxWidth = textLayer.node()?.getBBox().width as number
-    }
 
     // add background
     backgroundLayer

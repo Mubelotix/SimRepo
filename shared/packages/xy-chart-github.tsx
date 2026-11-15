@@ -4,6 +4,7 @@ import { line, curveLinear } from "d3-shape"
 import { axisBottom, axisLeft, AxisScale } from "d3-axis"
 import dayjs from "dayjs"
 import { monaSansVFFontUrl } from "./utils/monaFontData"
+import { measureMonaText } from "./utils/measureMonaText"
 import getFormatTimeline, { getTimestampFormatUnit } from "./utils/getFormatTimeline"
 import { drawWatermark } from "./utils/drawWatermark"
 import type { XYChartData } from "./xy-chart"
@@ -444,19 +445,8 @@ const XYChartGithub = (
         const logoSize = 14
         const shouldDrawLogo = new Set(legendItems.map((i) => i.text.split("/")[0])).size > 1
 
-        // Measure the widest label when possible (jsdom has no layout, so we
-        // fall back to a rough per-character estimate).
-        let maxLabelWidth = 0
-        const probe = svgChart.append("text").style("font-size", "14px").style("fill", "none")
-        legendItems.forEach((item) => {
-            probe.text(item.text)
-            const width = probe.node()?.getComputedTextLength
-                ? (probe.node().getComputedTextLength() as number)
-                : item.text.length * 7.5
-            maxLabelWidth = Math.max(width, maxLabelWidth)
-        })
-        probe.remove()
-        const backgroundWidth = Math.ceil(maxLabelWidth) + colorBlockWidth + legendXPadding * 3 + 6 + (shouldDrawLogo ? legendXPadding + logoSize : 0)
+        const maxLabelWidth = Math.max(...legendItems.map(item => measureMonaText(item.text, 14)))
+        const backgroundWidth = Math.ceil(maxLabelWidth) + colorBlockWidth + legendXPadding * 2 + 6 + (shouldDrawLogo ? legendXPadding + logoSize : 0)
         const backgroundHeight = legendItems.length * charHeight + legendYPadding * 2
 
         let legendX = 8
@@ -513,6 +503,10 @@ const XYChartGithub = (
             legend
                 .append("text")
                 .style("font-size", "14px")
+                .style("font-variation-settings", '"wght" 400, "opsz" 0')
+                .style("font-kerning", "none")
+                .attr("textLength", measureMonaText(item.text, 14))
+                .attr("lengthAdjust", "spacingAndGlyphs")
                 .style("fill", LEGEND_TEXT_COLOR)
                 .attr("x", legendX + legendXPadding + colorBlockWidth + (shouldDrawLogo ? legendXPadding + logoSize : 0) + 6)
                 // Vertically centered against the color block: baseline sits
