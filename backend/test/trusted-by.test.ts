@@ -198,3 +198,22 @@ test("the scheduler uses a forty-second interval without overlapping checks", as
   assert.equal(scheduled.length, 2);
   assert.equal(scheduled[1].delay, 40_000);
 });
+
+test("the same candidate selection limits crawling and display without deleting state", async (t) => {
+  const { filename, saved } = fixture(t);
+  const names = Array.from({ length: 12 }, (_, i) => `owner/repo-${i}`);
+  writeFileSync(filename, JSON.stringify(Object.fromEntries(names.map((name) => [name, 100]))));
+  const store = new TrustedByStore(filename, (candidates) => candidates.slice(-10));
+  assert.deepEqual(store.verified(), names.slice(-10).sort());
+  const requested: string[] = [];
+  const fetchImpl = (async (url, options) => {
+    if (options?.method === "HEAD") requested.push(String(url).replace("https://github.com/", ""));
+    return new Response("star-history.dera.page");
+  }) as typeof fetch;
+  for (let i = 0; i < 10; i++) await store.verifyNext(fetchImpl);
+  assert.deepEqual(requested.sort(), names.slice(-10).sort());
+  assert.equal(Object.keys(saved()).length, 12);
+  store.observe(["owner/new-repo"]);
+  assert.deepEqual(store.verified(), names.slice(-9).sort());
+  assert.equal(Object.keys(saved()).length, 13);
+});

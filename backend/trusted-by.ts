@@ -15,7 +15,10 @@ export class TrustedByStore {
   private readonly repos = new Map<string, Entry>();
   private queue: string[] = [];
 
-  constructor(private readonly filename = process.env.TRUSTED_BY_PATH ?? path.join(process.cwd(), "state", "trusted-by.json")) {
+  constructor(
+    private readonly filename = process.env.TRUSTED_BY_PATH ?? path.join(process.cwd(), "state", "trusted-by.json"),
+    private readonly select: (names: string[]) => string[] = (names) => names,
+  ) {
     let data: unknown;
     try {
       data = JSON.parse(readFileSync(filename, "utf8"));
@@ -62,14 +65,15 @@ export class TrustedByStore {
   }
 
   verified(): string[] {
-    return [...this.repos].filter(([, verified]) => typeof verified === "number").map(([name]) => name).sort();
+    return this.select([...this.repos.keys()]).filter((name) => typeof this.repos.get(name) === "number").sort();
   }
 
   async verifyNext(fetchImpl: typeof fetch = fetch, now = Date.now()): Promise<void> {
     // Random rounds: every eligible repo gets a turn, even if earlier checks fail.
-    this.queue = this.queue.filter((name) => !isMismatch(this.repos.get(name)));
+    const eligible = new Set(this.select([...this.repos.keys()]).filter((name) => !isMismatch(this.repos.get(name))));
+    this.queue = this.queue.filter((name) => eligible.has(name));
     if (!this.queue.length) {
-      this.queue = [...this.repos].filter(([, entry]) => !isMismatch(entry)).map(([name]) => name);
+      this.queue = [...eligible];
     }
     if (!this.queue.length) return;
     const [name] = this.queue.splice(Math.floor(Math.random() * this.queue.length), 1);

@@ -31,6 +31,7 @@ import {
   fetchRepoData,
   searchRepos,
   fetchTrustedBy,
+  selectTrustedByRepos,
   fetchLeaderboard,
   fetchSimilarRepos,
   fetchBatchSimilarRepos,
@@ -164,7 +165,7 @@ function getBatchSimilarReposLimit(isStarred: boolean): number {
 const startServer = async () => {
   const app = new Hono();
   githubIpRanges.start();
-  const trustedBy = new TrustedByStore();
+  const trustedBy = new TrustedByStore(undefined, selectTrustedByRepos);
   trustedBy.start();
   app.use(cors({ exposeHeaders: [SIMILAR_REPOS_ERROR_HEADER] }));
   app.use(compress());

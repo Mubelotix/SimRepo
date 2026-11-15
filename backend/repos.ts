@@ -500,6 +500,24 @@ export interface TrustedByEntry {
   stars: number | null;
 }
 
+/** Keep each owner's ten highest-starred candidates; unknown counts rank last. */
+export function selectTrustedByRepos(names: string[]): string[] {
+  const lookup = getDb().prepare("SELECT stars_total FROM repos WHERE lower(name) = lower(?)");
+  const counts = new Map<string, number>();
+  return names.map((name) => ({
+    name,
+    stars: (lookup.get(name) as { stars_total: number } | undefined)?.stars_total ?? -1,
+  }))
+    .sort((a, b) => b.stars - a.stars || a.name.localeCompare(b.name))
+    .filter(({ name }) => {
+      const owner = name.split("/")[0].toLowerCase();
+      const count = (counts.get(owner) ?? 0) + 1;
+      counts.set(owner, count);
+      return count <= 10;
+    })
+    .map(({ name }) => name);
+}
+
 /**
  * Resolve repo names into lightweight trust indicators (icon +
  * current star count) for the homepage "Trusted by" section. Repos missing from

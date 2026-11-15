@@ -32,6 +32,11 @@ test("repository IDs resolve current names and fetch the same chart data as name
   }
   db.prepare("INSERT INTO repos (id, name, points) VALUES (?, ?, ?)")
     .run(123, "new-owner/renamed", gzipSync(points));
+  for (let i = 0; i <= 10; i++) {
+    db.prepare("INSERT INTO repos (name, stars_total) VALUES (?, ?)")
+      .run(`ranked/repo-${String(i).padStart(2, "0")}`, i);
+  }
+  db.prepare("INSERT INTO repos (name, stars_total) VALUES (?, ?)").run("other/zero", 0);
   db.close();
   process.chdir(path.join(directory, "backend"));
   t.after(() => {
@@ -39,7 +44,7 @@ test("repository IDs resolve current names and fetch the same chart data as name
     rmSync(directory, { recursive: true, force: true });
   });
 
-  const { fetchRepoData, resolveRepoId, resolveRepoName } = await import("../repos.js");
+  const { fetchRepoData, resolveRepoId, resolveRepoName, selectTrustedByRepos } = await import("../repos.js");
 
   assert.equal(resolveRepoName("123"), "new-owner/renamed");
   assert.equal(resolveRepoId("NEW-OWNER/Renamed"), 123);
@@ -50,4 +55,11 @@ test("repository IDs resolve current names and fetch the same chart data as name
   assert.deepEqual(fetchRepoData(["123"]), fetchRepoData(["new-owner/renamed"]));
   assert.equal(fetchRepoData(["123"]).found[0].repo, "new-owner/renamed");
   assert.deepEqual(fetchRepoData(["999", "missing/repo"]).missing, ["999", "missing/repo"]);
+
+  const ranked = Array.from({ length: 11 }, (_, i) => `ranked/repo-${String(i).padStart(2, "0")}`);
+  const unknown = Array.from({ length: 11 }, (_, i) => `other/unknown-${String(i).padStart(2, "0")}`);
+  const selected = selectTrustedByRepos(["ranked/unknown", ...unknown.reverse(), ...ranked, "other/zero"]);
+  assert.deepEqual(selected.filter((name) => name.startsWith("ranked/")), ranked.slice(1).reverse());
+  assert.deepEqual(selected.filter((name) => name.startsWith("other/")), ["other/zero", ...unknown.reverse().slice(0, 9)]);
+  assert.deepEqual(selectTrustedByRepos(["missing/repo"]), ["missing/repo"]);
 });
