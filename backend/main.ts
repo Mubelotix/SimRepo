@@ -1,4 +1,4 @@
-import { Hono, type Context, type Next } from "hono";
+import { Hono, type Context } from "hono";
 import { cors } from "hono/cors";
 import { compress } from "hono/compress";
 import { serve } from "@hono/node-server";
@@ -57,7 +57,7 @@ import {
 } from "./stargazers.js";
 import { TrustedByStore } from "./trusted-by.js";
 import { githubIpRanges } from "./github-ip-ranges.js";
-import { createRepoPageRenderer } from "./repo-page.js";
+import { createRepoPageHandler } from "./repo-page.js";
 import { SITE_URL } from "../shared/common/config.js";
 
 const FRONTEND_DIR = process.env.FRONTEND_DIR || "/app/www";
@@ -169,8 +169,8 @@ const startServer = async () => {
   const app = new Hono();
   githubIpRanges.start();
   const indexPath = path.join(FRONTEND_DIR, "index.html");
-  const renderRepoPage = fs.existsSync(indexPath)
-    ? createRepoPageRenderer(fs.readFileSync(indexPath, "utf8"), SITE_URL)
+  const indexHtml = fs.existsSync(indexPath)
+    ? fs.readFileSync(indexPath, "utf8")
     : null;
   const trustedBy = new TrustedByStore(undefined, selectTrustedByRepos);
   trustedBy.start();
@@ -553,19 +553,7 @@ const startServer = async () => {
   });
 
   // Add repository-specific HTML before the generic static-file fallback.
-  const repoPageHandler = async (c: Context, next: Next) => {
-    const { owner, repo } = c.req.param();
-    if (!/^[\w.-]+$/.test(owner) || !/^[\w.-]+$/.test(repo)) return next();
-    // Do not intercept real assets or static pages.
-    if (fs.existsSync(path.join(FRONTEND_DIR, owner, repo))) return next();
-    if (!renderRepoPage) return next();
-    if (c.req.path.endsWith("/")) {
-      return c.redirect(c.req.path.slice(0, -1) + new URL(c.req.url).search, 308);
-    }
-    const summary = fetchRepoSummary(`${owner}/${repo}`);
-    if (!summary) return next();
-    return c.html(renderRepoPage(summary));
-  };
+  const repoPageHandler = createRepoPageHandler(FRONTEND_DIR, indexHtml, SITE_URL, fetchRepoSummary);
   app.get("/:owner/:repo", repoPageHandler);
   app.get("/:owner/:repo/", repoPageHandler);
 
@@ -578,12 +566,9 @@ const startServer = async () => {
       root: FRONTEND_DIR,
       // Next.js "output: export" emits .html files. Map extensionless routes
       // (e.g. /privacy) to their .html file, since serveStatic does not. Repo
-      // paths are handled by the homepage client app, so fall back to its HTML.
+      // paths are handled above, including 404s for unavailable chart data.
       rewriteRequestPath: (requestPath) => {
         if (requestPath === "/") return "/index.html";
-        const isTwoSegmentPath = requestPath.split("/").filter(Boolean).length === 2;
-        const staticPath = path.join(FRONTEND_DIR, requestPath);
-        if (isTwoSegmentPath && !fs.existsSync(staticPath)) return "/index.html";
         if (!requestPath.includes(".")) return `${requestPath}.html`;
         return requestPath;
       },

@@ -36,6 +36,9 @@ test("repository IDs resolve current names and fetch the same chart data as name
   db.prepare("INSERT INTO repos (id, name) VALUES (?, ?)").run(124, "owner/alternative");
   db.prepare("INSERT INTO repos (id, name, stars_total, forks_count) VALUES (?, ?, NULL, NULL)")
     .run(125, "owner/null-counts");
+  db.prepare("UPDATE repos SET points = ? WHERE id = 125").run(gzipSync(points));
+  db.prepare("INSERT INTO repos (id, name, points) VALUES (?, ?, ?)")
+    .run(126, "owner/insufficient-history", gzipSync(points.subarray(0, 4 * 8)));
   const score = Buffer.alloc(4);
   score.writeFloatLE(1);
   db.prepare("INSERT INTO similar_repos (repo, similar_repo, score) VALUES (?, ?, ?)")
@@ -71,6 +74,8 @@ test("repository IDs resolve current names and fetch the same chart data as name
   assert.deepEqual(selected.filter((name) => name.startsWith("other/")), ["other/zero", ...unknown.reverse().slice(0, 9)]);
   assert.deepEqual(selectTrustedByRepos(["missing/repo"]), ["missing/repo"]);
   assert.equal(fetchRepoSummary("missing/repo"), null);
+  assert.equal(fetchRepoSummary("owner/alternative"), null);
+  assert.equal(fetchRepoSummary("owner/insufficient-history"), null);
   const summary = fetchRepoSummary("NEW-OWNER/Renamed");
   assert.equal(summary?.repo, "new-owner/renamed");
   assert.match(summary!.description, /such as owner\/alternative/);

@@ -42,6 +42,9 @@ function getDb(): DatabaseSync {
  */
 function decodePoints(buf: Buffer, summaryOnly = false): StarRecord[] {
   const data = gunzipSync(buf as unknown as Uint8Array);
+  // Summary pages must have enough history for the chart, even though the
+  // summary itself only needs the most recent month of records.
+  if (summaryOnly && Math.floor(data.length / 8) < MIN_DATAPOINTS) return [];
   const records: StarRecord[] = [];
   let start = 0;
   if (summaryOnly && data.length >= 8) {
@@ -278,7 +281,7 @@ let summaryQueries: {
   similar: ReturnType<DatabaseSync["prepare"]>;
 } | undefined;
 
-/** Fresh data each request; prepared statements only, no result/page cache. */
+/** Summary for a plottable repo; prepared statements only, no result/page cache. */
 export function fetchRepoSummary(repoName: string): RepoSummary | null {
   const d = getDb();
   summaryQueries ??= {
@@ -292,7 +295,9 @@ export function fetchRepoSummary(repoName: string): RepoSummary | null {
     `),
   };
   const row = summaryQueries.repo.get(repoName) as (RepoSummaryFacts & { id: number; points: Buffer | null }) | undefined;
-  if (!row) return null;
+  if (!row?.points) return null;
+  const history = decodePoints(row.points, true);
+  if (history.length === 0) return null;
   let similar: string | undefined;
   let bestScore = -Infinity;
   // Select just one recommendation without sorting or loading its metadata.
@@ -306,7 +311,7 @@ export function fetchRepoSummary(repoName: string): RepoSummary | null {
       similar = candidate.name as string;
     }
   }
-  return buildRepoSummary(row, row.points ? decodePoints(row.points, true) : [], similar);
+  return buildRepoSummary(row, history, similar);
 }
 
 /**

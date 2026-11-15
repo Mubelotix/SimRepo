@@ -1,5 +1,35 @@
 import { JSDOM } from "jsdom";
+import fs from "node:fs";
+import path from "node:path";
+import type { Context, Next } from "hono";
 import type { RepoSummary } from "../shared/common/repo-summary.js";
+
+/** Keep unavailable repo URLs usable, without advertising empty pages to crawlers. */
+export function createRepoPageHandler(
+  frontendDir: string,
+  indexHtml: string | null,
+  siteUrl: string,
+  fetchSummary: (repo: string) => RepoSummary | null,
+) {
+  const render = indexHtml === null ? null : createRepoPageRenderer(indexHtml, siteUrl);
+  return async (c: Context, next: Next) => {
+    const { owner, repo } = c.req.param();
+    if (!/^[\w.-]+$/.test(owner) || !/^[\w.-]+$/.test(repo)) return next();
+    if (fs.existsSync(path.join(frontendDir, owner, repo))) return next();
+    if (c.req.path.endsWith("/")) {
+      return c.redirect(c.req.path.slice(0, -1) + new URL(c.req.url).search, 308);
+    }
+    const summary = fetchSummary(`${owner}/${repo}`);
+    if (!summary) {
+      c.header("X-Robots-Tag", "noindex");
+      return indexHtml === null
+        ? c.text("Repo not included in the dataset yet", 404)
+        : c.html(indexHtml, 404);
+    }
+    if (!render) return next();
+    return c.html(render(summary));
+  };
+}
 
 const escapeHtml = (value: string) => value.replace(/[&<>"']/g, (char) => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
