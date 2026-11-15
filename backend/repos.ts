@@ -3,6 +3,7 @@ import { gunzipSync } from "node:zlib";
 import { statSync } from "node:fs";
 import path from "node:path";
 import type { RepoData, RepoMeta, RepoRadarAttributes, SimilarRepo, StarRecord } from "../shared/types/chart";
+import { buildRepoSummary, type RepoSummaryFacts, type RepoSummary } from "../shared/common/repo-summary.js";
 
 // Radar axes stored as raw columns in repos.sqlite, keyed by the RepoRadarAttributes
 // field they populate. `pushes`/`issues_closed` are intentionally excluded as
@@ -39,10 +40,17 @@ function getDb(): DatabaseSync {
  * Decode the gzip-compressed `points` blob from repos.sqlite.
  * Each 8-byte point is: uint32 days since epoch + uint32 cumulative star count.
  */
-function decodePoints(buf: Buffer): StarRecord[] {
+function decodePoints(buf: Buffer, summaryOnly = false): StarRecord[] {
   const data = gunzipSync(buf as unknown as Uint8Array);
   const records: StarRecord[] = [];
-  for (let i = 0; i + 8 <= data.length; i += 8) {
+  let start = 0;
+  if (summaryOnly && data.length >= 8) {
+    start = (Math.floor(data.length / 8) - 1) * 8;
+    const cutoff = data.readUInt32LE(start) - 30;
+    // Start at/before the cutoff so interpolation still has both endpoints.
+    while (start > 0 && data.readUInt32LE(start) > cutoff) start -= 8;
+  }
+  for (let i = start; i + 8 <= data.length; i += 8) {
     const days = data.readUInt32LE(i);
     const count = data.readUInt32LE(i + 4);
     const date = new Date(Date.UTC(1970, 0, 1) + days * 86400000).toISOString().slice(0, 10);
@@ -263,6 +271,42 @@ export function fetchRepoData(repos: string[]): RepoStarResult {
   }
 
   return { found, missing };
+}
+
+let summaryQueries: {
+  repo: ReturnType<DatabaseSync["prepare"]>;
+  similar: ReturnType<DatabaseSync["prepare"]>;
+} | undefined;
+
+/** Fresh data each request; prepared statements only, no result/page cache. */
+export function fetchRepoSummary(repoName: string): RepoSummary | null {
+  const d = getDb();
+  summaryQueries ??= {
+    repo: d.prepare(`
+      SELECT id, name, language, stars_total, forks_count, rank, total_repos, points
+      FROM repos WHERE lower(name) = lower(?)
+    `),
+    similar: d.prepare(`
+      SELECT r.name, s.score FROM similar_repos s
+      JOIN repos r ON r.id = s.similar_repo WHERE s.repo = ?
+    `),
+  };
+  const row = summaryQueries.repo.get(repoName) as (RepoSummaryFacts & { id: number; points: Buffer | null }) | undefined;
+  if (!row) return null;
+  let similar: string | undefined;
+  let bestScore = -Infinity;
+  // Select just one recommendation without sorting or loading its metadata.
+  for (const candidate of summaryQueries.similar.iterate(row.id)) {
+    const bytes = candidate.score as Uint8Array | null;
+    const score = bytes && bytes.length >= 4
+      ? new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getFloat32(0, true)
+      : 0;
+    if (score > bestScore) {
+      bestScore = score;
+      similar = candidate.name as string;
+    }
+  }
+  return buildRepoSummary(row, row.points ? decodePoints(row.points, true) : [], similar);
 }
 
 /**

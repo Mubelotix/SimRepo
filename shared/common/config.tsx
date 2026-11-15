@@ -15,3 +15,5 @@ function resolveRepoDataApiUrl(): string {
 }
 
 export const REPO_DATA_API_URL: string = resolveRepoDataApiUrl();
+
+export const SITE_URL = "https://simrepo.dera.page";

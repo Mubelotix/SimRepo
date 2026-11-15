@@ -22,6 +22,7 @@ interface AppState {
 }
 
 interface AppStateContextProps {
+    urlInitialized: boolean;
     isFetching: boolean;
     repos: string[];
     chartMode: ChartMode;
@@ -179,6 +180,7 @@ export const AppStateProvider: React.FC<{
     }), []);
 
     const store = useMemo<AppStateContextProps>(() => ({
+        urlInitialized,
         isFetching: state.isFetching,
         repos: state.repos,
         chartMode: state.chartMode,
@@ -189,7 +191,7 @@ export const AppStateProvider: React.FC<{
         trustedByLoaded: state.trustedByLoaded,
         state,
         actions,
-    }), [state, actions]);
+    }), [state, actions, urlInitialized]);
 
     return <AppStateContext.Provider value={store}>{children}</AppStateContext.Provider>;
 };

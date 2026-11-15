@@ -10,13 +10,19 @@ import EmptyState from "../components/EmptyState"
 import SimilarReposCard from "../components/SimilarReposCard"
 import Head from "next/head"
 import { SITE_URL } from "../helpers/consts"
+import type { RepoSummary } from "@shared/common/repo-summary"
+import { useAppStore } from "../store"
+import { getRepoMetadata } from "../helpers/repo-metadata"
 
-const Index: NextPage = () => {
+const Index: NextPage<{ initialSummary?: RepoSummary }> = ({ initialSummary }) => {
     const [isChartVisible, setChartVisibility] = useState(false) // Start with false since chart is not visible by default
+    const store = useAppStore()
+    const repoMetadata = getRepoMetadata(initialSummary, store.repos, store.urlInitialized)
+    const canonicalUrl = repoMetadata.url
 
     const metadata = {
-		title:       "GitHub Star History",
-		description: "GitHub star history graphs, no token required.",
+		title:       repoMetadata.title,
+		description: repoMetadata.description,
 		imageURL:    `${SITE_URL}/assets/star-history-preview.webp`,
 	}
 
@@ -25,18 +31,18 @@ const Index: NextPage = () => {
             <Head>
                 <title>{metadata.title}</title>
                 <meta name="description" content={metadata.description} />
-                <link rel="canonical" href={SITE_URL} />
+                <link rel="canonical" href={canonicalUrl} />
 
                 {/* Open Graph / Facebook */}
                 <meta property="og:type" content="website" />
-                <meta property="og:url" content={SITE_URL} />
+                <meta property="og:url" content={canonicalUrl} />
                 <meta property="og:title" content={metadata.title} />
                 <meta property="og:description" content={metadata.description} />
                 <meta property="og:image" content={metadata.imageURL} />
 
                 {/* Twitter */}
                 <meta name="twitter:card" content="summary_large_image" />
-                <meta name="twitter:url" content={SITE_URL} />
+                <meta name="twitter:url" content={canonicalUrl} />
                 <meta name="twitter:title" content={metadata.title} />
                 <meta name="twitter:description" content={metadata.description} />
                 <meta name="twitter:image" content={metadata.imageURL} />

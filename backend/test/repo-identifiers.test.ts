@@ -24,6 +24,7 @@ test("repository IDs resolve current names and fetch the same chart data as name
       total_repos INTEGER DEFAULT 1
     );
     CREATE TABLE axis_percentiles (axis TEXT, value INTEGER, count_le INTEGER);
+    CREATE TABLE similar_repos (repo INTEGER, similar_repo INTEGER, score BLOB);
   `);
   const points = Buffer.alloc(5 * 8);
   for (let i = 0; i < 5; i++) {
@@ -32,6 +33,13 @@ test("repository IDs resolve current names and fetch the same chart data as name
   }
   db.prepare("INSERT INTO repos (id, name, points) VALUES (?, ?, ?)")
     .run(123, "new-owner/renamed", gzipSync(points));
+  db.prepare("INSERT INTO repos (id, name) VALUES (?, ?)").run(124, "owner/alternative");
+  db.prepare("INSERT INTO repos (id, name, stars_total, forks_count) VALUES (?, ?, NULL, NULL)")
+    .run(125, "owner/null-counts");
+  const score = Buffer.alloc(4);
+  score.writeFloatLE(1);
+  db.prepare("INSERT INTO similar_repos (repo, similar_repo, score) VALUES (?, ?, ?)")
+    .run(123, 124, score);
   for (let i = 0; i <= 10; i++) {
     db.prepare("INSERT INTO repos (name, stars_total) VALUES (?, ?)")
       .run(`ranked/repo-${String(i).padStart(2, "0")}`, i);
@@ -44,7 +52,7 @@ test("repository IDs resolve current names and fetch the same chart data as name
     rmSync(directory, { recursive: true, force: true });
   });
 
-  const { fetchRepoData, resolveRepoId, resolveRepoName, selectTrustedByRepos } = await import("../repos.js");
+  const { fetchRepoData, fetchRepoSummary, resolveRepoId, resolveRepoName, selectTrustedByRepos } = await import("../repos.js");
 
   assert.equal(resolveRepoName("123"), "new-owner/renamed");
   assert.equal(resolveRepoId("NEW-OWNER/Renamed"), 123);
@@ -62,4 +70,10 @@ test("repository IDs resolve current names and fetch the same chart data as name
   assert.deepEqual(selected.filter((name) => name.startsWith("ranked/")), ranked.slice(1).reverse());
   assert.deepEqual(selected.filter((name) => name.startsWith("other/")), ["other/zero", ...unknown.reverse().slice(0, 9)]);
   assert.deepEqual(selectTrustedByRepos(["missing/repo"]), ["missing/repo"]);
+  assert.equal(fetchRepoSummary("missing/repo"), null);
+  const summary = fetchRepoSummary("NEW-OWNER/Renamed");
+  assert.equal(summary?.repo, "new-owner/renamed");
+  assert.match(summary!.description, /such as owner\/alternative/);
+  assert.doesNotThrow(() => fetchRepoSummary("owner/null-counts"));
+  assert.doesNotMatch(fetchRepoSummary("owner/null-counts")!.description, /with|null stars|null forks/);
 });

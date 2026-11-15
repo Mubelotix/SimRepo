@@ -1,4 +1,4 @@
-import { Hono, type Context } from "hono";
+import { Hono, type Context, type Next } from "hono";
 import { cors } from "hono/cors";
 import { compress } from "hono/compress";
 import { serve } from "@hono/node-server";
@@ -29,6 +29,7 @@ import {
 } from "./const.js";
 import {
   fetchRepoData,
+  fetchRepoSummary,
   searchRepos,
   fetchTrustedBy,
   selectTrustedByRepos,
@@ -56,6 +57,8 @@ import {
 } from "./stargazers.js";
 import { TrustedByStore } from "./trusted-by.js";
 import { githubIpRanges } from "./github-ip-ranges.js";
+import { createRepoPageRenderer } from "./repo-page.js";
+import { SITE_URL } from "../shared/common/config.js";
 
 const FRONTEND_DIR = process.env.FRONTEND_DIR || "/app/www";
 
@@ -165,6 +168,10 @@ function getBatchSimilarReposLimit(isStarred: boolean): number {
 const startServer = async () => {
   const app = new Hono();
   githubIpRanges.start();
+  const indexPath = path.join(FRONTEND_DIR, "index.html");
+  const renderRepoPage = fs.existsSync(indexPath)
+    ? createRepoPageRenderer(fs.readFileSync(indexPath, "utf8"), SITE_URL)
+    : null;
   const trustedBy = new TrustedByStore(undefined, selectTrustedByRepos);
   trustedBy.start();
   app.use(cors({ exposeHeaders: [SIMILAR_REPOS_ERROR_HEADER] }));
@@ -544,6 +551,23 @@ const startServer = async () => {
 
     return c.body(optimized, 200, SVG_HEADERS);
   });
+
+  // Add repository-specific HTML before the generic static-file fallback.
+  const repoPageHandler = async (c: Context, next: Next) => {
+    const { owner, repo } = c.req.param();
+    if (!/^[\w.-]+$/.test(owner) || !/^[\w.-]+$/.test(repo)) return next();
+    // Do not intercept real assets or static pages.
+    if (fs.existsSync(path.join(FRONTEND_DIR, owner, repo))) return next();
+    if (!renderRepoPage) return next();
+    if (c.req.path.endsWith("/")) {
+      return c.redirect(c.req.path.slice(0, -1) + new URL(c.req.url).search, 308);
+    }
+    const summary = fetchRepoSummary(`${owner}/${repo}`);
+    if (!summary) return next();
+    return c.html(renderRepoPage(summary));
+  };
+  app.get("/:owner/:repo", repoPageHandler);
+  app.get("/:owner/:repo/", repoPageHandler);
 
   // Serve the static frontend export (Next.js "output: export"). Registered last
   // so API routes above take precedence. No external nginx / volume sharing needed:
