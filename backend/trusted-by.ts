@@ -1,23 +1,31 @@
 import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import logger from "./logger.js";
+import type { TrustedByEntry } from "./repos.js";
 
 // Existing README embeds remain valid after the hostname migration.
 const DOMAINS = ["simrepo.dera.page", "star-history.dera.page"];
 const CHECK_INTERVAL_MS = 40_000;
 const MISMATCH_RETRY_MS = 10 * 24 * 60 * 60_000;
 const README_NAMES = ["README.md", "readme.md", "Readme.md", "README.rst", "README"];
-type Entry = number | null | { retryAfter: number };
+type VerifiedEntry = Omit<TrustedByEntry, "name"> & { verifiedAt: number };
+type Entry = number | VerifiedEntry | null | { retryAfter: number };
 const isMismatch = (entry: Entry | undefined): entry is { retryAfter: number } =>
-  entry !== null && typeof entry === "object";
+  entry !== null && typeof entry === "object" && "retryAfter" in entry;
+const isVerified = (entry: Entry | undefined): entry is VerifiedEntry =>
+  entry !== null && typeof entry === "object" && "verifiedAt" in entry;
 
 export class TrustedByStore {
   private readonly repos = new Map<string, Entry>();
   private queue: string[] = [];
+  private selected: string[] = [];
 
   constructor(
     private readonly filename = process.env.TRUSTED_BY_PATH ?? path.join(process.cwd(), "state", "trusted-by.json"),
     private readonly select: (names: string[]) => string[] = (names) => names,
+    private readonly resolve: (names: string[]) => TrustedByEntry[] = (names) => names.map((name) => ({
+      name, logoUrl: `https://github.com/${name.split("/")[0]}.png?size=64`, stars: null,
+    })),
   ) {
     let data: unknown;
     try {
@@ -36,11 +44,24 @@ export class TrustedByStore {
     for (const [name, verified] of Object.entries(data)) {
       if (verified !== null && !(typeof verified === "number" && Number.isFinite(verified))
         && !(typeof verified === "object" && verified !== null
-          && "retryAfter" in verified && typeof verified.retryAfter === "number" && Number.isFinite(verified.retryAfter))) {
+          && (("retryAfter" in verified && typeof verified.retryAfter === "number" && Number.isFinite(verified.retryAfter))
+            || ("verifiedAt" in verified && typeof verified.verifiedAt === "number" && Number.isFinite(verified.verifiedAt)
+              && "logoUrl" in verified && typeof verified.logoUrl === "string"
+              && "stars" in verified && (verified.stars === null
+                || (typeof verified.stars === "number" && Number.isFinite(verified.stars))))))) {
         throw new Error(`Invalid verification date for ${name}`);
       }
       this.repos.set(name.toLowerCase(), verified as Entry);
     }
+    // Enrich legacy timestamps once, not on the first HTTP request.
+    const legacy = [...this.repos.keys()].filter((name) => typeof this.repos.get(name) === "number");
+    if (legacy.length) {
+      for (const { name, logoUrl, stars } of this.resolve(legacy)) {
+        this.repos.set(name, { verifiedAt: this.repos.get(name) as number, logoUrl, stars });
+      }
+      this.save();
+    }
+    this.selected = this.select([...this.repos.keys()]);
   }
 
   private save(): void {
@@ -61,16 +82,26 @@ export class TrustedByStore {
         changed = true;
       }
     }
-    if (changed) this.save();
+    if (changed) {
+      this.selected = this.select([...this.repos.keys()]);
+      this.save();
+    }
   }
 
   verified(): string[] {
-    return this.select([...this.repos.keys()]).filter((name) => typeof this.repos.get(name) === "number").sort();
+    return this.selected.filter((name) => isVerified(this.repos.get(name))).sort();
+  }
+
+  entries(): TrustedByEntry[] {
+    return this.verified().map((name) => {
+      const { logoUrl, stars } = this.repos.get(name) as VerifiedEntry;
+      return { name, logoUrl, stars };
+    }).sort((a, b) => (b.stars ?? -1) - (a.stars ?? -1));
   }
 
   async verifyNext(fetchImpl: typeof fetch = fetch, now = Date.now()): Promise<void> {
     // Random rounds: every eligible repo gets a turn, even if earlier checks fail.
-    const eligible = new Set(this.select([...this.repos.keys()]).filter((name) => !isMismatch(this.repos.get(name))));
+    const eligible = new Set(this.selected.filter((name) => !isMismatch(this.repos.get(name))));
     this.queue = this.queue.filter((name) => eligible.has(name));
     if (!this.queue.length) {
       this.queue = [...eligible];
@@ -89,9 +120,14 @@ export class TrustedByStore {
       ? new URL(repository.url).pathname.slice(1).toLowerCase()
       : name;
     const finish = (valid = false) => {
+      const metadata = valid ? this.resolve([canonicalName])[0] : undefined;
+      if (valid && !metadata) throw new Error(`Missing trusted-by metadata for ${canonicalName}`);
       // Remember old names too, so old embeds cannot continually requeue aliases.
       if (name !== canonicalName) this.repos.set(name, mismatch);
-      this.repos.set(canonicalName, valid ? now : mismatch);
+      this.repos.set(canonicalName, metadata
+        ? { verifiedAt: now, logoUrl: metadata.logoUrl, stars: metadata.stars }
+        : mismatch);
+      this.selected = this.select([...this.repos.keys()]);
       this.save();
     };
     if (repository.status === 404) return finish();

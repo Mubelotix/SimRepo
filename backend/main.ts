@@ -172,7 +172,7 @@ const startServer = async () => {
   const indexHtml = fs.existsSync(indexPath)
     ? fs.readFileSync(indexPath, "utf8")
     : null;
-  const trustedBy = new TrustedByStore(undefined, selectTrustedByRepos);
+  const trustedBy = new TrustedByStore(undefined, selectTrustedByRepos, fetchTrustedBy);
   trustedBy.start();
   app.use(cors({ exposeHeaders: [SIMILAR_REPOS_ERROR_HEADER] }));
   app.use(compress());
@@ -213,7 +213,7 @@ const startServer = async () => {
   // Serve only README-verified candidates, enriched from the immutable dataset.
   app.get("/trusted-by", (c) => {
     return c.json(
-      { repos: fetchTrustedBy(trustedBy.verified()) },
+      { repos: trustedBy.entries() },
       200,
       { "Cache-Control": "public, s-maxage=3600, max-age=3600" }
     );

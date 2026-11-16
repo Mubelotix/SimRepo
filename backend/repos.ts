@@ -573,16 +573,15 @@ export function selectTrustedByRepos(names: string[]): string[] {
  * the dataset fall back to the GitHub owner avatar with unknown star count.
  */
 export function fetchTrustedBy(repoNames: string[]): TrustedByEntry[] {
-  const { found, missing } = fetchRepoData(repoNames);
-  const foundMap = new Map(found.map((d) => [d.repo.toLowerCase(), d]));
+  const lookup = getDb().prepare("SELECT logo_url, stars_total FROM repos WHERE lower(name) = lower(?)");
   return repoNames
     .map((name) => {
-      const d = foundMap.get(name.toLowerCase());
-      if (d) {
-        const last = d.starRecords[d.starRecords.length - 1];
-        return { name, logoUrl: d.logoUrl, stars: last ? last.count : null };
-      }
-      return { name, logoUrl: `https://github.com/${name.split("/")[0]}.png?size=64`, stars: null };
+      const row = lookup.get(name) as { logo_url: string | null; stars_total: number | null } | undefined;
+      return {
+        name,
+        logoUrl: row?.logo_url || `https://github.com/${name.split("/")[0]}.png?size=64`,
+        stars: row?.stars_total ?? null,
+      };
     })
     .sort((a, b) => (b.stars ?? -1) - (a.stars ?? -1));
 }

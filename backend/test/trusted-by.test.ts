@@ -6,6 +6,9 @@ import test, { type TestContext } from "node:test";
 import { TrustedByStore } from "../trusted-by.js";
 
 const TEN_DAYS = 10 * 24 * 60 * 60_000;
+const verified = (owner: string, verifiedAt: number) => ({
+  verifiedAt, logoUrl: `https://github.com/${owner}.png?size=64`, stars: null,
+});
 function fixture(t: TestContext) {
   const dir = mkdtempSync(path.join(os.tmpdir(), "trusted-by-"));
   t.after(() => rmSync(dir, { recursive: true, force: true }));
@@ -34,7 +37,7 @@ test("candidates are normalized, deduplicated and hidden until verified", async 
   assert.deepEqual(saved(), { "owner/repo": null });
   await store.verifyNext(readme(), 100);
   store.observe(["OWNER/REPO"]);
-  assert.deepEqual(saved(), { "owner/repo": 100 });
+  assert.deepEqual(saved(), { "owner/repo": verified("owner", 100) });
   assert.deepEqual(new TrustedByStore(filename).verified(), ["owner/repo"]);
 });
 
@@ -178,7 +181,7 @@ test("renames merge canonical entries and suppress old names for ten days", asyn
     "https://raw.githubusercontent.com/new/repo/HEAD/README.md",
   ]);
   store.observe(["old/repo"], 201);
-  assert.deepEqual(saved(), { "new/repo": 200, "old/repo": { retryAfter: 200 + TEN_DAYS } });
+  assert.deepEqual(saved(), { "new/repo": verified("new", 200), "old/repo": { retryAfter: 200 + TEN_DAYS } });
   assert.deepEqual(store.verified(), ["new/repo"]);
 });
 
@@ -216,4 +219,48 @@ test("the same candidate selection limits crawling and display without deleting 
   store.observe(["owner/new-repo"]);
   assert.deepEqual(store.verified(), names.slice(-9).sort());
   assert.equal(Object.keys(saved()).length, 13);
+});
+
+test("metadata is refreshed on verification, persisted, and served without lookups", async (t) => {
+  const { filename } = fixture(t);
+  let stars = 42;
+  let lookups = 0;
+  let selections = 0;
+  const select = (names: string[]) => { selections++; return names; };
+  const resolve = (names: string[]) => {
+    lookups++;
+    return names.map((name) => ({ name, logoUrl: "https://example.com/logo.png", stars }));
+  };
+  const store = new TrustedByStore(filename, select, resolve);
+  store.observe(["owner/repo"]);
+  assert.equal(lookups, 0);
+  await store.verifyNext(readme(), 100);
+  const expected = [{ name: "owner/repo", logoUrl: "https://example.com/logo.png", stars: 42 }];
+  const selectionCount = selections;
+  for (let i = 0; i < 3; i++) assert.deepEqual(store.entries(), expected);
+  assert.equal(lookups, 1);
+  assert.equal(selections, selectionCount);
+  const reloaded = new TrustedByStore(filename, select, () => { assert.fail("cached metadata must survive restart"); });
+  assert.deepEqual(reloaded.entries(), expected);
+  stars = 99;
+  await store.verifyNext(readme(), 200);
+  assert.equal(store.entries()[0].stars, 99);
+  const saved = readFileSync(filename, "utf8");
+  await assert.rejects(store.verifyNext((async () => { throw new Error("offline"); }) as typeof fetch));
+  assert.equal(readFileSync(filename, "utf8"), saved);
+  await store.verifyNext(readme("no embed"), 300);
+  assert.deepEqual(store.entries(), []);
+});
+
+test("legacy verified entries are enriched once and persisted without recrawling", (t) => {
+  const { filename, saved } = fixture(t);
+  writeFileSync(filename, JSON.stringify({ "Owner/Repo": 100, "pending/repo": null }));
+  const store = new TrustedByStore(filename, undefined, (names) => {
+    assert.deepEqual(names, ["owner/repo"]);
+    return [{ name: "owner/repo", logoUrl: "logo", stars: 123 }];
+  });
+  assert.deepEqual(store.entries(), [{ name: "owner/repo", logoUrl: "logo", stars: 123 }]);
+  assert.deepEqual(saved(), {
+    "owner/repo": { verifiedAt: 100, logoUrl: "logo", stars: 123 }, "pending/repo": null,
+  });
 });
