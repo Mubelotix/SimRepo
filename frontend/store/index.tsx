@@ -67,7 +67,7 @@ export const AppStateProvider: React.FC<{
         let disposed = false;
         const loadTrustedBy = async () => {
             try {
-                const res = await fetch(`${REPO_DATA_API_URL}/trusted-by`, { signal: AbortSignal.timeout(5000) });
+                const res = await fetch(`${REPO_DATA_API_URL}/trusted-by`);
                 const data = await res.json();
                 if (disposed) return;
                 setState((prev) => ({ ...prev, trustedBy: data?.repos ?? [], trustedByLoaded: true }));

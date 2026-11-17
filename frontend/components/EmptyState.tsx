@@ -17,7 +17,9 @@ const EmptyState: React.FC = () => {
         <div className="w-full max-w-3xl 2xl:max-w-4xl mx-auto sm:px-4 mt-6 px-3">
             <div className="w-full">
                 <div className="flex justify-center gap-4 mb-5">
-                    <h2 className="text-xs font-medium pb-1 border-b-2 text-gray-900 border-gray-900">Trusted by</h2>
+                    <h2 className="text-xs font-medium pb-1 border-b-2 text-gray-900 border-gray-900">
+                        Trusted by{store.trustedByLoaded && store.trustedBy.length > 0 ? ` ${store.trustedBy.length} projects` : ""}
+                    </h2>
                 </div>
                 {!store.trustedByLoaded ? (
                     <div className="w-full flex flex-row justify-center items-center text-sm text-gray-400">

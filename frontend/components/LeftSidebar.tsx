@@ -36,7 +36,7 @@ const LeftSidebar: React.FC = () => {
         let disposed = false
         const load = async () => {
             try {
-                const res = await fetch(`${REPO_DATA_API_URL}/leaderboard`, { signal: AbortSignal.timeout(10000) })
+                const res = await fetch(`${REPO_DATA_API_URL}/leaderboard`)
                 const data = await res.json()
                 if (!disposed) setData(data)
             } catch {
