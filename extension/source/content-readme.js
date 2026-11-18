@@ -8,6 +8,8 @@ const systemColorScheme = window.matchMedia('(prefers-color-scheme: dark)');
 
 let observer = null;
 let themeObserver = null;
+let chartObserver = null;
+let pendingChart = null;
 let scheduled = false;
 
 function getGitHubTheme() {
@@ -71,8 +73,25 @@ async function updateChartImage(image, repo, style) {
 function updateChartTheme() {
     const section = document.getElementById(CHART_CONTAINER_ID);
     const image = section?.querySelector('img');
-    if (!image) return;
+    if (!image || !image.dataset.loadStarted) return;
     void updateChartImage(image, section.dataset.repo, section.dataset.style);
+}
+
+function observeChart(section) {
+    chartObserver ??= new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+            if (!entry.isIntersecting || entry.target !== pendingChart) continue;
+            chartObserver.disconnect();
+            pendingChart = null;
+            if (!entry.target.isConnected || entry.target.dataset.repo !== getRepoName() || isPrivateRepo()) return;
+            const image = entry.target.querySelector('img');
+            image.dataset.loadStarted = 'true';
+            void updateChartImage(image, entry.target.dataset.repo, entry.target.dataset.style);
+        }
+    }, { rootMargin: '600px' });
+    chartObserver.disconnect();
+    pendingChart = section;
+    chartObserver.observe(section);
 }
 
 function getRepoName() {
@@ -128,22 +147,34 @@ function makeChartSection(repo, style, readme) {
     link.href = `https://simrepo.dera.page/${repo}`;
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
+    link.className = 'simrepo-readme-loading';
+    link.setAttribute('aria-busy', 'true');
+    link.setAttribute('aria-label', 'Loading Star History chart');
 
     const image = document.createElement('img');
     image.alt = `Star History Chart for ${repo}`;
+    image.width = 600;
+    image.height = 400;
     image.loading = 'lazy';
+    image.addEventListener('load', () => {
+        link.classList.remove('simrepo-readme-loading');
+        link.removeAttribute('aria-busy');
+        link.removeAttribute('aria-label');
+    }, { once: true });
     image.addEventListener('error', () => {
         readme.dataset.simrepoChartUnavailable = repo;
         section.remove();
     }, { once: true });
-    void updateChartImage(image, repo, style);
-
     link.append(image);
     section.append(heading, link);
     return section;
 }
 
 async function addReadmeChart() {
+    if (pendingChart && !pendingChart.isConnected) {
+        chartObserver.disconnect();
+        pendingChart = null;
+    }
     const repo = getRepoName();
     if (!repo || isPrivateRepo()) return;
 
@@ -159,7 +190,9 @@ async function addReadmeChart() {
     document.querySelectorAll(`#${CHART_CONTAINER_ID}`).forEach((chart) => chart.remove());
 
     const style = options.readmeChartStyle === 'github' ? 'github' : 'xkcd';
-    readme.append(makeChartSection(repo, style, readme));
+    const section = makeChartSection(repo, style, readme);
+    readme.append(section);
+    observeChart(section);
 }
 
 function scheduleChart() {

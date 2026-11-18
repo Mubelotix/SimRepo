@@ -87,6 +87,45 @@ aside>div[aria-label="Explore repositories"]>div {
     height: auto;
 }
 
+.simrepo-readme-loading {
+    display: block;
+    border-radius: 6px;
+    background-color: color-mix(
+        in srgb,
+        var(--bgColor-muted, var(--color-canvas-subtle, #f6f8fa)) 60%,
+        var(--borderColor-default, var(--color-border-default, #d1d9e0))
+    );
+    background-image: linear-gradient(
+        110deg,
+        transparent 40%,
+        var(--borderColor-default, var(--color-border-default, #d1d9e0)) 50%,
+        transparent 60%
+    );
+    background-size: 200% 100%;
+    animation: simrepo-chart-shimmer 1.8s linear infinite;
+}
+
+.simrepo-readme-loading img {
+    visibility: hidden;
+}
+
+@keyframes simrepo-chart-shimmer {
+    from {
+        background-position: 200% 0;
+    }
+
+    to {
+        background-position: -200% 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .simrepo-readme-loading {
+        animation: none;
+        background-image: none;
+    }
+}
+
 @keyframes rotation {
     0% {
         transform: rotate(0deg);

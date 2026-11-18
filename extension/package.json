@@ -9,7 +9,8 @@
         "lint-fix": "run-p 'lint:* -- --fix'",
         "lint:css": "stylelint source/**/*.css",
         "lint:js": "eslint source/**/*.js",
-        "test": "run-p lint:* build",
+        "test:unit": "node --test test/*.test.cjs",
+        "test": "run-p lint:* test:unit build",
         "watch": "NODE_NO_WARNINGS=1 parcel watch --no-hmr"
     },
     "browserslist": [
