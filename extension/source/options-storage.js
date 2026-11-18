@@ -8,7 +8,7 @@ const optionsStorage = new OptionsSync({
         similarShowUnavailable: true,
         // similarShowArchived: true,
 
-        readmeChartEnabled: false,
+        readmeChartEnabled: true,
         readmeChartStyle: "xkcd",
 
         homepageEnabled: true,
