@@ -8,6 +8,7 @@ const LABELS: Record<keyof RepoRadarAttributes, string> = {
     open_issues: "Open Issues",
     size: "Size",
     pushes: "Last Push",
+    trust: "Trust",
 }
 
 // Only render axes we trust. `issues_closed` and `contributors` are excluded
@@ -19,6 +20,7 @@ const AXIS_ORDER: (keyof RepoRadarAttributes)[] = [
     "open_issues",
     "size",
     "pushes",
+    "trust",
 ]
 
 const SIZE = 400
@@ -75,7 +77,7 @@ function sketchyPolygonPath(points: [number, number][], jitter: number, rng: () 
 
 interface RadarChartProps {
     attributes: RepoRadarAttributes
-    rawText?: Partial<Record<keyof RepoRadarAttributes, string>>
+    rawText?: Partial<Record<keyof RepoRadarAttributes, string | null>>
     percentiles?: Partial<Record<keyof RepoRadarAttributes, number>>
 }
 
@@ -120,7 +122,8 @@ export default function RadarChart({ attributes, rawText, percentiles }: RadarCh
         const value = placementFor(key)
         const radius = scaleR(value)
         const [x, y] = pointAt(i, radius)
-        return { key, label: LABELS[key], x, y, value, percentile: percentiles?.[key], raw: rawText?.[key] ?? String(attributes[key]) }
+        const raw = rawText?.[key]
+        return { key, label: LABELS[key], x, y, value, percentile: percentiles?.[key], raw: raw === undefined ? String(attributes[key]) : raw }
     })
 
     const hovered = hoveredIndex !== null ? axisPoints[hoveredIndex] : null
@@ -275,7 +278,7 @@ export default function RadarChart({ attributes, rawText, percentiles }: RadarCh
                             fill="black"
                             style={{ fontFamily: '"xkcd", cursive' }}
                         >
-                            {hovered.label}: {hovered.raw}
+                            {hovered.label}{hovered.raw !== null ? `: ${hovered.raw}` : ""}
                         </text>
                         {hovered.percentile !== undefined && (
                             <text

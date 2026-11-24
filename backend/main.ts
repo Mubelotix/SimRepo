@@ -219,8 +219,7 @@ const startServer = async () => {
     );
   });
 
-  // Serve star history + logo data sourced from repos.sqlite.
-  // `/svg?repos=a,b,c` returns { data: RepoData[], missing: string[] }.
+  // Serve star history, logo and repository metadata from repos.sqlite.
   app.get("/repo-data", (c) => {
     const reposParam = c.req.query("repos");
     const repos = (reposParam ?? "")

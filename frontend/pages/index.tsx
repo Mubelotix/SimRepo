@@ -8,10 +8,12 @@ import StarChartViewer from "../components/StarChartViewer"
 import RepoStatsCard from "../components/RepoStatsCard"
 import EmptyState from "../components/EmptyState"
 import SimilarReposCard from "../components/SimilarReposCard"
+import TrustNotice from "../components/TrustNotice"
+import { useAppStore } from "../store"
+import { useRepoStats } from "../helpers/useRepoStats"
 import Head from "next/head"
 import { SITE_URL } from "../helpers/consts"
 import type { RepoSummary } from "@shared/common/repo-summary"
-import { useAppStore } from "../store"
 import { getRepoMetadata } from "../helpers/repo-metadata"
 
 const Index: NextPage<{ initialSummary?: RepoSummary }> = ({ initialSummary }) => {
@@ -19,6 +21,9 @@ const Index: NextPage<{ initialSummary?: RepoSummary }> = ({ initialSummary }) =
     const store = useAppStore()
     const repoMetadata = getRepoMetadata(initialSummary, store.repos, store.urlInitialized)
     const canonicalUrl = repoMetadata.url
+    const repo = store.repos.length === 1 ? store.repos[0] : null
+    const stats = useRepoStats(repo)
+    const trustMeta = stats.meta?.trust_p != null ? stats.meta : null
 
     const metadata = {
 		title:       repoMetadata.title,
@@ -57,9 +62,14 @@ const Index: NextPage<{ initialSummary?: RepoSummary }> = ({ initialSummary }) =
 
                         <div className="w-full min-w-0 lg:flex-1 flex flex-col justify-start items-center">
                             <RepoInputer isChartVisible={isChartVisible} setChartVisibility={setChartVisibility} />
+                            {trustMeta && (
+                                <div className="w-full max-w-3xl 2xl:max-w-4xl mx-auto sm:px-4 mb-3">
+                                    <TrustNotice meta={trustMeta} />
+                                </div>
+                            )}
                             {isChartVisible ? (
                                 <>
-                                    <RepoStatsCard />
+                                    <RepoStatsCard {...stats} />
                                     <StarChartViewer />
                                 </>
                             ) : (
