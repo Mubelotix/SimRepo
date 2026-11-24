@@ -12,8 +12,11 @@ const GitHubStarButton = () => {
                         Accept: "application/vnd.github.v3.star+json",
                     }
                 })
-                const data = await res.json()
-                setStarCount(data.stargazers_count)
+                if (!res.ok) return
+                const count = (await res.json())?.stargazers_count
+                if (typeof count === "number" && Number.isSafeInteger(count) && count >= 0) {
+                    setStarCount(count)
+                }
             } catch (error) {
                 console.error('Failed to fetch GitHub star', error)
             }
