@@ -1,3 +1,4 @@
+import { isIPv6 } from "node:net";
 import { githubIpRanges } from "./github-ip-ranges.js";
 
 const HOUR_MS = 60 * 60 * 1000;
@@ -36,13 +37,10 @@ export const SIMILAR_REPOS_RATE_LIMIT_MESSAGE =
 export const STARRED_SIMILAR_REPOS_RATE_LIMIT_MESSAGE =
   "You've reached the increased limit for similar-repositories lookups. Please try again later.";
 
-// The window buckets per rate-limit key. We only keep events for the daily window
-// since it is the largest; the hourly total is derived from the same list.
+// Repository fetches by IPv4 address or IPv6 /64.
 const ipEvents = new Map<string, { ts: number; count: number }[]>();
 
-// Request timestamps for the /similar-repos endpoints, keyed by IP or GitHub user
-// ID. Only kept for the daily window; the hourly total is derived from the same
-// list.
+// Similar-repo requests by IP bucket or GitHub user ID.
 const similarRepoEvents = new Map<string, number[]>();
 
 // --- Whitelist ---
@@ -56,6 +54,28 @@ export function isGithubCamoUserAgent(userAgent: string | undefined): boolean {
 }
 
 // --- Core limit logic ---
+
+export function ipBucket(ip: string): string {
+  if (!isIPv6(ip)) return ip;
+
+  const address = new URL(`http://[${ip.split("%", 1)[0]}]`).hostname.slice(1, -1);
+  const mapped = /^::ffff:([\da-f]+):([\da-f]+)$/.exec(address);
+  if (mapped) {
+    return mapped.slice(1).flatMap((group) => {
+      const word = parseInt(group, 16);
+      return [word >> 8, word & 255];
+    }).join(".");
+  }
+
+  // Expand omitted zero groups before retaining the first 64 bits.
+  const [head, tail] = address.split("::");
+  const groups = head ? head.split(":") : [];
+  if (tail !== undefined) {
+    const suffix = tail ? tail.split(":") : [];
+    groups.push(...Array(8 - groups.length - suffix.length).fill("0"), ...suffix);
+  }
+  return `${groups.slice(0, 4).join(":")}::/64`;
+}
 
 function pruneOld(events: { ts: number; count: number }[]): { ts: number; count: number }[] {
   const cutoff = Date.now() - DAY_MS;
@@ -79,9 +99,10 @@ function sumSince(events: { ts: number; count: number }[], since: number): numbe
  */
 export function tryFetchRepos(ip: string, count: number): boolean {
   const now = Date.now();
-  const events = ipEvents.get(ip) ?? [];
+  const key = ipBucket(ip);
+  const events = ipEvents.get(key) ?? [];
   const pruned = pruneOld(events);
-  ipEvents.set(ip, pruned);
+  ipEvents.set(key, pruned);
 
   if (count <= 0) return true;
 
@@ -100,11 +121,11 @@ export function tryFetchRepos(ip: string, count: number): boolean {
 /**
  * Register an attempt to fetch similar repos for the given rate-limit key.
  * Returns true if allowed (consuming the quota) or false if it would exceed a limit.
- * Whitelisted IPs are handled by the caller and never reach here. Starred users
- * (`isStarred`) get a higher quota. The key is an IP for anonymous requests and
- * a GitHub user ID for authenticated requests.
+ * Known stargazers get a higher quota.
  */
-export function tryFetchSimilarRepos(key: string, isStarred = false): boolean {
+export function tryFetchSimilarRepos(client: { ip: string } | { githubUserId: string }): boolean {
+  const isStarred = "githubUserId" in client;
+  const key = isStarred ? `github:${client.githubUserId}` : `ip:${ipBucket(client.ip)}`;
   const now = Date.now();
   const events = (similarRepoEvents.get(key) ?? []).filter((ts) => now - ts < DAY_MS);
   similarRepoEvents.set(key, events);

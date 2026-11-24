@@ -70,7 +70,7 @@ const SVG_HEADERS = {
 
 const SIMILAR_REPOS_ERROR_HEADER = "X-SimRepo-Error";
 
-// Applies per-IP rate limiting based on the number of repos being fetched.
+// Limits by IPv4 address or IPv6 /64 based on the number of repos being fetched.
 // The IP is read from the X-Real-IP header (set by the reverse proxy). Whitelisted
 // IPs (e.g. GitHub's CDN proxies) are never limited. Returns a 429 Response when
 // the limit is exceeded, otherwise null. Note: the numeric limits are deliberately
@@ -97,13 +97,13 @@ async function checkSimilarReposAccess(c: Context): Promise<SimilarReposAccess |
   const cachedStarred = isCachedGithubUserStarred(githubUserId);
   let isStarred = cachedStarred;
 
-  if (cachedStarred) {
-    if (!tryFetchSimilarRepos(`github:${githubUserId}`, true)) {
+  if (githubUserId && cachedStarred) {
+    if (!tryFetchSimilarRepos({ githubUserId })) {
       return c.text(STARRED_SIMILAR_REPOS_RATE_LIMIT_MESSAGE, 429, {
         [SIMILAR_REPOS_ERROR_HEADER]: "rate-limited",
       });
     }
-  } else if (ip && !whitelisted && !tryFetchSimilarRepos(`ip:${ip}`, false)) {
+  } else if (ip && !whitelisted && !tryFetchSimilarRepos({ ip })) {
     return c.text(SIMILAR_REPOS_RATE_LIMIT_MESSAGE, 429, {
       [SIMILAR_REPOS_ERROR_HEADER]: "star-required-rate-limit",
     });
@@ -277,8 +277,7 @@ const startServer = async () => {
   // and a "page" query param selects which page to fetch (page 1 by default).
   // Unstarred or anonymous requests may only query the first page. Users who
   // starred SimRepo may paginate through all results and get a higher quota.
-  // Anonymous requests are rate-limited by IP; requests carrying a GitHub user ID
-  // are rate-limited by that ID once it is known in the stargazer cache.
+  // Limits are per IP bucket, or per GitHub user ID for known stargazers.
   app.get("/similar-repos", async (c) => {
     const repo = (c.req.query("repo") ?? "").trim();
     if (!repo) {

@@ -52,7 +52,7 @@ COPY backend/ ./backend/
 # Mount this directory into your nginx documents root.
 COPY --from=frontend-build /build/frontend/out /app/www
 
-# Backend API port
+# Backend API port. The trusted proxy must overwrite X-Real-IP.
 EXPOSE 8080
 
 # NOTE: the repo dataset is large and gitignored, so bind-mount it at runtime:
