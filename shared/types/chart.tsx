@@ -24,6 +24,7 @@ export interface RepoData extends RepoStarData {
 // of -1 means the axis has no data and should be omitted from the radar.
 export interface RepoMeta {
     owner: string
+    // Official count reported by GitHub.
     stars_total: number
     description: string | null
     language: string | null
@@ -37,7 +38,10 @@ export interface RepoMeta {
     topics: string[]
     rank: number
     total_repos: number
+    // Crawler trust score (0-1), null for unscored repos. Not a share of stars.
+    trust_p: number | null
     attributes: RepoRadarAttributes
+    // raw.stars is the crawler's corrected count; raw.trust is on a 0-100 scale.
     raw: RepoRadarAttributes
     // Accurate "top N %" (0-100) per axis, derived from axis_percentiles.
     // A key is absent when the repo's value isn't covered by the table.
@@ -51,6 +55,7 @@ export interface RepoRadarAttributes {
     open_issues: number
     size: number
     pushes: number
+    trust: number
 }
 
 // A similar repository recommendation, served from the similar_repos table.

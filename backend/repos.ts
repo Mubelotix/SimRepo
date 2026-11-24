@@ -5,17 +5,17 @@ import path from "node:path";
 import type { RepoData, RepoMeta, RepoRadarAttributes, SimilarRepo, StarRecord } from "../shared/types/chart";
 import { buildRepoSummary, type RepoSummaryFacts, type RepoSummary } from "../shared/common/repo-summary.js";
 
-// Radar axes stored as raw columns in repos.sqlite, keyed by the RepoRadarAttributes
-// field they populate. `pushes`/`issues_closed` are intentionally excluded as
-// unreliable, and `contributors` is entirely -1 (missing).
-const RADAR_COLS: Record<keyof RepoRadarAttributes, string> = {
+// Radar columns with dataset-wide percentiles. Trust uses its score directly.
+type RankedAxis = Exclude<keyof RepoRadarAttributes, "trust">;
+const RADAR_COLS = {
   stars: "stars",
   new_stars: "new_stars",
   forks: "forks",
   open_issues: "open_issues_count",
   size: "size",
   pushes: "pushes",
-};
+} as const satisfies Record<RankedAxis, keyof RepoRow>;
+const RANKED_AXES = Object.keys(RADAR_COLS) as RankedAxis[];
 
 // repos.sqlite sits at the repo root (one level above this backend/ dir).
 const DB_PATH = path.join(process.cwd(), "..", "repos.sqlite");
@@ -158,18 +158,16 @@ function topPercentile(
   return Math.max(1, Math.round(topN));
 }
 
-type RawRow = Pick<RepoRow, "stars" | "new_stars" | "forks" | "open_issues_count" | "size" | "pushes">;
-
 function buildAttributes(
   db: DatabaseSync,
-  row: RawRow
+  row: RepoRow
 ): { attributes: RepoRadarAttributes; raw: RepoRadarAttributes } {
   const maxes = getRadarMaxes(db);
-  const raw = {} as RepoRadarAttributes;
-  const attributes = {} as RepoRadarAttributes;
-  for (const key of Object.keys(RADAR_COLS) as (keyof RepoRadarAttributes)[]) {
+  const raw = { trust: row.trust_p === null ? -1 : 100 * row.trust_p } as RepoRadarAttributes;
+  const attributes = { trust: row.trust_p === null ? -1 : 99 * row.trust_p } as RepoRadarAttributes;
+  for (const key of RANKED_AXES) {
     const col = RADAR_COLS[key];
-    const value = row[col as keyof RawRow] as number;
+    const value = row[col];
     raw[key] = value;
     // `pushes` is days-since-last-push (recency), scored differently from counts.
     attributes[key] =
@@ -201,6 +199,7 @@ interface RepoRow {
   pushes: number;
   rank: number;
   total_repos: number;
+  trust_p: number | null;
 }
 
 export interface RepoStarResult {
@@ -219,7 +218,7 @@ export function fetchRepoData(repos: string[]): RepoStarResult {
   const select = `
     SELECT id, name, logo_url, points, owner, stars_total, description, language, license,
            homepage, forks_count, open_issues_count, created_at, archived, size,
-           topics, stars, new_stars, forks, pushes, rank, total_repos
+           topics, stars, new_stars, forks, pushes, rank, total_repos, trust_p
     FROM repos
   `;
   const stmt = d.prepare(`${select} WHERE lower(name) = lower(?)`);
@@ -242,7 +241,7 @@ export function fetchRepoData(repos: string[]): RepoStarResult {
     }
     const { attributes, raw } = buildAttributes(d, row);
     const percentiles: Partial<Record<keyof RepoRadarAttributes, number>> = {};
-    for (const key of Object.keys(RADAR_COLS) as (keyof RepoRadarAttributes)[]) {
+    for (const key of RANKED_AXES) {
       const p = topPercentile(d, key, raw[key]);
       if (p !== undefined) percentiles[key] = p;
     }
@@ -261,6 +260,7 @@ export function fetchRepoData(repos: string[]): RepoStarResult {
       topics: parseTopics(row.topics),
       rank: row.rank,
       total_repos: row.total_repos,
+      trust_p: row.trust_p,
       attributes,
       raw,
       percentiles,

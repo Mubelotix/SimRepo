@@ -21,7 +21,7 @@ test("repository IDs resolve current names and fetch the same chart data as name
       topics TEXT DEFAULT '[]', stars INTEGER DEFAULT 0,
       new_stars INTEGER DEFAULT 0, forks INTEGER DEFAULT 0,
       pushes INTEGER DEFAULT 0, rank INTEGER DEFAULT 1,
-      total_repos INTEGER DEFAULT 1
+      total_repos INTEGER DEFAULT 1, trust_p REAL
     );
     CREATE TABLE axis_percentiles (axis TEXT, value INTEGER, count_le INTEGER);
     CREATE TABLE similar_repos (repo INTEGER, similar_repo INTEGER, score BLOB);
@@ -39,6 +39,11 @@ test("repository IDs resolve current names and fetch the same chart data as name
   db.prepare("UPDATE repos SET points = ? WHERE id = 125").run(gzipSync(points));
   db.prepare("INSERT INTO repos (id, name, points) VALUES (?, ?, ?)")
     .run(126, "owner/insufficient-history", gzipSync(points.subarray(0, 4 * 8)));
+  const insertScoredRepo = db.prepare(
+    "INSERT INTO repos (name, points, stars_total, stars, trust_p) VALUES (?, ?, ?, ?, ?)"
+  );
+  insertScoredRepo.run("owner/high-trust", gzipSync(points), 1000, 900, 1);
+  insertScoredRepo.run("owner/low-trust", gzipSync(points), 1000, 250, 0.005);
   const score = Buffer.alloc(4);
   score.writeFloatLE(1);
   db.prepare("INSERT INTO similar_repos (repo, similar_repo, score) VALUES (?, ?, ?)")
@@ -66,6 +71,19 @@ test("repository IDs resolve current names and fetch the same chart data as name
   assert.deepEqual(fetchRepoData(["123"]), fetchRepoData(["new-owner/renamed"]));
   assert.equal(fetchRepoData(["123"]).found[0].repo, "new-owner/renamed");
   assert.deepEqual(fetchRepoData(["999", "missing/repo"]).missing, ["999", "missing/repo"]);
+
+  const [low, high, unscored] = fetchRepoData(["owner/low-trust", "owner/high-trust", "123"]).found.map(({ meta }) => meta!);
+  assert.equal(low.trust_p, 0.005);
+  assert.equal(low.stars_total, 1000);
+  assert.equal(low.raw.stars, 250);
+  assert.equal(low.raw.trust, 0.5);
+  assert.equal(low.attributes.trust, 0.495);
+  assert.equal(high.attributes.trust, 99);
+  assert.equal(unscored.trust_p, null);
+  assert.equal(unscored.attributes.trust, -1);
+  for (const { percentiles } of [low, high, unscored]) {
+    assert.equal(percentiles.trust, undefined);
+  }
 
   const ranked = Array.from({ length: 11 }, (_, i) => `ranked/repo-${String(i).padStart(2, "0")}`);
   const unknown = Array.from({ length: 11 }, (_, i) => `other/unknown-${String(i).padStart(2, "0")}`);
