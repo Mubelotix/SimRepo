@@ -51,7 +51,8 @@ export default function TrustNotice({ meta }: { meta: RepoMeta }) {
     if (!tier) return null
     const Icon = tier.icon
     const corrected = meta.raw.stars
-    const showCorrection = trust < 0.25 && corrected != null && corrected >= 0 && corrected < meta.stars_total
+    const showCorrection =
+        trust < 0.25 && corrected != null && corrected >= 0 && meta.stars_total != null && corrected !== meta.stars_total
 
     return (
         <div className={`w-full rounded-lg border px-3 py-2 ${tier.box}`}>

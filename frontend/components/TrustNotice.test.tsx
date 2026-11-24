@@ -34,3 +34,7 @@ test("Average is gray, unscored repos have no notice, and unchanged counts are n
     assert.doesNotMatch(notice(0.1, 459247), /corrected stars/)
     assert.match(notice(0.001, 0), /0 corrected stars/)
 })
+
+test("a correction can be higher than GitHub's count", () => {
+    assert.match(notice(0.1, 460000), /460k corrected stars/)
+})
