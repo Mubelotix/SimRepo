@@ -21,7 +21,23 @@ export const getRepoData = async (repos: string[]): Promise<RepoDataResult> => {
         `${REPO_DATA_API_URL}/repo-data?repos=${encodeURIComponent(repos.join(","))}`,
         { signal: AbortSignal.timeout(15000) }
     )
-    const data = await res.json()
+
+    if (!res.ok) {
+        // Preserve the status and body for the UI's error handler.
+        const body = await res.text().catch(() => "")
+        const error = new Error(body || `Request failed with status ${res.status}`) as Error & {
+            response?: { status: number; data: string }
+        }
+        error.response = { status: res.status, data: body }
+        throw error
+    }
+
+    let data: { data?: RepoData[]; missing?: string[] }
+    try {
+        data = await res.json()
+    } catch {
+        throw new Error("The server returned an unexpected response. Please try again later.")
+    }
 
     const found: RepoData[] = data?.data ?? []
     const missing: string[] = data?.missing ?? []

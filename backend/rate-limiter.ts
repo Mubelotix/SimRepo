@@ -21,12 +21,9 @@ const MAX_SIMILAR_REPOS_PER_DAY_STARRED = 100;
 // Human-readable message sent when a non-whitelisted client is throttled.
 // Deliberately avoids exposing the exact numeric limits.
 export const RATE_LIMIT_MESSAGE =
-  "We're a new project with limited resources and we're getting a lot of traffic " +
-  "right now, so we had to temporarily reduce how much data a single visitor can " +
-  "receive. Please consider sponsoring us at https://github.com/sponsors/Mubelotix " +
-  "so we can keep the lights on and scale up. Note: requests made through GitHub's " +
-  "CDN proxies are not rate-limited, so it's safe to embed chart images directly in " +
-  "your READMEs.";
+  "You've hit the per-visitor limit for loading repository data. We apply a small " +
+  "temporary limit so the service stays fast and available for everyone; it resets " +
+  "automatically, so please try again shortly.";
 
 // Message sent when a client is throttled on /similar-repos. Deliberately avoids
 // exposing the exact limits.
