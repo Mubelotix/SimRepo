@@ -1,6 +1,7 @@
 import React from "react"
 import { FaSkullCrossbones, FaTriangleExclamation, FaCircleExclamation, FaCircleCheck, FaCircleInfo } from "react-icons/fa6"
 import type { RepoMeta } from "@shared/types/chart"
+import { SUSPICIOUS_TRUST_THRESHOLD } from "@shared/common/trust"
 import { formatNumber, formatTrustScore } from "../helpers/format"
 
 interface TierConfig {
@@ -31,7 +32,7 @@ const TIERS: TierConfig[] = [
         box: "bg-gray-50 border-gray-300 text-gray-900",
     },
     {
-        min: 0.01,
+        min: SUSPICIOUS_TRUST_THRESHOLD,
         label: "Low",
         icon: FaTriangleExclamation,
         box: "bg-orange-100 border-orange-400 text-orange-900",

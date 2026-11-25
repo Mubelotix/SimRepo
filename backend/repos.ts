@@ -4,6 +4,7 @@ import { statSync } from "node:fs";
 import path from "node:path";
 import type { RepoData, RepoMeta, RepoRadarAttributes, SimilarRepo, StarRecord } from "../shared/types/chart";
 import { buildRepoSummary, type RepoSummaryFacts, type RepoSummary } from "../shared/common/repo-summary.js";
+import { SUSPICIOUS_TRUST_THRESHOLD } from "../shared/common/trust.js";
 
 // Radar columns with dataset-wide percentiles. Trust uses its score directly.
 type RankedAxis = Exclude<keyof RepoRadarAttributes, "trust">;
@@ -647,6 +648,15 @@ export interface LeaderboardData {
  * top repos by recent star growth ("Weekly"), plus a random sample. All read
  * from repos.sqlite.
  */
+// Date of the last DB refresh, shown as the "Updated" label on leaderboards.
+function dbUpdatedAt(): string {
+  try {
+    return new Date(statSync(DB_PATH).mtime).toISOString().slice(0, 10);
+  } catch {
+    return new Date().toISOString().slice(0, 10);
+  }
+}
+
 export function fetchLeaderboard(limit = 20): LeaderboardData {
   const d = getDb();
 
@@ -660,15 +670,8 @@ export function fetchLeaderboard(limit = 20): LeaderboardData {
     "SELECT name, stars_total, new_stars, logo_url FROM repos WHERE rowid = ?"
   );
 
-  let updated_at: string;
-  try {
-    updated_at = new Date(statSync(DB_PATH).mtime).toISOString().slice(0, 10);
-  } catch {
-    updated_at = new Date().toISOString().slice(0, 10);
-  }
-
   return {
-    updated_at,
+    updated_at: dbUpdatedAt(),
     all_time: allTimeStmt.all(limit).map((r) => ({
       name: String(r.name),
       stars_total: Number(r.stars_total),
@@ -682,6 +685,59 @@ export function fetchLeaderboard(limit = 20): LeaderboardData {
       logo_url: String(r.logo_url),
     })),
     random: randomLeaderboard(d, randomStmt, limit),
+  };
+}
+
+// Minimum total (claimed) star count for a repo to appear in the suspicious
+// leaderboard: below this the repo isn't noteworthy enough to list.
+export const SUSPICIOUS_MIN_STARS = 500;
+
+export interface SuspiciousLeaderboardEntry {
+  name: string;
+  stars_total: number;
+  stars: number; // crawler-corrected star count (raw.stars in repo meta)
+  trust_p: number;
+  logo_url: string;
+}
+
+export interface SuspiciousLeaderboardData {
+  updated_at: string;
+  suspicious: SuspiciousLeaderboardEntry[];
+}
+
+/**
+ * Complete leaderboard of every scored repo in the "Suspicious" trust tier
+ * (trust_p strictly below SUSPICIOUS_TRUST_THRESHOLD) with more than
+ * SUSPICIOUS_MIN_STARS total stars, most suspicious first; ties break towards
+ * the repo with the most total stars. Unlike fetchLeaderboard the list is NOT
+ * truncated, so callers must memoize it: the trust_p filter is a full scan of
+ * the unindexed repos table.
+ */
+export function fetchSuspiciousLeaderboard(): SuspiciousLeaderboardData {
+  const d = getDb();
+  const rows = d
+    .prepare(
+      `SELECT name, stars_total, stars, trust_p, logo_url FROM repos
+       WHERE trust_p IS NOT NULL AND trust_p < ? AND stars_total > ?
+       ORDER BY trust_p ASC, stars_total DESC`
+    )
+    .all(SUSPICIOUS_TRUST_THRESHOLD, SUSPICIOUS_MIN_STARS) as {
+    name: string;
+    stars_total: number;
+    stars: number;
+    trust_p: number;
+    logo_url: string | null;
+  }[];
+
+  return {
+    updated_at: dbUpdatedAt(),
+    suspicious: rows.map((r) => ({
+      name: String(r.name),
+      stars_total: Number(r.stars_total),
+      stars: Number(r.stars),
+      trust_p: Number(r.trust_p),
+      logo_url: r.logo_url || `https://github.com/${String(r.name).split("/")[0]}.png?size=64`,
+    })),
   };
 }
 

@@ -4,7 +4,7 @@ import { REPO_DATA_API_URL } from "@shared/common/config"
 import { formatNumber } from "../helpers/format"
 import { buildRepoHref } from "../helpers/urls"
 
-type Tab = "weekly" | "alltime" | "random"
+type Tab = "weekly" | "alltime" | "random" | "suspicious"
 
 interface LeaderboardEntry {
     name: string
@@ -20,16 +20,32 @@ interface LeaderboardData {
     random: LeaderboardEntry[]
 }
 
+interface SuspiciousLeaderboardEntry {
+    name: string
+    stars_total: number
+    stars: number
+    trust_p: number
+    logo_url: string
+}
+
+interface SuspiciousLeaderboardData {
+    updated_at: string
+    suspicious: SuspiciousLeaderboardEntry[]
+}
+
 const tabs: { key: Tab; label: string }[] = [
     { key: "weekly", label: "Weekly" },
     { key: "alltime", label: "All-time" },
     { key: "random", label: "Random" },
+    { key: "suspicious", label: "Suspicious" },
 ]
 
 const LeftSidebar: React.FC = () => {
     const [activeTab, setActiveTab] = useState<Tab>("weekly")
     const [data, setData] = useState<LeaderboardData | null>(null)
     const [failed, setFailed] = useState(false)
+    const [suspiciousData, setSuspiciousData] = useState<SuspiciousLeaderboardData | null>(null)
+    const [suspiciousFailed, setSuspiciousFailed] = useState(false)
     const store = useAppStore()
 
     useEffect(() => {
@@ -37,6 +53,7 @@ const LeftSidebar: React.FC = () => {
         const load = async () => {
             try {
                 const res = await fetch(`${REPO_DATA_API_URL}/leaderboard`)
+                if (!res.ok) throw new Error(`Leaderboard request failed with status ${res.status}`)
                 const data = await res.json()
                 if (!disposed) setData(data)
             } catch {
@@ -49,29 +66,33 @@ const LeftSidebar: React.FC = () => {
         }
     }, [])
 
+    // The suspicious leaderboard is complete rather than a top-N, so fetch it
+    // lazily, only when its tab is opened.
+    useEffect(() => {
+        if (activeTab !== "suspicious" || suspiciousData || suspiciousFailed) return
+        let disposed = false
+        const load = async () => {
+            try {
+                const res = await fetch(`${REPO_DATA_API_URL}/leaderboard/suspicious`)
+                if (!res.ok) throw new Error(`Suspicious leaderboard request failed with status ${res.status}`)
+                const data = await res.json()
+                if (!disposed) setSuspiciousData(data)
+            } catch {
+                if (!disposed) setSuspiciousFailed(true)
+            }
+        }
+        load()
+        return () => {
+            disposed = true
+        }
+    }, [activeTab, suspiciousData, suspiciousFailed])
+
     const handleClick = (e: React.MouseEvent, repoName: string) => {
         e.preventDefault()
         store.actions.setRepos([repoName])
     }
 
-    if (failed) {
-        return (
-            <div className="sidebar-sticky">
-                <div className="pt-4">
-                    <div className="flex justify-center gap-4 mb-3">
-                        <span className="text-xs font-medium pb-1 border-b-2 text-gray-900 border-gray-900">
-                            Leaderboard
-                        </span>
-                    </div>
-                    <div className="text-xs text-gray-500 leading-relaxed">
-                        <p>Couldn&apos;t load the leaderboard.</p>
-                    </div>
-                </div>
-            </div>
-        )
-    }
-
-    const items =
+    const items: { name: string; logo_url: string; metric: string; metricClass: string }[] =
         activeTab === "weekly"
             ? (data?.weekly ?? []).map((r) => ({
                   name: r.name,
@@ -81,6 +102,13 @@ const LeftSidebar: React.FC = () => {
               }))
             : activeTab === "random"
             ? (data?.random ?? []).map((r) => ({
+                  name: r.name,
+                  logo_url: r.logo_url,
+                  metric: formatNumber(r.stars_total),
+                  metricClass: "text-gray-400",
+              }))
+            : activeTab === "suspicious"
+            ? (suspiciousData?.suspicious ?? []).map((r) => ({
                   name: r.name,
                   logo_url: r.logo_url,
                   metric: formatNumber(r.stars_total),
@@ -96,12 +124,12 @@ const LeftSidebar: React.FC = () => {
     return (
         <div className="sidebar-sticky">
             <div className="pt-4">
-                <div className="flex justify-center gap-4 mb-3">
+                <div className="flex justify-center gap-3 mb-3">
                     {tabs.map((tab) => (
                         <button
                             key={tab.key}
                             onClick={() => setActiveTab(tab.key)}
-                            className={`text-xs font-medium pb-1 border-b-2 transition-colors ${
+                            className={`text-xs font-medium pb-1 border-b-2 transition-colors whitespace-nowrap shrink-0 ${
                                 activeTab === tab.key
                                     ? "text-gray-900 border-gray-900"
                                     : "text-gray-400 border-transparent hover:text-gray-600"
@@ -111,7 +139,20 @@ const LeftSidebar: React.FC = () => {
                         </button>
                     ))}
                 </div>
-                <ol className="space-y-0.5">
+                {activeTab === "suspicious" && (
+                    <p className="text-[11px] text-gray-400 leading-relaxed mb-2">
+                        Stars can be faked. This leaderboard lists repositories whose growth looks botted
+                        or artificial, most suspicious first. Before relying on a project&apos;s popularity,
+                        check its contributors, commits and releases. Trust scores are statistical
+                        estimates, not verdicts.
+                    </p>
+                )}
+                {failed && activeTab !== "suspicious" ? (
+                    <div className="text-xs text-gray-500 leading-relaxed">
+                        <p>Couldn&apos;t load the leaderboard.</p>
+                    </div>
+                ) : (
+                <ol className={`space-y-0.5 ${activeTab === "suspicious" ? "max-h-[70vh] overflow-y-auto pr-1" : ""}`}>
                         {items.map((item, i) => {
                             const repoName = item.name.split("/")[1] ?? item.name
                             return (
@@ -131,10 +172,9 @@ const LeftSidebar: React.FC = () => {
                                             height={16}
                                             className="rounded-full shrink-0"
                                         />
-                                        <span className="truncate text-gray-700 group-hover:text-blue-600">
+                                        <span className="flex-1 min-w-0 truncate text-gray-700 group-hover:text-blue-600">
                                             {repoName}
                                         </span>
-                                        <span className="flex-1 min-w-0" />
                                         <span className={`text-xs shrink-0 ${item.metricClass}`}>
                                             {item.metric}
                                         </span>
@@ -146,7 +186,13 @@ const LeftSidebar: React.FC = () => {
                             )
                         })}
                     </ol>
-                {data && <p className="text-[10px] text-gray-300 mt-3">Updated {data.updated_at}</p>}
+                )}
+                {activeTab === "suspicious" && suspiciousFailed && !suspiciousData && (
+                    <p className="text-xs text-gray-500 mt-1">Couldn&apos;t load the suspicious repos.</p>
+                )}
+                {(data ?? suspiciousData) && (
+                    <p className="text-[10px] text-gray-300 mt-3">Updated {(data ?? suspiciousData)!.updated_at}</p>
+                )}
             </div>
         </div>
     )

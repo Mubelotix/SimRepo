@@ -34,11 +34,13 @@ import {
   fetchTrustedBy,
   selectTrustedByRepos,
   fetchLeaderboard,
+  fetchSuspiciousLeaderboard,
   fetchSimilarRepos,
   fetchBatchSimilarRepos,
   resolveRepoId,
   resolveRepoName,
   type LeaderboardData,
+  type SuspiciousLeaderboardData,
 } from "./repos.js";
 import { parseChartStyle } from "../shared/packages/chart-style.js";
 import {
@@ -361,6 +363,28 @@ const startServer = async () => {
   app.get("/leaderboard", (c) => {
     return c.json(
       getLeaderboard(),
+      200,
+      { "Cache-Control": "public, s-maxage=600, max-age=600" }
+    );
+  });
+
+  // Complete suspicious-repos leaderboard: every scored repo below the
+  // "Suspicious" trust threshold, most suspicious first (no top-N cutoff).
+  // The trust filter is a full scan of the unindexed repos table, so memoize
+  // it like /leaderboard, and keep it on its own route so the sidebar can
+  // fetch the (potentially long) list lazily instead of on every page load.
+  let suspiciousCache: { data: SuspiciousLeaderboardData; at: number } | null = null;
+  const getSuspiciousLeaderboard = (): SuspiciousLeaderboardData => {
+    const now = Date.now();
+    if (!suspiciousCache || now - suspiciousCache.at > 10 * 60 * 1000) {
+      suspiciousCache = { data: fetchSuspiciousLeaderboard(), at: now };
+    }
+    return suspiciousCache.data;
+  };
+
+  app.get("/leaderboard/suspicious", (c) => {
+    return c.json(
+      getSuspiciousLeaderboard(),
       200,
       { "Cache-Control": "public, s-maxage=600, max-age=600" }
     );
